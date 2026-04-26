@@ -111,3 +111,16 @@ def test_transformer_language_model_rejects_too_long_context() -> None:
 
     with pytest.raises(ValueError, match="expected time dimension"):
         model(torch.tensor([[0, 1, 2, 3]]))
+
+
+def test_transformer_language_model_rejects_non_positive_temperature() -> None:
+    model = TransformerLanguageModel(
+        vocab_size=5,
+        block_size=3,
+        embedding_dim=4,
+        num_heads=2,
+        num_layers=2,
+    )
+
+    with pytest.raises(ValueError, match="temperature"):
+        model.generate(torch.tensor([[0]]), max_new_tokens=1, temperature=0)

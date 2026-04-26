@@ -6,7 +6,12 @@ from llm.models.attention import (
 )
 from llm.models.bigram import BigramLanguageModel
 from llm.models.mlp import MLPLanguageModel
-from llm.models.transformer import FeedForward, TransformerBlock, TransformerLanguageModel
+from llm.models.transformer import (
+    FeedForward,
+    TransformerBlock,
+    TransformerConfig,
+    TransformerLanguageModel,
+)
 
 __all__ = [
     "BigramLanguageModel",
@@ -17,5 +22,6 @@ __all__ = [
     "SelfAttentionHead",
     "SingleHeadAttentionLanguageModel",
     "TransformerBlock",
+    "TransformerConfig",
     "TransformerLanguageModel",
 ]

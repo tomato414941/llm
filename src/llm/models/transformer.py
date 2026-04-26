@@ -1,8 +1,26 @@
+from dataclasses import asdict, dataclass
+
 import torch
 from torch import nn
 from torch.nn import functional as F
 
 from llm.models.attention import MultiHeadAttention
+
+
+@dataclass(frozen=True)
+class TransformerConfig:
+    vocab_size: int
+    block_size: int
+    embedding_dim: int
+    num_heads: int
+    num_layers: int
+
+    @classmethod
+    def from_dict(cls, data: dict[str, int]) -> "TransformerConfig":
+        return cls(**data)
+
+    def to_dict(self) -> dict[str, int]:
+        return asdict(self)
 
 
 class FeedForward(nn.Module):
@@ -41,30 +59,24 @@ class TransformerBlock(nn.Module):
 
 
 class TransformerLanguageModel(nn.Module):
-    def __init__(
-        self,
-        vocab_size: int,
-        block_size: int,
-        embedding_dim: int,
-        num_heads: int,
-        num_layers: int,
-    ) -> None:
+    def __init__(self, config: TransformerConfig) -> None:
         super().__init__()
-        self.block_size = block_size
-        self.token_embedding_table = nn.Embedding(vocab_size, embedding_dim)
-        self.position_embedding_table = nn.Embedding(block_size, embedding_dim)
+        self.config = config
+        self.block_size = config.block_size
+        self.token_embedding_table = nn.Embedding(config.vocab_size, config.embedding_dim)
+        self.position_embedding_table = nn.Embedding(config.block_size, config.embedding_dim)
         self.blocks = nn.Sequential(
             *[
                 TransformerBlock(
-                    embedding_dim=embedding_dim,
-                    num_heads=num_heads,
-                    block_size=block_size,
+                    embedding_dim=config.embedding_dim,
+                    num_heads=config.num_heads,
+                    block_size=config.block_size,
                 )
-                for _ in range(num_layers)
+                for _ in range(config.num_layers)
             ]
         )
-        self.final_layer_norm = nn.LayerNorm(embedding_dim)
-        self.lm_head = nn.Linear(embedding_dim, vocab_size)
+        self.final_layer_norm = nn.LayerNorm(config.embedding_dim)
+        self.lm_head = nn.Linear(config.embedding_dim, config.vocab_size)
 
     def forward(
         self, idx: torch.Tensor, targets: torch.Tensor | None = None

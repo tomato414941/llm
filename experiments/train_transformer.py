@@ -3,7 +3,7 @@ from pathlib import Path
 
 import torch
 
-from llm.models import TransformerLanguageModel
+from llm.models import TransformerConfig, TransformerLanguageModel
 from llm.tokenizer import CharTokenizer
 from llm.training import estimate_loss, get_batch
 
@@ -47,13 +47,14 @@ def main() -> None:
     if len(train_data) <= args.block_size or len(val_data) <= args.block_size:
         raise ValueError("input text is too small for the requested block size")
 
-    model = TransformerLanguageModel(
+    config = TransformerConfig(
         vocab_size=tokenizer.vocab_size,
         block_size=args.block_size,
         embedding_dim=args.embedding_dim,
         num_heads=args.num_heads,
         num_layers=args.num_layers,
     )
+    model = TransformerLanguageModel(config)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
 
     for step in range(args.max_iters):
@@ -84,4 +85,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

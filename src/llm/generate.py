@@ -4,7 +4,7 @@ from typing import Any
 
 import torch
 
-from llm.models import TransformerLanguageModel
+from llm.models import TransformerConfig, TransformerLanguageModel
 from llm.tokenizer import CharTokenizer
 
 
@@ -16,8 +16,8 @@ def load_checkpoint(path: Path) -> tuple[TransformerLanguageModel, CharTokenizer
         stoi={char: index for index, char in enumerate(chars)},
         itos={index: char for index, char in enumerate(chars)},
     )
-    config = checkpoint["config"]
-    model = TransformerLanguageModel(**config)
+    config = TransformerConfig.from_dict(checkpoint["config"])
+    model = TransformerLanguageModel(config)
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
     return model, tokenizer, checkpoint
@@ -54,4 +54,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -1,10 +1,9 @@
 import argparse
 from pathlib import Path
-from typing import Any
 
 import torch
 
-from llm.models import TransformerLanguageModel
+from llm.models import TransformerConfig, TransformerLanguageModel
 from llm.tokenizer import CharTokenizer
 from llm.training import estimate_loss, get_batch
 
@@ -17,7 +16,7 @@ def save_checkpoint(
     path: Path,
     model: TransformerLanguageModel,
     tokenizer: CharTokenizer,
-    config: dict[str, Any],
+    config: TransformerConfig,
     step: int,
     losses: dict[str, float],
 ) -> None:
@@ -26,7 +25,7 @@ def save_checkpoint(
         {
             "model_state_dict": model.state_dict(),
             "tokenizer_chars": tokenizer.chars,
-            "config": config,
+            "config": config.to_dict(),
             "step": step,
             "losses": losses,
         },
@@ -64,14 +63,14 @@ def main() -> None:
     if len(train_data) <= args.block_size or len(val_data) <= args.block_size:
         raise ValueError("input text is too small for the requested block size")
 
-    config = {
-        "vocab_size": tokenizer.vocab_size,
-        "block_size": args.block_size,
-        "embedding_dim": args.embedding_dim,
-        "num_heads": args.num_heads,
-        "num_layers": args.num_layers,
-    }
-    model = TransformerLanguageModel(**config)
+    config = TransformerConfig(
+        vocab_size=tokenizer.vocab_size,
+        block_size=args.block_size,
+        embedding_dim=args.embedding_dim,
+        num_heads=args.num_heads,
+        num_layers=args.num_layers,
+    )
+    model = TransformerLanguageModel(config)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
     latest_losses = {"train": float("nan"), "val": float("nan")}
 
@@ -122,4 +121,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -6,6 +6,7 @@ from llm.models import (
     MLPLanguageModel,
     MultiHeadAttentionLanguageModel,
     SingleHeadAttentionLanguageModel,
+    TransformerConfig,
     TransformerLanguageModel,
 )
 
@@ -84,13 +85,14 @@ def test_multi_head_attention_language_model_requires_even_head_split() -> None:
 
 
 def test_transformer_language_model_returns_sequence_logits_and_loss() -> None:
-    model = TransformerLanguageModel(
+    config = TransformerConfig(
         vocab_size=5,
         block_size=3,
         embedding_dim=4,
         num_heads=2,
         num_layers=2,
     )
+    model = TransformerLanguageModel(config)
     idx = torch.tensor([[0, 1, 2], [2, 3, 4]])
     targets = torch.tensor([[1, 2, 3], [3, 4, 0]])
 
@@ -101,20 +103,35 @@ def test_transformer_language_model_returns_sequence_logits_and_loss() -> None:
 
 
 def test_transformer_language_model_rejects_too_long_context() -> None:
-    model = TransformerLanguageModel(
+    config = TransformerConfig(
         vocab_size=5,
         block_size=3,
         embedding_dim=4,
         num_heads=2,
         num_layers=2,
     )
+    model = TransformerLanguageModel(config)
 
     with pytest.raises(ValueError, match="expected time dimension"):
         model(torch.tensor([[0, 1, 2, 3]]))
 
 
 def test_transformer_language_model_rejects_non_positive_temperature() -> None:
-    model = TransformerLanguageModel(
+    config = TransformerConfig(
+        vocab_size=5,
+        block_size=3,
+        embedding_dim=4,
+        num_heads=2,
+        num_layers=2,
+    )
+    model = TransformerLanguageModel(config)
+
+    with pytest.raises(ValueError, match="temperature"):
+        model.generate(torch.tensor([[0]]), max_new_tokens=1, temperature=0)
+
+
+def test_transformer_config_round_trips_dict() -> None:
+    config = TransformerConfig(
         vocab_size=5,
         block_size=3,
         embedding_dim=4,
@@ -122,5 +139,4 @@ def test_transformer_language_model_rejects_non_positive_temperature() -> None:
         num_layers=2,
     )
 
-    with pytest.raises(ValueError, match="temperature"):
-        model.generate(torch.tensor([[0]]), max_new_tokens=1, temperature=0)
+    assert TransformerConfig.from_dict(config.to_dict()) == config

@@ -12,6 +12,10 @@ def load_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def count_parameters(model: torch.nn.Module) -> int:
+    return sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad)
+
+
 def save_checkpoint(
     path: Path,
     model: TransformerLanguageModel,
@@ -19,6 +23,7 @@ def save_checkpoint(
     config: TransformerConfig,
     step: int,
     losses: dict[str, float],
+    metadata: dict[str, int | float | str],
 ) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
@@ -28,6 +33,7 @@ def save_checkpoint(
             "config": config.to_dict(),
             "step": step,
             "losses": losses,
+            "metadata": metadata,
         },
         path,
     )
@@ -73,6 +79,9 @@ def main() -> None:
         dropout=args.dropout,
     )
     model = TransformerLanguageModel(config)
+    parameter_count = count_parameters(model)
+    print(f"parameters: {parameter_count:,}")
+
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
     latest_losses = {"train": float("nan"), "val": float("nan")}
 
@@ -107,6 +116,13 @@ def main() -> None:
         config=config,
         step=args.max_iters - 1,
         losses=latest_losses,
+        metadata={
+            "input": str(args.input),
+            "max_iters": args.max_iters,
+            "batch_size": args.batch_size,
+            "learning_rate": args.learning_rate,
+            "parameter_count": parameter_count,
+        },
     )
     print(f"\ncheckpoint saved to {args.checkpoint}")
 

@@ -48,6 +48,8 @@ def main() -> None:
 
     print(f"checkpoint step: {checkpoint['step']}")
     print(f"losses: {checkpoint['losses']}")
+    if "metadata" in checkpoint:
+        print(f"metadata: {checkpoint['metadata']}")
     print("\n--- sample ---")
     print(tokenizer.decode(generated))
 

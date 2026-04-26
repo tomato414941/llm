@@ -45,6 +45,7 @@ def main() -> None:
     parser.add_argument("--embedding-dim", type=int, default=32)
     parser.add_argument("--num-heads", type=int, default=4)
     parser.add_argument("--num-layers", type=int, default=2)
+    parser.add_argument("--dropout", type=float, default=0.0)
     parser.add_argument("--learning-rate", type=float, default=1e-3)
     parser.add_argument("--generate-tokens", type=int, default=300)
     parser.add_argument("--temperature", type=float, default=1.0)
@@ -69,6 +70,7 @@ def main() -> None:
         embedding_dim=args.embedding_dim,
         num_heads=args.num_heads,
         num_layers=args.num_layers,
+        dropout=args.dropout,
     )
     model = TransformerLanguageModel(config)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)

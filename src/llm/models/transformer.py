@@ -14,22 +14,24 @@ class TransformerConfig:
     embedding_dim: int
     num_heads: int
     num_layers: int
+    dropout: float = 0.0
 
     @classmethod
-    def from_dict(cls, data: dict[str, int]) -> "TransformerConfig":
-        return cls(**data)
+    def from_dict(cls, data: dict[str, int | float]) -> "TransformerConfig":
+        return cls(**({"dropout": 0.0} | data))
 
-    def to_dict(self) -> dict[str, int]:
+    def to_dict(self) -> dict[str, int | float]:
         return asdict(self)
 
 
 class FeedForward(nn.Module):
-    def __init__(self, embedding_dim: int) -> None:
+    def __init__(self, embedding_dim: int, dropout: float = 0.0) -> None:
         super().__init__()
         self.network = nn.Sequential(
             nn.Linear(embedding_dim, 4 * embedding_dim),
             nn.ReLU(),
             nn.Linear(4 * embedding_dim, embedding_dim),
+            nn.Dropout(dropout),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -37,7 +39,13 @@ class FeedForward(nn.Module):
 
 
 class TransformerBlock(nn.Module):
-    def __init__(self, embedding_dim: int, num_heads: int, block_size: int) -> None:
+    def __init__(
+        self,
+        embedding_dim: int,
+        num_heads: int,
+        block_size: int,
+        dropout: float = 0.0,
+    ) -> None:
         super().__init__()
         if embedding_dim % num_heads != 0:
             raise ValueError("embedding_dim must be divisible by num_heads")
@@ -47,8 +55,9 @@ class TransformerBlock(nn.Module):
             num_heads=num_heads,
             head_size=embedding_dim // num_heads,
             block_size=block_size,
+            dropout=dropout,
         )
-        self.feed_forward = FeedForward(embedding_dim)
+        self.feed_forward = FeedForward(embedding_dim, dropout=dropout)
         self.layer_norm_1 = nn.LayerNorm(embedding_dim)
         self.layer_norm_2 = nn.LayerNorm(embedding_dim)
 
@@ -71,6 +80,7 @@ class TransformerLanguageModel(nn.Module):
                     embedding_dim=config.embedding_dim,
                     num_heads=config.num_heads,
                     block_size=config.block_size,
+                    dropout=config.dropout,
                 )
                 for _ in range(config.num_layers)
             ]

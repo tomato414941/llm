@@ -91,6 +91,7 @@ def test_transformer_language_model_returns_sequence_logits_and_loss() -> None:
         embedding_dim=4,
         num_heads=2,
         num_layers=2,
+        dropout=0.1,
     )
     model = TransformerLanguageModel(config)
     idx = torch.tensor([[0, 1, 2], [2, 3, 4]])
@@ -109,6 +110,7 @@ def test_transformer_language_model_rejects_too_long_context() -> None:
         embedding_dim=4,
         num_heads=2,
         num_layers=2,
+        dropout=0.1,
     )
     model = TransformerLanguageModel(config)
 
@@ -123,6 +125,7 @@ def test_transformer_language_model_rejects_non_positive_temperature() -> None:
         embedding_dim=4,
         num_heads=2,
         num_layers=2,
+        dropout=0.1,
     )
     model = TransformerLanguageModel(config)
 
@@ -137,6 +140,7 @@ def test_transformer_config_round_trips_dict() -> None:
         embedding_dim=4,
         num_heads=2,
         num_layers=2,
+        dropout=0.1,
     )
 
     assert TransformerConfig.from_dict(config.to_dict()) == config

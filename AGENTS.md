@@ -29,3 +29,8 @@
 - Main development happens on `main`.
 - Use small commits with English messages in `type: description` format.
 - Before large experiments or generated outputs, confirm `.gitignore` excludes them.
+
+## Environment Notes
+- `gh auth status` can report an invalid token inside the restricted sandbox even when the token is valid.
+- If GitHub auth looks invalid, verify once with network-enabled execution before re-authenticating.
+- GitHub operations that contact the network, such as `gh repo view`, `gh repo create`, and push, may require network-enabled execution.

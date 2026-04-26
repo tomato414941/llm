@@ -29,7 +29,7 @@ def save_checkpoint(
     torch.save(
         {
             "model_state_dict": model.state_dict(),
-            "tokenizer_chars": tokenizer.chars,
+            "tokenizer": tokenizer.to_payload(),
             "config": config.to_dict(),
             "step": step,
             "losses": losses,

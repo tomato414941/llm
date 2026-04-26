@@ -5,17 +5,26 @@ from typing import Any
 import torch
 
 from llm.models import TransformerConfig, TransformerLanguageModel
-from llm.tokenizer import CharTokenizer
+from llm.tokenizer import BPETokenizer, CharTokenizer, tokenizer_from_payload
 
 
-def load_checkpoint(path: Path) -> tuple[TransformerLanguageModel, CharTokenizer, dict[str, Any]]:
-    checkpoint = torch.load(path, map_location="cpu", weights_only=False)
+def load_tokenizer(checkpoint: dict[str, Any]) -> CharTokenizer | BPETokenizer:
+    if "tokenizer" in checkpoint:
+        return tokenizer_from_payload(checkpoint["tokenizer"])
+
     chars = tuple(checkpoint["tokenizer_chars"])
-    tokenizer = CharTokenizer(
+    return CharTokenizer(
         chars=chars,
         stoi={char: index for index, char in enumerate(chars)},
         itos={index: char for index, char in enumerate(chars)},
     )
+
+
+def load_checkpoint(
+    path: Path,
+) -> tuple[TransformerLanguageModel, CharTokenizer | BPETokenizer, dict[str, Any]]:
+    checkpoint = torch.load(path, map_location="cpu", weights_only=False)
+    tokenizer = load_tokenizer(checkpoint)
     config = TransformerConfig.from_dict(checkpoint["config"])
     model = TransformerLanguageModel(config)
     model.load_state_dict(checkpoint["model_state_dict"])

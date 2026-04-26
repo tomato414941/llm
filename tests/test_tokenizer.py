@@ -1,6 +1,6 @@
 import pytest
 
-from llm.tokenizer import BPETokenizer, CharTokenizer
+from llm.tokenizer import BPETokenizer, CharTokenizer, tokenizer_from_payload
 
 
 def test_char_tokenizer_round_trip() -> None:
@@ -29,6 +29,15 @@ def test_char_tokenizer_rejects_unknown_token_id() -> None:
 
     with pytest.raises(ValueError, match="unknown token id"):
         tokenizer.decode([99])
+
+
+def test_char_tokenizer_payload_round_trip() -> None:
+    tokenizer = CharTokenizer.from_text("banana")
+
+    loaded = tokenizer_from_payload(tokenizer.to_payload())
+
+    assert isinstance(loaded, CharTokenizer)
+    assert loaded.decode(loaded.encode("banana")) == "banana"
 
 
 def test_bpe_tokenizer_round_trip() -> None:
@@ -60,6 +69,15 @@ def test_bpe_tokenizer_save_load_round_trip(tmp_path) -> None:
     assert loaded.decode(loaded.encode("hello hello")) == "hello hello"
     assert loaded.vocab == tokenizer.vocab
     assert loaded.merges == tokenizer.merges
+
+
+def test_bpe_tokenizer_payload_round_trip() -> None:
+    tokenizer = BPETokenizer.train("hello hello", vocab_size=265)
+
+    loaded = tokenizer_from_payload(tokenizer.to_payload())
+
+    assert isinstance(loaded, BPETokenizer)
+    assert loaded.decode(loaded.encode("hello hello")) == "hello hello"
 
 
 def test_bpe_tokenizer_rejects_unknown_token_id() -> None:

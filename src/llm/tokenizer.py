@@ -34,6 +34,19 @@ class CharTokenizer:
         except KeyError as error:
             raise ValueError(f"unknown token id: {error.args[0]!r}") from error
 
+    def to_payload(self) -> dict[str, object]:
+        return {
+            "tokenizer_type": "char",
+            "chars": list(self.chars),
+        }
+
+    @classmethod
+    def from_payload(cls, payload: dict[str, object]) -> "CharTokenizer":
+        chars = tuple(str(char) for char in payload["chars"])
+        stoi = {char: index for index, char in enumerate(chars)}
+        itos = {index: char for index, char in enumerate(chars)}
+        return cls(chars=chars, stoi=stoi, itos=itos)
+
 
 @dataclass(frozen=True)
 class BPETokenizer:
@@ -81,16 +94,29 @@ class BPETokenizer:
 
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        payload = {
-            "vocab": {str(token_id): token_bytes.hex() for token_id, token_bytes in self.vocab.items()},
-            "merges": [list(pair) for pair in self.merges],
-        }
-        path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+        path.write_text(json.dumps(self.to_payload(), indent=2, sort_keys=True), encoding="utf-8")
 
     @classmethod
     def load(cls, path: Path) -> "BPETokenizer":
         payload = json.loads(path.read_text(encoding="utf-8"))
-        vocab = {int(token_id): bytes.fromhex(token_hex) for token_id, token_hex in payload["vocab"].items()}
+        return cls.from_payload(payload)
+
+    def to_payload(self) -> dict[str, object]:
+        return {
+            "tokenizer_type": "bpe",
+            "vocab": {str(token_id): token_bytes.hex() for token_id, token_bytes in self.vocab.items()},
+            "merges": [list(pair) for pair in self.merges],
+        }
+
+    @classmethod
+    def from_payload(cls, payload: dict[str, object]) -> "BPETokenizer":
+        vocab_payload = payload["vocab"]
+        if not isinstance(vocab_payload, dict):
+            raise ValueError("invalid BPE vocab payload")
+        vocab = {
+            int(token_id): bytes.fromhex(str(token_hex))
+            for token_id, token_hex in vocab_payload.items()
+        }
         merges = tuple((int(left), int(right)) for left, right in payload["merges"])
         return cls(vocab=vocab, merges=merges)
 
@@ -113,3 +139,12 @@ class BPETokenizer:
                 new_tokens.append(tokens[index])
                 index += 1
         return new_tokens
+
+
+def tokenizer_from_payload(payload: dict[str, object]) -> CharTokenizer | BPETokenizer:
+    tokenizer_type = payload.get("tokenizer_type")
+    if tokenizer_type == "char":
+        return CharTokenizer.from_payload(payload)
+    if tokenizer_type == "bpe":
+        return BPETokenizer.from_payload(payload)
+    raise ValueError(f"unknown tokenizer type: {tokenizer_type!r}")

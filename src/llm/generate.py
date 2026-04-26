@@ -32,6 +32,11 @@ def load_checkpoint(
     return model, tokenizer, checkpoint
 
 
+def default_context_ids(tokenizer: CharTokenizer | BPETokenizer) -> list[int]:
+    encoded = tokenizer.encode("\n")
+    return encoded if encoded else [0]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", type=Path, default=Path("checkpoints/mini_gpt.pt"))
@@ -45,7 +50,7 @@ def main() -> None:
     if args.prompt:
         context_ids = tokenizer.encode(args.prompt)
     else:
-        context_ids = [0]
+        context_ids = default_context_ids(tokenizer)
     context = torch.tensor([context_ids], dtype=torch.long)
 
     generated = model.generate(

@@ -4,7 +4,7 @@ from pathlib import Path
 import torch
 
 from llm.models import TransformerConfig, TransformerLanguageModel
-from llm.tokenizer import CharTokenizer
+from llm.tokenizer import BPETokenizer, CharTokenizer
 from llm.training import estimate_loss, get_batch
 
 
@@ -19,7 +19,7 @@ def count_parameters(model: torch.nn.Module) -> int:
 def save_checkpoint(
     path: Path,
     model: TransformerLanguageModel,
-    tokenizer: CharTokenizer,
+    tokenizer: CharTokenizer | BPETokenizer,
     config: TransformerConfig,
     step: int,
     losses: dict[str, float],
@@ -39,10 +39,27 @@ def save_checkpoint(
     )
 
 
+def load_tokenizer(kind: str, text: str, path: Path | None) -> CharTokenizer | BPETokenizer:
+    if kind == "char":
+        return CharTokenizer.from_text(text)
+    if kind == "bpe":
+        if path is None:
+            raise ValueError("--tokenizer-path is required when --tokenizer bpe")
+        return BPETokenizer.load(path)
+    raise ValueError(f"unknown tokenizer: {kind}")
+
+
+def default_context_ids(tokenizer: CharTokenizer | BPETokenizer) -> list[int]:
+    encoded = tokenizer.encode("\n")
+    return encoded if encoded else [0]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--checkpoint", type=Path, default=Path("checkpoints/mini_gpt.pt"))
+    parser.add_argument("--tokenizer", choices=("char", "bpe"), default="char")
+    parser.add_argument("--tokenizer-path", type=Path)
     parser.add_argument("--max-iters", type=int, default=3000)
     parser.add_argument("--eval-interval", type=int, default=300)
     parser.add_argument("--eval-iters", type=int, default=20)
@@ -61,7 +78,7 @@ def main() -> None:
     torch.manual_seed(1337)
 
     text = load_text(args.input)
-    tokenizer = CharTokenizer.from_text(text)
+    tokenizer = load_tokenizer(args.tokenizer, text, args.tokenizer_path)
     data = torch.tensor(tokenizer.encode(text), dtype=torch.long)
     split_index = int(0.9 * len(data))
     train_data = data[:split_index]
@@ -122,11 +139,13 @@ def main() -> None:
             "batch_size": args.batch_size,
             "learning_rate": args.learning_rate,
             "parameter_count": parameter_count,
+            "tokenizer": args.tokenizer,
+            "tokenizer_path": str(args.tokenizer_path) if args.tokenizer_path is not None else "",
         },
     )
     print(f"\ncheckpoint saved to {args.checkpoint}")
 
-    context = torch.zeros((1, 1), dtype=torch.long)
+    context = torch.tensor([default_context_ids(tokenizer)], dtype=torch.long)
     generated = model.generate(
         context,
         max_new_tokens=args.generate_tokens,

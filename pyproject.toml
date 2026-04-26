@@ -1,0 +1,30 @@
+[project]
+name = "llm"
+version = "0.1.0"
+description = "Hybrid lab for learning and building toward small general-purpose LLMs."
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "numpy>=1.26",
+    "torch>=2.2",
+    "tqdm>=4.66",
+]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

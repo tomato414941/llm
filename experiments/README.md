@@ -1,0 +1,22 @@
+# Experiments
+
+This directory is for small experiment notes and observations.
+
+The source of truth for reusable code stays under `src/llm/`. Do not use this
+directory as a second implementation tree.
+
+Good contents for this directory:
+
+- short run notes
+- loss and perplexity observations
+- small comparisons between model or data choices
+- questions to revisit after a run
+
+Do not commit:
+
+- datasets
+- checkpoints
+- large generated outputs
+- secrets or local environment details
+
+Prefer one markdown file per experiment when a run is worth keeping.

@@ -94,3 +94,24 @@ The generated sample was still mostly local character and word-shape patterns.
 That is expected for a short 100-step run on a tiny model. The main result here
 is not sample quality; it is that loss and validation loss move in the expected
 direction.
+
+## Bitter Lesson Follow-Up
+
+The first follow-up is not a tokenizer tweak, sampling tweak, or architecture
+change. The next baseline keeps data, tokenizer, model shape, and sampling fixed
+and increases training from 100 steps to 1,000 steps.
+
+This follows the Bitter Lesson bias: prefer simple methods that benefit from
+more compute before adding hand-designed complexity.
+
+Result:
+
+- 100-step observation validation perplexity: 160.17
+- 1,000-step observation validation perplexity: 43.08
+
+Reading:
+
+The same small Transformer improves materially when given more training. The
+pipeline is therefore not blocked by data loading, tokenization, or architecture
+at this stage. The next scaling decision should compare more training against a
+modest model-size increase, not local sampling tweaks.

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import torch
 
-from llm.generate import load_checkpoint
+from llm.checkpoint import load_checkpoint
 from llm.tokenizer import tokenizer_from_payload
 from llm.training import get_batch, split_train_val
 

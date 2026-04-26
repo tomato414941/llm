@@ -60,7 +60,9 @@ Generate from a checkpoint:
 uv run python -m llm.generate \
   --checkpoint checkpoints/mini_gpt.pt \
   --prompt "KING:" \
-  --max-new-tokens 200
+  --max-new-tokens 200 \
+  --seed 1337 \
+  --samples 2
 ```
 
 Evaluate a checkpoint on the validation split:
@@ -71,6 +73,9 @@ uv run python -m llm.evaluate \
   --tokens data/processed/tinyshakespeare_bpe_500.pt
 ```
 
+A useful observation loop is to evaluate the checkpoint first, then generate a
+few seeded samples with the same checkpoint.
+
 ## Project Shape
 
 - `src/llm/tokenizer.py`: char and BPE tokenizers.
@@ -78,6 +83,7 @@ uv run python -m llm.evaluate \
 - `src/llm/prepare_data.py`: encodes text into saved token tensors.
 - `src/llm/models/`: Transformer components and language model.
 - `src/llm/train.py`: training loop, loss/perplexity reporting, checkpoint saving.
+- `src/llm/checkpoint.py`: checkpoint loading and validation.
 - `src/llm/generate.py`: checkpoint loading and sampling.
 - `src/llm/evaluate.py`: checkpoint evaluation on prepared token data.
 - `tests/`: focused tests for reusable model and tokenizer behavior.

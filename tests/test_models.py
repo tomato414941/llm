@@ -6,6 +6,7 @@ from llm.models import (
     MLPLanguageModel,
     MultiHeadAttentionLanguageModel,
     SingleHeadAttentionLanguageModel,
+    TransformerLanguageModel,
 )
 
 
@@ -80,3 +81,33 @@ def test_multi_head_attention_language_model_requires_even_head_split() -> None:
             embedding_dim=5,
             num_heads=2,
         )
+
+
+def test_transformer_language_model_returns_sequence_logits_and_loss() -> None:
+    model = TransformerLanguageModel(
+        vocab_size=5,
+        block_size=3,
+        embedding_dim=4,
+        num_heads=2,
+        num_layers=2,
+    )
+    idx = torch.tensor([[0, 1, 2], [2, 3, 4]])
+    targets = torch.tensor([[1, 2, 3], [3, 4, 0]])
+
+    logits, loss = model(idx, targets)
+
+    assert logits.shape == (2, 3, 5)
+    assert loss is not None
+
+
+def test_transformer_language_model_rejects_too_long_context() -> None:
+    model = TransformerLanguageModel(
+        vocab_size=5,
+        block_size=3,
+        embedding_dim=4,
+        num_heads=2,
+        num_layers=2,
+    )
+
+    with pytest.raises(ValueError, match="expected time dimension"):
+        model(torch.tensor([[0, 1, 2, 3]]))

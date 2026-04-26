@@ -25,6 +25,10 @@ runs/
 wandb/
 !experiments/runs/
 !experiments/runs/*.csv
+!experiments/observations/
+!experiments/observations/*.md
+!experiments/summaries/
+!experiments/summaries/*.csv
 *.pt
 *.pth
 *.ckpt

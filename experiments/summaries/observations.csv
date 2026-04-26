@@ -1,0 +1,2 @@
+output_path,checkpoint_path,tokens_path,checkpoint_step,validation_loss,validation_perplexity,prompt,seed,samples,max_new_tokens,temperature,top_k
+experiments/observations/first_observation.md,checkpoints/first_observation.pt,data/processed/tinyshakespeare_bpe_500.pt,99,5.076207637786865,160.16549714108447,KING:,1337,3,200,1.0,20

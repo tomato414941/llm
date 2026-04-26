@@ -80,11 +80,16 @@ Write a checkpoint observation report:
 
 ```bash
 uv run python -m llm.observe \
-  --checkpoint checkpoints/mini_gpt.pt \
+  --checkpoint checkpoints/first_observation.pt \
   --tokens data/processed/tinyshakespeare_bpe_500.pt \
   --prompt "KING:" \
-  --output experiments/observations/mini_gpt.md \
+  --output experiments/observations/first_observation.md \
   --summary-output experiments/summaries/observations.csv \
+  --eval-iters 5 \
+  --batch-size 32 \
+  --max-new-tokens 200 \
+  --temperature 1.0 \
+  --top-k 20 \
   --seed 1337 \
   --samples 3
 ```

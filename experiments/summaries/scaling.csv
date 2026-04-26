@@ -1,1 +1,4 @@
 run_id,checkpoint_path,tokens_path,checkpoint_step,tokens_seen,parameter_count,block_size,embedding_dim,num_heads,num_layers,dropout,max_iters,batch_size,learning_rate,validation_loss,validation_perplexity,prompt_id,prompt,seed,samples,max_new_tokens,temperature,top_k,note
+baseline_1k,checkpoints/baseline_1k.pt,data/processed/tinyshakespeare_bpe_500.pt,999,,58804,32,32,4,2,0.0,1000,32,0.001,3.763073444366455,43.08062863131826,,KING:,1337,3,200,1.0,20,1000-step small baseline
+first_observation,checkpoints/first_observation.pt,data/processed/tinyshakespeare_bpe_500.pt,99,,58804,32,32,4,2,0.0,100,32,0.001,5.076207637786865,160.16549714108447,,KING:,1337,3,200,1.0,20,100-step small baseline
+baseline_1k_medium,checkpoints/baseline_1k_medium.pt,data/processed/tinyshakespeare_bpe_500.pt,999,,267892,64,64,4,4,0.0,1000,32,0.001,3.4160609245300293,30.449236639460675,,KING:,1337,3,200,1.0,20,1000-step medium baseline

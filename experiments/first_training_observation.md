@@ -54,3 +54,43 @@ perplexity are the primary signals for this stage.
 - At what point does validation loss stop improving?
 - Does BPE make the sample quality improve faster than char-level tokenization?
 - How much context is the model actually using?
+
+## First Run
+
+Command:
+
+```bash
+uv run python -m llm.train \
+  --tokens data/processed/tinyshakespeare_bpe_500.pt \
+  --checkpoint checkpoints/first_observation.pt \
+  --metrics-output experiments/runs/first_observation.csv \
+  --max-iters 100 \
+  --eval-interval 20 \
+  --eval-iters 5 \
+  --block-size 32 \
+  --batch-size 32 \
+  --embedding-dim 32 \
+  --num-heads 4 \
+  --num-layers 2 \
+  --generate-tokens 200 \
+  --top-k 20
+```
+
+Observed metrics:
+
+- parameters: 58,804
+- train loss: 6.2159 -> 5.0818
+- validation loss: 6.2180 -> 5.1068
+- train perplexity: 500.63 -> 161.06
+- validation perplexity: 501.68 -> 165.15
+
+Reading:
+
+Both train and validation loss fell steadily during this short run. This is a
+basic sanity check that the data pipeline, tokenizer payload, batching, and
+Transformer training loop are wired correctly.
+
+The generated sample was still mostly local character and word-shape patterns.
+That is expected for a short 100-step run on a tiny model. The main result here
+is not sample quality; it is that loss and validation loss move in the expected
+direction.

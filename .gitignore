@@ -23,6 +23,8 @@ checkpoints/
 outputs/
 runs/
 wandb/
+!experiments/runs/
+!experiments/runs/*.csv
 *.pt
 *.pth
 *.ckpt
@@ -31,4 +33,3 @@ wandb/
 # Keep data directories
 !data/raw/.gitkeep
 !data/processed/.gitkeep
-

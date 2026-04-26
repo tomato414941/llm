@@ -33,6 +33,18 @@ def test_self_attention_head_scales_by_head_dimension() -> None:
     assert torch.allclose(head(x), expected)
 
 
+def test_self_attention_head_does_not_attend_to_future_tokens() -> None:
+    head = SelfAttentionHead(embedding_dim=4, head_size=2, block_size=4, dropout=0.0)
+    x = torch.randn(1, 4, 4)
+    changed_future = x.clone()
+    changed_future[:, 2:, :] = torch.randn(1, 2, 4)
+
+    original = head(x)
+    changed = head(changed_future)
+
+    assert torch.allclose(original[:, :2, :], changed[:, :2, :])
+
+
 def test_multi_head_attention_returns_projected_features() -> None:
     attention = MultiHeadAttention(
         embedding_dim=4,

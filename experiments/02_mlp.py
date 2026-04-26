@@ -3,13 +3,13 @@ from pathlib import Path
 
 import torch
 
-from llm.models import BigramLanguageModel
+from llm.models import MLPLanguageModel
 from llm.tokenizer import CharTokenizer
 from llm.training import estimate_loss, get_batch
 
 DEFAULT_TEXT = """
 In the beginning there was a small language model.
-It knew only pairs of characters, but it learned by prediction.
+It knew a little context, and that made prediction less blind.
 Each step asked one quiet question: what comes next?
 """
 
@@ -23,12 +23,14 @@ def load_text(path: Path | None) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path)
-    parser.add_argument("--max-iters", type=int, default=1000)
+    parser.add_argument("--max-iters", type=int, default=2000)
     parser.add_argument("--eval-interval", type=int, default=200)
     parser.add_argument("--eval-iters", type=int, default=20)
-    parser.add_argument("--block-size", type=int, default=16)
+    parser.add_argument("--block-size", type=int, default=8)
     parser.add_argument("--batch-size", type=int, default=32)
-    parser.add_argument("--learning-rate", type=float, default=1e-2)
+    parser.add_argument("--embedding-dim", type=int, default=32)
+    parser.add_argument("--hidden-dim", type=int, default=128)
+    parser.add_argument("--learning-rate", type=float, default=1e-3)
     parser.add_argument("--generate-tokens", type=int, default=200)
     args = parser.parse_args()
 
@@ -44,7 +46,12 @@ def main() -> None:
     if len(train_data) <= args.block_size or len(val_data) <= args.block_size:
         raise ValueError("input text is too small for the requested block size")
 
-    model = BigramLanguageModel(tokenizer.vocab_size)
+    model = MLPLanguageModel(
+        vocab_size=tokenizer.vocab_size,
+        block_size=args.block_size,
+        embedding_dim=args.embedding_dim,
+        hidden_dim=args.hidden_dim,
+    )
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
 
     for step in range(args.max_iters):
@@ -75,3 +82,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

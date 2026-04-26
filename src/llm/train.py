@@ -4,7 +4,7 @@ from pathlib import Path
 import torch
 
 from llm.models import TransformerConfig, TransformerLanguageModel
-from llm.tokenizer import BPETokenizer, CharTokenizer
+from llm.tokenizer import BPETokenizer, CharTokenizer, tokenizer_from_payload
 from llm.training import estimate_loss, get_batch
 
 
@@ -54,9 +54,43 @@ def default_context_ids(tokenizer: CharTokenizer | BPETokenizer) -> list[int]:
     return encoded if encoded else [0]
 
 
+def tokenizer_type(tokenizer: CharTokenizer | BPETokenizer) -> str:
+    if isinstance(tokenizer, CharTokenizer):
+        return "char"
+    if isinstance(tokenizer, BPETokenizer):
+        return "bpe"
+    raise TypeError(f"unsupported tokenizer: {type(tokenizer)!r}")
+
+
+def load_training_data(
+    input_path: Path | None,
+    tokens_path: Path | None,
+    tokenizer_kind: str,
+    tokenizer_path: Path | None,
+) -> tuple[torch.Tensor, CharTokenizer | BPETokenizer, dict[str, int | float | str]]:
+    if (input_path is None) == (tokens_path is None):
+        raise ValueError("exactly one of --input or --tokens is required")
+
+    if tokens_path is not None:
+        prepared = torch.load(tokens_path, map_location="cpu", weights_only=False)
+        tokenizer = tokenizer_from_payload(prepared["tokenizer"])
+        tokens = prepared["tokens"].to(dtype=torch.long)
+        metadata = dict(prepared.get("metadata", {}))
+        metadata["tokens"] = str(tokens_path)
+        return tokens, tokenizer, metadata
+
+    if input_path is None:
+        raise ValueError("--input is required when --tokens is not used")
+    text = load_text(input_path)
+    tokenizer = load_tokenizer(tokenizer_kind, text, tokenizer_path)
+    tokens = torch.tensor(tokenizer.encode(text), dtype=torch.long)
+    return tokens, tokenizer, {"input": str(input_path)}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", type=Path, required=True)
+    parser.add_argument("--input", type=Path)
+    parser.add_argument("--tokens", type=Path)
     parser.add_argument("--checkpoint", type=Path, default=Path("checkpoints/mini_gpt.pt"))
     parser.add_argument("--tokenizer", choices=("char", "bpe"), default="char")
     parser.add_argument("--tokenizer-path", type=Path)
@@ -77,9 +111,12 @@ def main() -> None:
 
     torch.manual_seed(1337)
 
-    text = load_text(args.input)
-    tokenizer = load_tokenizer(args.tokenizer, text, args.tokenizer_path)
-    data = torch.tensor(tokenizer.encode(text), dtype=torch.long)
+    data, tokenizer, data_metadata = load_training_data(
+        input_path=args.input,
+        tokens_path=args.tokens,
+        tokenizer_kind=args.tokenizer,
+        tokenizer_path=args.tokenizer_path,
+    )
     split_index = int(0.9 * len(data))
     train_data = data[:split_index]
     val_data = data[split_index:]
@@ -134,14 +171,14 @@ def main() -> None:
         step=args.max_iters - 1,
         losses=latest_losses,
         metadata={
-            "input": str(args.input),
             "max_iters": args.max_iters,
             "batch_size": args.batch_size,
             "learning_rate": args.learning_rate,
             "parameter_count": parameter_count,
-            "tokenizer": args.tokenizer,
+            "tokenizer": tokenizer_type(tokenizer),
             "tokenizer_path": str(args.tokenizer_path) if args.tokenizer_path is not None else "",
-        },
+        }
+        | data_metadata,
     )
     print(f"\ncheckpoint saved to {args.checkpoint}")
 

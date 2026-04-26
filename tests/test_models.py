@@ -2,86 +2,34 @@ import torch
 import pytest
 
 from llm.models import (
-    BigramLanguageModel,
-    MLPLanguageModel,
-    MultiHeadAttentionLanguageModel,
-    SingleHeadAttentionLanguageModel,
+    MultiHeadAttention,
+    SelfAttentionHead,
     TransformerConfig,
     TransformerLanguageModel,
 )
 
 
-def test_bigram_language_model_returns_sequence_logits_and_loss() -> None:
-    model = BigramLanguageModel(vocab_size=5)
-    idx = torch.tensor([[0, 1, 2], [2, 3, 4]])
-    targets = torch.tensor([[1, 2, 3], [3, 4, 0]])
+def test_self_attention_head_returns_sequence_features() -> None:
+    head = SelfAttentionHead(embedding_dim=4, head_size=2, block_size=3)
+    x = torch.randn(2, 3, 4)
 
-    logits, loss = model(idx, targets)
+    out = head(x)
 
-    assert logits.shape == (6, 5)
-    assert loss is not None
+    assert out.shape == (2, 3, 2)
 
 
-def test_mlp_language_model_returns_next_token_logits_and_loss() -> None:
-    model = MLPLanguageModel(vocab_size=5, block_size=3, embedding_dim=4, hidden_dim=8)
-    idx = torch.tensor([[0, 1, 2], [2, 3, 4]])
-    targets = torch.tensor([[1, 2, 3], [3, 4, 0]])
-
-    logits, loss = model(idx, targets)
-
-    assert logits.shape == (2, 5)
-    assert loss is not None
-
-
-def test_mlp_language_model_rejects_wrong_block_size() -> None:
-    model = MLPLanguageModel(vocab_size=5, block_size=3, embedding_dim=4, hidden_dim=8)
-
-    with pytest.raises(ValueError, match="expected time dimension"):
-        model(torch.tensor([[0, 1]]))
-
-
-def test_single_head_attention_language_model_returns_sequence_logits_and_loss() -> None:
-    model = SingleHeadAttentionLanguageModel(vocab_size=5, block_size=3, embedding_dim=4)
-    idx = torch.tensor([[0, 1, 2], [2, 3, 4]])
-    targets = torch.tensor([[1, 2, 3], [3, 4, 0]])
-
-    logits, loss = model(idx, targets)
-
-    assert logits.shape == (2, 3, 5)
-    assert loss is not None
-
-
-def test_single_head_attention_language_model_rejects_too_long_context() -> None:
-    model = SingleHeadAttentionLanguageModel(vocab_size=5, block_size=3, embedding_dim=4)
-
-    with pytest.raises(ValueError, match="expected time dimension"):
-        model(torch.tensor([[0, 1, 2, 3]]))
-
-
-def test_multi_head_attention_language_model_returns_sequence_logits_and_loss() -> None:
-    model = MultiHeadAttentionLanguageModel(
-        vocab_size=5,
-        block_size=3,
+def test_multi_head_attention_returns_projected_features() -> None:
+    attention = MultiHeadAttention(
         embedding_dim=4,
         num_heads=2,
+        head_size=2,
+        block_size=3,
     )
-    idx = torch.tensor([[0, 1, 2], [2, 3, 4]])
-    targets = torch.tensor([[1, 2, 3], [3, 4, 0]])
+    x = torch.randn(2, 3, 4)
 
-    logits, loss = model(idx, targets)
+    out = attention(x)
 
-    assert logits.shape == (2, 3, 5)
-    assert loss is not None
-
-
-def test_multi_head_attention_language_model_requires_even_head_split() -> None:
-    with pytest.raises(ValueError, match="divisible"):
-        MultiHeadAttentionLanguageModel(
-            vocab_size=5,
-            block_size=3,
-            embedding_dim=5,
-            num_heads=2,
-        )
+    assert out.shape == (2, 3, 4)
 
 
 def test_transformer_language_model_returns_sequence_logits_and_loss() -> None:

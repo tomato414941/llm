@@ -1,4 +1,5 @@
 import argparse
+import math
 from pathlib import Path
 
 import torch
@@ -14,6 +15,20 @@ def load_text(path: Path) -> str:
 
 def count_parameters(model: torch.nn.Module) -> int:
     return sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad)
+
+
+def perplexity(loss: float) -> float:
+    return math.exp(loss)
+
+
+def format_loss_line(step: int, losses: dict[str, float]) -> str:
+    train_loss = losses["train"]
+    val_loss = losses["val"]
+    return (
+        f"step {step}: "
+        f"train loss {train_loss:.4f}, train ppl {perplexity(train_loss):.2f}, "
+        f"val loss {val_loss:.4f}, val ppl {perplexity(val_loss):.2f}"
+    )
 
 
 def save_checkpoint(
@@ -149,11 +164,7 @@ def main() -> None:
                 batch_size=args.batch_size,
                 eval_iters=args.eval_iters,
             )
-            print(
-                f"step {step}: "
-                f"train loss {latest_losses['train']:.4f}, "
-                f"val loss {latest_losses['val']:.4f}"
-            )
+            print(format_loss_line(step, latest_losses))
 
         xb, yb = get_batch(train_data, args.block_size, args.batch_size)
         _, loss = model(xb, yb)

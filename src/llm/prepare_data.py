@@ -19,6 +19,7 @@ def main() -> None:
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--tokenizer", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=Path("data/processed/tokens.pt"))
+    parser.add_argument("--manifest", type=Path)
     args = parser.parse_args()
 
     text = load_non_empty_text(args.input)
@@ -37,6 +38,7 @@ def main() -> None:
             "metadata": {
                 "input": str(args.input),
                 "tokenizer_path": str(args.tokenizer),
+                "manifest_path": str(args.manifest) if args.manifest is not None else "",
                 "byte_count": byte_count,
                 "token_count": len(token_ids),
                 "vocab_size": tokenizer.vocab_size,

@@ -54,6 +54,22 @@ uv run python -m llm.train \
 `--metrics-output` is optional. When set, eval steps are appended as CSV rows with
 train/validation loss and perplexity.
 
+You can also run training from a TOML config. CLI arguments override config
+values, which is useful for smoke runs:
+
+```bash
+uv run python -m llm.train \
+  --config configs/tinyshakespeare_bpe_500_small.toml
+```
+
+Resume a training run from a checkpoint that includes optimizer and RNG state:
+
+```bash
+uv run python -m llm.train \
+  --config configs/tinyshakespeare_bpe_500_small.toml \
+  --resume checkpoints/tinyshakespeare_bpe_500_small.pt
+```
+
 Generate from a checkpoint:
 
 ```bash
@@ -94,6 +110,33 @@ uv run python -m llm.observe \
   --samples 3
 ```
 
+Run the same observation flow across a fixed JSONL prompt set:
+
+```bash
+uv run python -m llm.observe \
+  --checkpoint checkpoints/first_observation.pt \
+  --tokens data/processed/tinyshakespeare_bpe_500.pt \
+  --prompt-file eval_prompts/tinyshakespeare.jsonl \
+  --output experiments/observations/first_observation.md \
+  --summary-output experiments/summaries/observations.csv
+```
+
+Or use the run config for the same observation settings:
+
+```bash
+uv run python -m llm.observe \
+  --config configs/tinyshakespeare_bpe_500_small.toml
+```
+
+Append or update a model-size comparison row:
+
+```bash
+uv run python -m llm.scaling \
+  --checkpoint checkpoints/tinyshakespeare_bpe_500_small.pt \
+  --summary experiments/summaries/observations.csv \
+  --output experiments/summaries/scaling.csv
+```
+
 ## Project Shape
 
 - `src/llm/tokenizer.py`: char and BPE tokenizers.
@@ -102,9 +145,11 @@ uv run python -m llm.observe \
 - `src/llm/models/`: Transformer components and language model.
 - `src/llm/train.py`: training loop, loss/perplexity reporting, checkpoint saving.
 - `src/llm/checkpoint.py`: checkpoint loading and validation.
+- `src/llm/config.py`: TOML config loading for reproducible runs.
 - `src/llm/generate.py`: checkpoint loading and sampling.
 - `src/llm/evaluate.py`: checkpoint evaluation on prepared token data.
 - `src/llm/observe.py`: checkpoint evaluation, seeded generation, and report writing.
+- `src/llm/scaling.py`: scaling comparison CSV generation.
 - `tests/`: focused tests for reusable model and tokenizer behavior.
 
 ## Repository Rules

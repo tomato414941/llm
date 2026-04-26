@@ -2,9 +2,11 @@ import argparse
 import csv
 import math
 from pathlib import Path
+import sys
 
 import torch
 
+from llm.config import compact_defaults, config_defaults, load_toml
 from llm.models import TransformerConfig, TransformerLanguageModel
 from llm.tokenizer import BPETokenizer, CharTokenizer, tokenizer_from_payload
 from llm.training import estimate_loss, get_batch, split_train_val
@@ -60,19 +62,24 @@ def save_checkpoint(
     model: TransformerLanguageModel,
     tokenizer: CharTokenizer | BPETokenizer,
     config: TransformerConfig,
+    optimizer: torch.optim.Optimizer,
     step: int,
     losses: dict[str, float],
     metadata: dict[str, int | float | str],
+    tokens_seen: int,
 ) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
         {
             "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "rng_state": torch.random.get_rng_state(),
             "tokenizer": tokenizer.to_payload(),
             "config": config.to_dict(),
             "step": step,
             "losses": losses,
             "metadata": metadata,
+            "tokens_seen": tokens_seen,
         },
         path,
     )
@@ -152,31 +159,95 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--top-k must be positive")
 
 
-def main() -> None:
+def build_parser(defaults: dict[str, object]) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
+    parser.set_defaults(**defaults)
+    parser.add_argument("--config", type=Path)
+    parser.add_argument("--run-id")
     parser.add_argument("--input", type=Path)
     parser.add_argument("--tokens", type=Path)
-    parser.add_argument("--checkpoint", type=Path, default=Path("checkpoints/mini_gpt.pt"))
-    parser.add_argument("--tokenizer", choices=("char", "bpe"), default="char")
+    parser.add_argument("--manifest", type=Path)
+    parser.add_argument("--resume", type=Path)
+    parser.add_argument("--checkpoint", type=Path)
+    parser.add_argument("--tokenizer", choices=("char", "bpe"))
     parser.add_argument("--tokenizer-path", type=Path)
-    parser.add_argument("--max-iters", type=int, default=3000)
-    parser.add_argument("--eval-interval", type=int, default=300)
-    parser.add_argument("--eval-iters", type=int, default=20)
-    parser.add_argument("--block-size", type=int, default=32)
-    parser.add_argument("--batch-size", type=int, default=32)
-    parser.add_argument("--embedding-dim", type=int, default=32)
-    parser.add_argument("--num-heads", type=int, default=4)
-    parser.add_argument("--num-layers", type=int, default=2)
-    parser.add_argument("--dropout", type=float, default=0.0)
-    parser.add_argument("--learning-rate", type=float, default=1e-3)
-    parser.add_argument("--generate-tokens", type=int, default=300)
-    parser.add_argument("--temperature", type=float, default=1.0)
+    parser.add_argument("--max-iters", type=int)
+    parser.add_argument("--eval-interval", type=int)
+    parser.add_argument("--eval-iters", type=int)
+    parser.add_argument("--block-size", type=int)
+    parser.add_argument("--batch-size", type=int)
+    parser.add_argument("--embedding-dim", type=int)
+    parser.add_argument("--num-heads", type=int)
+    parser.add_argument("--num-layers", type=int)
+    parser.add_argument("--dropout", type=float)
+    parser.add_argument("--learning-rate", type=float)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--generate-tokens", type=int)
+    parser.add_argument("--temperature", type=float)
     parser.add_argument("--top-k", type=int)
     parser.add_argument("--metrics-output", type=Path)
+    return parser
+
+
+def parse_args() -> argparse.Namespace:
+    base_defaults = {
+        "checkpoint": Path("checkpoints/mini_gpt.pt"),
+        "tokenizer": "char",
+        "max_iters": 3000,
+        "eval_interval": 300,
+        "eval_iters": 20,
+        "block_size": 32,
+        "batch_size": 32,
+        "embedding_dim": 32,
+        "num_heads": 4,
+        "num_layers": 2,
+        "dropout": 0.0,
+        "learning_rate": 1e-3,
+        "generate_tokens": 300,
+        "temperature": 1.0,
+        "seed": 1337,
+    }
+    config_parser = argparse.ArgumentParser(add_help=False)
+    config_parser.add_argument("--config", type=Path)
+    config_args, _unknown = config_parser.parse_known_args()
+    defaults = dict(base_defaults)
+    if config_args.config is not None:
+        loaded_config = load_toml(config_args.config)
+        defaults.update(compact_defaults(config_defaults(loaded_config)))
+        defaults["config"] = config_args.config
+    parser = build_parser(defaults)
     args = parser.parse_args()
+    checkpoint_was_explicit = any(
+        argument == "--checkpoint" or argument.startswith("--checkpoint=") for argument in sys.argv
+    )
+    if args.resume is not None and not checkpoint_was_explicit:
+        args.checkpoint = args.resume
+    if isinstance(args.input, str):
+        args.input = Path(args.input)
+    if isinstance(args.tokens, str):
+        args.tokens = Path(args.tokens)
+    if isinstance(args.manifest, str):
+        args.manifest = Path(args.manifest)
+    if isinstance(args.checkpoint, str):
+        args.checkpoint = Path(args.checkpoint)
+    if isinstance(args.metrics_output, str):
+        args.metrics_output = Path(args.metrics_output)
+    if isinstance(args.tokenizer_path, str):
+        args.tokenizer_path = Path(args.tokenizer_path)
+    return args
+
+
+def require_resume_key(checkpoint: dict[str, object], key: str) -> object:
+    if key not in checkpoint:
+        raise ValueError(f"resume checkpoint must contain {key!r}")
+    return checkpoint[key]
+
+
+def main() -> None:
+    args = parse_args()
     validate_args(args)
 
-    torch.manual_seed(1337)
+    torch.manual_seed(args.seed)
 
     data, tokenizer, data_metadata = load_training_data(
         input_path=args.input,
@@ -203,8 +274,26 @@ def main() -> None:
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
     latest_losses = {"train": float("nan"), "val": float("nan")}
+    start_step = 0
+    tokens_seen = 0
 
-    for step in range(args.max_iters):
+    if args.resume is not None:
+        resume_checkpoint = torch.load(args.resume, map_location="cpu", weights_only=True)
+        optimizer_state_dict = require_resume_key(resume_checkpoint, "optimizer_state_dict")
+        rng_state = require_resume_key(resume_checkpoint, "rng_state")
+        checkpoint_config = TransformerConfig.from_dict(
+            require_resume_key(resume_checkpoint, "config")  # type: ignore[arg-type]
+        )
+        if checkpoint_config != config:
+            raise ValueError("resume checkpoint config does not match requested config")
+        model.load_state_dict(require_resume_key(resume_checkpoint, "model_state_dict"))
+        optimizer.load_state_dict(optimizer_state_dict)  # type: ignore[arg-type]
+        torch.random.set_rng_state(rng_state)  # type: ignore[arg-type]
+        start_step = int(require_resume_key(resume_checkpoint, "step")) + 1
+        tokens_seen = int(resume_checkpoint.get("tokens_seen", 0))
+        latest_losses = dict(resume_checkpoint.get("losses", latest_losses))
+
+    for step in range(start_step, args.max_iters):
         if step % args.eval_interval == 0 or step == args.max_iters - 1:
             latest_losses = estimate_loss(
                 model=model,
@@ -225,23 +314,30 @@ def main() -> None:
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
         optimizer.step()
+        tokens_seen += args.batch_size * args.block_size
 
     save_checkpoint(
         path=args.checkpoint,
         model=model,
         tokenizer=tokenizer,
         config=config,
+        optimizer=optimizer,
         step=args.max_iters - 1,
         losses=latest_losses,
         metadata={
+            "run_id": args.run_id or "",
+            "config_path": str(args.config) if args.config is not None else "",
+            "manifest_path": str(args.manifest) if args.manifest is not None else "",
             "max_iters": args.max_iters,
             "batch_size": args.batch_size,
             "learning_rate": args.learning_rate,
+            "seed": args.seed,
             "parameter_count": parameter_count,
             "tokenizer": tokenizer_type(tokenizer),
             "tokenizer_path": str(args.tokenizer_path) if args.tokenizer_path is not None else "",
         }
         | data_metadata,
+        tokens_seen=tokens_seen,
     )
     print(f"\ncheckpoint saved to {args.checkpoint}")
 

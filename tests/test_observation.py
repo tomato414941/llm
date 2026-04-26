@@ -15,7 +15,9 @@ def observation() -> Observation:
         tokens_metadata={"vocab_size": 256},
         validation_loss=1.25,
         validation_perplexity=3.49,
+        run_id="example",
         prompt="KING:",
+        prompt_id="king",
         seed=1337,
         samples=2,
         max_new_tokens=20,
@@ -48,4 +50,6 @@ def test_append_summary_row_writes_header_once(tmp_path) -> None:
     assert lines[0].startswith("output_path,checkpoint_path,tokens_path")
     assert len(rows) == 2
     assert rows[0]["checkpoint_step"] == "10"
+    assert rows[0]["run_id"] == "example"
+    assert rows[0]["prompt_id"] == "king"
     assert rows[0]["prompt"] == "KING:"

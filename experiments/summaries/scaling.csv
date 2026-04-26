@@ -1,0 +1,1 @@
+run_id,checkpoint_path,tokens_path,checkpoint_step,tokens_seen,parameter_count,block_size,embedding_dim,num_heads,num_layers,dropout,max_iters,batch_size,learning_rate,validation_loss,validation_perplexity,prompt_id,prompt,seed,samples,max_new_tokens,temperature,top_k,note

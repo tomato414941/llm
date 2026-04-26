@@ -13,7 +13,9 @@ class Observation:
     tokens_metadata: object
     validation_loss: float
     validation_perplexity: float
+    run_id: str
     prompt: str
+    prompt_id: str
     seed: int
     samples: int
     max_new_tokens: int
@@ -29,6 +31,8 @@ SUMMARY_FIELDS = (
     "checkpoint_step",
     "validation_loss",
     "validation_perplexity",
+    "run_id",
+    "prompt_id",
     "prompt",
     "seed",
     "samples",
@@ -38,7 +42,9 @@ SUMMARY_FIELDS = (
 )
 
 
-def render_markdown(observation: Observation) -> str:
+def render_markdown(observation: Observation | list[Observation]) -> str:
+    if isinstance(observation, list):
+        return "\n\n".join(render_markdown(item) for item in observation)
     sample_sections = "\n\n".join(
         f"### Sample {index}\n\n```text\n{sample}\n```"
         for index, sample in enumerate(observation.generated_samples, start=1)
@@ -55,6 +61,7 @@ def render_markdown(observation: Observation) -> str:
 
 - step: {observation.checkpoint_step}
 - metadata: `{observation.checkpoint_metadata}`
+- run_id: `{observation.run_id}`
 
 ## Token Data
 
@@ -67,6 +74,7 @@ def render_markdown(observation: Observation) -> str:
 
 ## Generation Settings
 
+- prompt_id: `{observation.prompt_id}`
 - prompt: `{observation.prompt}`
 - seed: {observation.seed}
 - samples: {observation.samples}
@@ -88,6 +96,8 @@ def summary_row(observation: Observation) -> dict[str, object]:
         "checkpoint_step": observation.checkpoint_step,
         "validation_loss": observation.validation_loss,
         "validation_perplexity": observation.validation_perplexity,
+        "run_id": observation.run_id,
+        "prompt_id": observation.prompt_id,
         "prompt": observation.prompt,
         "seed": observation.seed,
         "samples": observation.samples,
@@ -97,7 +107,7 @@ def summary_row(observation: Observation) -> dict[str, object]:
     }
 
 
-def write_observation(path: Path, observation: Observation) -> None:
+def write_observation(path: Path, observation: Observation | list[Observation]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(render_markdown(observation), encoding="utf-8")
 

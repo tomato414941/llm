@@ -23,7 +23,7 @@ def load_tokenizer(checkpoint: dict[str, Any]) -> CharTokenizer | BPETokenizer:
 def load_checkpoint(
     path: Path,
 ) -> tuple[TransformerLanguageModel, CharTokenizer | BPETokenizer, dict[str, Any]]:
-    checkpoint = torch.load(path, map_location="cpu", weights_only=False)
+    checkpoint = torch.load(path, map_location="cpu", weights_only=True)
     tokenizer = load_tokenizer(checkpoint)
     config = TransformerConfig.from_dict(checkpoint["config"])
     model = TransformerLanguageModel(config)

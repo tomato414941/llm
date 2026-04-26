@@ -7,6 +7,13 @@ import torch
 from llm.tokenizer import BPETokenizer
 
 
+def load_non_empty_text(path: Path) -> str:
+    text = path.read_text(encoding="utf-8")
+    if not text:
+        raise ValueError("input text must not be empty")
+    return text
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, required=True)
@@ -14,7 +21,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path, default=Path("data/processed/tokens.pt"))
     args = parser.parse_args()
 
-    text = args.input.read_text(encoding="utf-8")
+    text = load_non_empty_text(args.input)
     byte_count = len(text.encode("utf-8"))
     tokenizer = BPETokenizer.load(args.tokenizer)
 
@@ -48,4 +55,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

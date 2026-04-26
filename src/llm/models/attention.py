@@ -19,10 +19,11 @@ class SelfAttentionHead(nn.Module):
         self.register_buffer("tril", torch.tril(torch.ones(block_size, block_size)))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        _, time_steps, channels = x.shape
+        _, time_steps, _ = x.shape
         k = self.key(x)
         q = self.query(x)
-        weights = q @ k.transpose(-2, -1) * channels**-0.5
+        head_dim = q.shape[-1]
+        weights = q @ k.transpose(-2, -1) * head_dim**-0.5
         weights = weights.masked_fill(self.tril[:time_steps, :time_steps] == 0, float("-inf"))
         weights = F.softmax(weights, dim=-1)
         weights = self.dropout(weights)

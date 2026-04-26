@@ -13,7 +13,7 @@ def perplexity(loss: float) -> float:
 
 
 def load_tokens(path: Path) -> torch.Tensor:
-    prepared = torch.load(path, map_location="cpu", weights_only=False)
+    prepared = torch.load(path, map_location="cpu", weights_only=True)
     return prepared["tokens"].to(dtype=torch.long)
 
 

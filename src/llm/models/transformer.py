@@ -129,6 +129,8 @@ class TransformerLanguageModel(nn.Module):
     ) -> torch.Tensor:
         if temperature <= 0:
             raise ValueError("temperature must be positive")
+        if top_k is not None and top_k <= 0:
+            raise ValueError("top_k must be positive")
 
         for _ in range(max_new_tokens):
             idx_cond = idx[:, -self.block_size :]

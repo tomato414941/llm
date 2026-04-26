@@ -111,7 +111,7 @@ def load_training_data(
         raise ValueError("exactly one of --input or --tokens is required")
 
     if tokens_path is not None:
-        prepared = torch.load(tokens_path, map_location="cpu", weights_only=False)
+        prepared = torch.load(tokens_path, map_location="cpu", weights_only=True)
         tokenizer = tokenizer_from_payload(prepared["tokenizer"])
         tokens = prepared["tokens"].to(dtype=torch.long)
         metadata = dict(prepared.get("metadata", {}))
@@ -124,6 +124,32 @@ def load_training_data(
     tokenizer = load_tokenizer(tokenizer_kind, text, tokenizer_path)
     tokens = torch.tensor(tokenizer.encode(text), dtype=torch.long)
     return tokens, tokenizer, {"input": str(input_path)}
+
+
+def validate_args(args: argparse.Namespace) -> None:
+    positive_int_fields = (
+        "max_iters",
+        "eval_interval",
+        "eval_iters",
+        "block_size",
+        "batch_size",
+        "embedding_dim",
+        "num_heads",
+        "num_layers",
+        "generate_tokens",
+    )
+    for field in positive_int_fields:
+        if getattr(args, field) <= 0:
+            raise ValueError(f"--{field.replace('_', '-')} must be positive")
+
+    if not 0 <= args.dropout < 1:
+        raise ValueError("--dropout must be in [0, 1)")
+    if args.learning_rate <= 0:
+        raise ValueError("--learning-rate must be positive")
+    if args.temperature <= 0:
+        raise ValueError("--temperature must be positive")
+    if args.top_k is not None and args.top_k <= 0:
+        raise ValueError("--top-k must be positive")
 
 
 def main() -> None:
@@ -148,6 +174,7 @@ def main() -> None:
     parser.add_argument("--top-k", type=int)
     parser.add_argument("--metrics-output", type=Path)
     args = parser.parse_args()
+    validate_args(args)
 
     torch.manual_seed(1337)
 
@@ -220,6 +247,7 @@ def main() -> None:
     )
     print(f"\ncheckpoint saved to {args.checkpoint}")
 
+    model.eval()
     context = torch.tensor([default_context_ids(tokenizer)], dtype=torch.long)
     generated = model.generate(
         context,

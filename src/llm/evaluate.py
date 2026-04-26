@@ -22,15 +22,24 @@ def load_tokens(path: Path) -> torch.Tensor:
     return prepared_tokens(prepared)
 
 
+def require_payload_key(prepared: dict[str, object], key: str) -> object:
+    if key not in prepared:
+        raise ValueError(f"prepared token payload must contain {key!r}")
+    return prepared[key]
+
+
 def prepared_tokens(prepared: dict[str, object]) -> torch.Tensor:
-    tokens = prepared["tokens"]
+    tokens = require_payload_key(prepared, "tokens")
     if not isinstance(tokens, torch.Tensor):
         raise ValueError("prepared tokens payload must contain a tensor")
     return tokens.to(dtype=torch.long)
 
 
 def prepared_vocab_size(prepared: dict[str, object]) -> int:
-    tokenizer = tokenizer_from_payload(prepared["tokenizer"])
+    tokenizer_payload = require_payload_key(prepared, "tokenizer")
+    if not isinstance(tokenizer_payload, dict):
+        raise ValueError("prepared token payload must contain a tokenizer payload")
+    tokenizer = tokenizer_from_payload(tokenizer_payload)
     return tokenizer.vocab_size
 
 
@@ -58,15 +67,29 @@ def estimate_validation_loss(
     batch_size: int,
     eval_iters: int,
 ) -> float:
+    was_training = model.training
     model.eval()
-    losses = torch.zeros(eval_iters)
-    for index in range(eval_iters):
-        xb, yb = get_batch(val_data, block_size, batch_size)
-        _, loss = model(xb, yb)
-        if loss is None:
-            raise RuntimeError("loss was not computed")
-        losses[index] = loss.item()
-    return losses.mean().item()
+    try:
+        losses = torch.zeros(eval_iters)
+        for index in range(eval_iters):
+            xb, yb = get_batch(val_data, block_size, batch_size)
+            _, loss = model(xb, yb)
+            if loss is None:
+                raise RuntimeError("loss was not computed")
+            losses[index] = loss.item()
+        return losses.mean().item()
+    finally:
+        if was_training:
+            model.train()
+        else:
+            model.eval()
+
+
+def validate_args(args: argparse.Namespace) -> None:
+    if args.batch_size <= 0:
+        raise ValueError("--batch-size must be positive")
+    if args.eval_iters <= 0:
+        raise ValueError("--eval-iters must be positive")
 
 
 def main() -> None:
@@ -76,6 +99,7 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--eval-iters", type=int, default=20)
     args = parser.parse_args()
+    validate_args(args)
 
     model, _tokenizer, checkpoint = load_checkpoint(args.checkpoint)
     prepared = load_prepared_tokens(args.tokens)
@@ -85,7 +109,7 @@ def main() -> None:
     block_size = model.config.block_size
 
     if len(val_data) <= block_size:
-        raise ValueError("validation data is too small for the checkpoint block size")
+        raise ValueError("validation data is too small to evaluate this checkpoint block size")
 
     val_loss = estimate_validation_loss(
         model=model,

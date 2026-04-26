@@ -63,6 +63,14 @@ uv run python -m llm.generate \
   --max-new-tokens 200
 ```
 
+Evaluate a checkpoint on the validation split:
+
+```bash
+uv run python -m llm.evaluate \
+  --checkpoint checkpoints/mini_gpt.pt \
+  --tokens data/processed/tinyshakespeare_bpe_500.pt
+```
+
 ## Project Shape
 
 - `src/llm/tokenizer.py`: char and BPE tokenizers.
@@ -71,6 +79,7 @@ uv run python -m llm.generate \
 - `src/llm/models/`: Transformer components and language model.
 - `src/llm/train.py`: training loop, loss/perplexity reporting, checkpoint saving.
 - `src/llm/generate.py`: checkpoint loading and sampling.
+- `src/llm/evaluate.py`: checkpoint evaluation on prepared token data.
 - `tests/`: focused tests for reusable model and tokenizer behavior.
 
 ## Repository Rules

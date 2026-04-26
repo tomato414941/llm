@@ -87,6 +87,15 @@ class TransformerLanguageModel(nn.Module):
         )
         self.final_layer_norm = nn.LayerNorm(config.embedding_dim)
         self.lm_head = nn.Linear(config.embedding_dim, config.vocab_size)
+        self.apply(self._init_weights)
+
+    def _init_weights(self, module: nn.Module) -> None:
+        if isinstance(module, nn.Linear):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
     def forward(
         self, idx: torch.Tensor, targets: torch.Tensor | None = None

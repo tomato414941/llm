@@ -11,6 +11,8 @@ Good contents for this directory:
 - loss and perplexity observations
 - small comparisons between model or data choices
 - questions to revisit after a run
+- generated observation reports under `observations/`
+- small CSV summaries under `summaries/`
 
 Do not commit:
 

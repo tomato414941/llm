@@ -76,6 +76,19 @@ uv run python -m llm.evaluate \
 A useful observation loop is to evaluate the checkpoint first, then generate a
 few seeded samples with the same checkpoint.
 
+Write a checkpoint observation report:
+
+```bash
+uv run python -m llm.observe \
+  --checkpoint checkpoints/mini_gpt.pt \
+  --tokens data/processed/tinyshakespeare_bpe_500.pt \
+  --prompt "KING:" \
+  --output experiments/observations/mini_gpt.md \
+  --summary-output experiments/summaries/observations.csv \
+  --seed 1337 \
+  --samples 3
+```
+
 ## Project Shape
 
 - `src/llm/tokenizer.py`: char and BPE tokenizers.
@@ -86,6 +99,7 @@ few seeded samples with the same checkpoint.
 - `src/llm/checkpoint.py`: checkpoint loading and validation.
 - `src/llm/generate.py`: checkpoint loading and sampling.
 - `src/llm/evaluate.py`: checkpoint evaluation on prepared token data.
+- `src/llm/observe.py`: checkpoint evaluation, seeded generation, and report writing.
 - `tests/`: focused tests for reusable model and tokenizer behavior.
 
 ## Repository Rules

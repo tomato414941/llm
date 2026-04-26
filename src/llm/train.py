@@ -1,4 +1,5 @@
 import argparse
+import csv
 import math
 from pathlib import Path
 
@@ -29,6 +30,29 @@ def format_loss_line(step: int, losses: dict[str, float]) -> str:
         f"train loss {train_loss:.4f}, train ppl {perplexity(train_loss):.2f}, "
         f"val loss {val_loss:.4f}, val ppl {perplexity(val_loss):.2f}"
     )
+
+
+def append_metrics_row(path: Path, step: int, losses: dict[str, float]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    file_exists = path.exists()
+    with path.open("a", encoding="utf-8", newline="") as metrics_file:
+        writer = csv.DictWriter(
+            metrics_file,
+            fieldnames=("step", "train_loss", "val_loss", "train_ppl", "val_ppl"),
+        )
+        if not file_exists:
+            writer.writeheader()
+        train_loss = losses["train"]
+        val_loss = losses["val"]
+        writer.writerow(
+            {
+                "step": step,
+                "train_loss": train_loss,
+                "val_loss": val_loss,
+                "train_ppl": perplexity(train_loss),
+                "val_ppl": perplexity(val_loss),
+            }
+        )
 
 
 def save_checkpoint(
@@ -122,6 +146,7 @@ def main() -> None:
     parser.add_argument("--generate-tokens", type=int, default=300)
     parser.add_argument("--temperature", type=float, default=1.0)
     parser.add_argument("--top-k", type=int)
+    parser.add_argument("--metrics-output", type=Path)
     args = parser.parse_args()
 
     torch.manual_seed(1337)
@@ -165,6 +190,8 @@ def main() -> None:
                 eval_iters=args.eval_iters,
             )
             print(format_loss_line(step, latest_losses))
+            if args.metrics_output is not None:
+                append_metrics_row(args.metrics_output, step, latest_losses)
 
         xb, yb = get_batch(train_data, args.block_size, args.batch_size)
         _, loss = model(xb, yb)

@@ -47,8 +47,12 @@ Train the current model:
 ```bash
 uv run python -m llm.train \
   --tokens data/processed/tinyshakespeare_bpe_500.pt \
-  --checkpoint checkpoints/mini_gpt.pt
+  --checkpoint checkpoints/mini_gpt.pt \
+  --metrics-output experiments/runs/tinyshakespeare_bpe_500.csv
 ```
+
+`--metrics-output` is optional. When set, eval steps are appended as CSV rows with
+train/validation loss and perplexity.
 
 Generate from a checkpoint:
 

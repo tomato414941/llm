@@ -6,7 +6,7 @@ import torch
 
 from llm.generate import load_checkpoint
 from llm.tokenizer import tokenizer_from_payload
-from llm.training import get_batch
+from llm.training import get_batch, split_train_val
 
 
 def perplexity(loss: float) -> float:
@@ -48,11 +48,6 @@ def metadata_line(label: str, payload: dict[str, object]) -> str | None:
     if not metadata:
         return None
     return f"{label} metadata: {metadata}"
-
-
-def split_train_val(data: torch.Tensor, train_ratio: float = 0.9) -> tuple[torch.Tensor, torch.Tensor]:
-    split_index = int(train_ratio * len(data))
-    return data[:split_index], data[split_index:]
 
 
 @torch.no_grad()

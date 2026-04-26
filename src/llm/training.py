@@ -22,6 +22,11 @@ def get_batch(data: torch.Tensor, block_size: int, batch_size: int) -> tuple[tor
     return x, y
 
 
+def split_train_val(data: torch.Tensor, train_ratio: float = 0.9) -> tuple[torch.Tensor, torch.Tensor]:
+    split_index = int(train_ratio * len(data))
+    return data[:split_index], data[split_index:]
+
+
 @torch.no_grad()
 def estimate_loss(
     model: LanguageModel,

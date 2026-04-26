@@ -5,19 +5,9 @@ from llm.evaluate import (
     estimate_validation_loss,
     metadata_line,
     prepared_tokens,
-    split_train_val,
     validate_vocab_size,
 )
 from llm.tokenizer import CharTokenizer
-
-
-def test_split_train_val_uses_default_ninety_ten_split() -> None:
-    data = torch.arange(10)
-
-    train_data, val_data = split_train_val(data)
-
-    assert train_data.tolist() == list(range(9))
-    assert val_data.tolist() == [9]
 
 
 def test_estimate_validation_loss_returns_mean_loss() -> None:

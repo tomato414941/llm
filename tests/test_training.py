@@ -1,11 +1,20 @@
 import torch
 
-from llm.training import estimate_loss
+from llm.training import estimate_loss, split_train_val
 
 
 class ConstantLossModel(torch.nn.Module):
     def forward(self, idx, targets=None):
         return torch.zeros((*idx.shape, 2)), torch.tensor(1.0)
+
+
+def test_split_train_val_uses_default_ninety_ten_split() -> None:
+    data = torch.arange(10)
+
+    train_data, val_data = split_train_val(data)
+
+    assert train_data.tolist() == list(range(9))
+    assert val_data.tolist() == [9]
 
 
 def test_estimate_loss_restores_train_mode() -> None:

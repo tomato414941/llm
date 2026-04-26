@@ -7,7 +7,7 @@ import torch
 
 from llm.models import TransformerConfig, TransformerLanguageModel
 from llm.tokenizer import BPETokenizer, CharTokenizer, tokenizer_from_payload
-from llm.training import estimate_loss, get_batch
+from llm.training import estimate_loss, get_batch, split_train_val
 
 
 def load_text(path: Path) -> str:
@@ -184,9 +184,7 @@ def main() -> None:
         tokenizer_kind=args.tokenizer,
         tokenizer_path=args.tokenizer_path,
     )
-    split_index = int(0.9 * len(data))
-    train_data = data[:split_index]
-    val_data = data[split_index:]
+    train_data, val_data = split_train_val(data)
 
     if len(train_data) <= args.block_size or len(val_data) <= args.block_size:
         raise ValueError("input text is too small for the requested block size")

@@ -96,3 +96,7 @@ Use `uv` for Python dependency and environment management.
 uv run ruff check .
 uv run pytest
 ```
+
+## License
+
+MIT

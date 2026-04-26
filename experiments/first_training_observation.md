@@ -115,3 +115,26 @@ The same small Transformer improves materially when given more training. The
 pipeline is therefore not blocked by data loading, tokenization, or architecture
 at this stage. The next scaling decision should compare more training against a
 modest model-size increase, not local sampling tweaks.
+
+## Medium 1k Capacity Follow-Up
+
+The next baseline keeps the same data, tokenizer, learning rate, prompt, seed,
+sampling, and 1,000 training steps, but increases model capacity:
+
+- block size: 32 -> 64
+- embedding dim: 32 -> 64
+- layers: 2 -> 4
+- parameters: 58,804 -> 267,892
+
+Result:
+
+- 1,000-step small validation perplexity: 43.08
+- 1,000-step medium validation perplexity: 30.45
+
+Reading:
+
+Increasing capacity improves validation perplexity at the same step count. The
+train/validation gap is larger than the small model, so capacity is helping but
+overfitting risk is starting to matter. This still supports the Bitter Lesson
+direction: simple scale improves the baseline before any local hand-designed
+tweaks are needed.

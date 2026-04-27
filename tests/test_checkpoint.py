@@ -37,6 +37,27 @@ def test_load_checkpoint_reads_current_payload(tmp_path) -> None:
     assert checkpoint["step"] == 1
 
 
+def test_load_checkpoint_preserves_tied_embedding_and_lm_head_weights(tmp_path) -> None:
+    path = tmp_path / "checkpoint.pt"
+    torch.save(checkpoint_payload(), path)
+
+    model, _tokenizer, _checkpoint = load_checkpoint(path)
+
+    assert model.lm_head.weight is model.token_embedding_table.weight
+
+
+def test_load_checkpoint_rejects_untied_embedding_and_lm_head_weights(tmp_path) -> None:
+    payload = checkpoint_payload()
+    model_state_dict = dict(payload["model_state_dict"])
+    model_state_dict["lm_head.weight"] = model_state_dict["token_embedding_table.weight"] + 1
+    payload["model_state_dict"] = model_state_dict
+    path = tmp_path / "checkpoint.pt"
+    torch.save(payload, path)
+
+    with pytest.raises(ValueError, match="separate token embedding"):
+        load_checkpoint(path)
+
+
 @pytest.mark.parametrize("key", ["model_state_dict", "config", "step", "losses"])
 def test_load_checkpoint_rejects_missing_required_keys(tmp_path, key: str) -> None:
     payload = checkpoint_payload()

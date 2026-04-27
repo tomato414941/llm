@@ -6,7 +6,9 @@ import sys
 
 import torch
 
+from llm.checkpoint import validate_tied_model_weights
 from llm.config import compact_defaults, config_defaults, load_toml
+from llm.device import resolve_device
 from llm.models import TransformerConfig, TransformerLanguageModel
 from llm.tokenizer import BPETokenizer, CharTokenizer, tokenizer_from_payload
 from llm.training import estimate_loss, get_batch, split_train_val
@@ -17,7 +19,14 @@ def load_text(path: Path) -> str:
 
 
 def count_parameters(model: torch.nn.Module) -> int:
-    return sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad)
+    seen: set[int] = set()
+    total = 0
+    for parameter in model.parameters():
+        if not parameter.requires_grad or id(parameter) in seen:
+            continue
+        seen.add(id(parameter))
+        total += parameter.numel()
+    return total
 
 
 def perplexity(loss: float) -> float:
@@ -32,6 +41,30 @@ def format_loss_line(step: int, losses: dict[str, float]) -> str:
         f"train loss {train_loss:.4f}, train ppl {perplexity(train_loss):.2f}, "
         f"val loss {val_loss:.4f}, val ppl {perplexity(val_loss):.2f}"
     )
+
+
+def learning_rate_for_step(
+    step: int,
+    decay_iters: int,
+    learning_rate: float,
+    warmup_iters: int = 0,
+    min_learning_rate: float | None = None,
+) -> float:
+    if warmup_iters > 0 and step < warmup_iters:
+        return learning_rate * (step + 1) / warmup_iters
+    if min_learning_rate is None:
+        return learning_rate
+    if decay_iters <= warmup_iters:
+        return min_learning_rate
+    decay_ratio = (step - warmup_iters) / (decay_iters - warmup_iters)
+    decay_ratio = min(max(decay_ratio, 0.0), 1.0)
+    cosine_coeff = 0.5 * (1.0 + math.cos(math.pi * decay_ratio))
+    return min_learning_rate + cosine_coeff * (learning_rate - min_learning_rate)
+
+
+def set_optimizer_learning_rate(optimizer: torch.optim.Optimizer, learning_rate: float) -> None:
+    for group in optimizer.param_groups:
+        group["lr"] = learning_rate
 
 
 def append_metrics_row(path: Path, step: int, losses: dict[str, float]) -> None:
@@ -153,6 +186,15 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--dropout must be in [0, 1)")
     if args.learning_rate <= 0:
         raise ValueError("--learning-rate must be positive")
+    if args.warmup_iters < 0:
+        raise ValueError("--warmup-iters must be non-negative")
+    if args.lr_decay_iters <= 0:
+        raise ValueError("--lr-decay-iters must be positive")
+    if args.min_learning_rate is not None:
+        if args.min_learning_rate < 0:
+            raise ValueError("--min-learning-rate must be non-negative")
+        if args.min_learning_rate > args.learning_rate:
+            raise ValueError("--min-learning-rate must be less than or equal to --learning-rate")
     if args.temperature <= 0:
         raise ValueError("--temperature must be positive")
     if args.top_k is not None and args.top_k <= 0:
@@ -181,11 +223,15 @@ def build_parser(defaults: dict[str, object]) -> argparse.ArgumentParser:
     parser.add_argument("--num-layers", type=int)
     parser.add_argument("--dropout", type=float)
     parser.add_argument("--learning-rate", type=float)
+    parser.add_argument("--warmup-iters", type=int)
+    parser.add_argument("--lr-decay-iters", type=int)
+    parser.add_argument("--min-learning-rate", type=float)
     parser.add_argument("--seed", type=int)
     parser.add_argument("--generate-tokens", type=int)
     parser.add_argument("--temperature", type=float)
     parser.add_argument("--top-k", type=int)
     parser.add_argument("--metrics-output", type=Path)
+    parser.add_argument("--device", choices=("auto", "cpu", "cuda"))
     return parser
 
 
@@ -203,9 +249,13 @@ def parse_args() -> argparse.Namespace:
         "num_layers": 2,
         "dropout": 0.0,
         "learning_rate": 1e-3,
+        "warmup_iters": 0,
+        "lr_decay_iters": 3000,
+        "min_learning_rate": None,
         "generate_tokens": 300,
         "temperature": 1.0,
         "seed": 1337,
+        "device": "auto",
     }
     config_parser = argparse.ArgumentParser(add_help=False)
     config_parser.add_argument("--config", type=Path)
@@ -248,6 +298,8 @@ def main() -> None:
     validate_args(args)
 
     torch.manual_seed(args.seed)
+    device = resolve_device(args.device)
+    print(f"device: {device}")
 
     data, tokenizer, data_metadata = load_training_data(
         input_path=args.input,
@@ -255,6 +307,7 @@ def main() -> None:
         tokenizer_kind=args.tokenizer,
         tokenizer_path=args.tokenizer_path,
     )
+    data = data.to(device)
     train_data, val_data = split_train_val(data)
 
     if len(train_data) <= args.block_size or len(val_data) <= args.block_size:
@@ -268,7 +321,7 @@ def main() -> None:
         num_layers=args.num_layers,
         dropout=args.dropout,
     )
-    model = TransformerLanguageModel(config)
+    model = TransformerLanguageModel(config).to(device)
     parameter_count = count_parameters(model)
     print(f"parameters: {parameter_count:,}")
 
@@ -286,7 +339,9 @@ def main() -> None:
         )
         if checkpoint_config != config:
             raise ValueError("resume checkpoint config does not match requested config")
-        model.load_state_dict(require_resume_key(resume_checkpoint, "model_state_dict"))
+        model_state_dict = require_resume_key(resume_checkpoint, "model_state_dict")
+        validate_tied_model_weights(model_state_dict)  # type: ignore[arg-type]
+        model.load_state_dict(model_state_dict)
         optimizer.load_state_dict(optimizer_state_dict)  # type: ignore[arg-type]
         torch.random.set_rng_state(rng_state)  # type: ignore[arg-type]
         start_step = int(require_resume_key(resume_checkpoint, "step")) + 1
@@ -294,6 +349,15 @@ def main() -> None:
         latest_losses = dict(resume_checkpoint.get("losses", latest_losses))
 
     for step in range(start_step, args.max_iters):
+        step_learning_rate = learning_rate_for_step(
+            step=step,
+            decay_iters=args.lr_decay_iters,
+            learning_rate=args.learning_rate,
+            warmup_iters=args.warmup_iters,
+            min_learning_rate=args.min_learning_rate,
+        )
+        set_optimizer_learning_rate(optimizer, step_learning_rate)
+
         if step % args.eval_interval == 0 or step == args.max_iters - 1:
             latest_losses = estimate_loss(
                 model=model,
@@ -331,7 +395,13 @@ def main() -> None:
             "max_iters": args.max_iters,
             "batch_size": args.batch_size,
             "learning_rate": args.learning_rate,
+            "warmup_iters": args.warmup_iters,
+            "lr_decay_iters": args.lr_decay_iters,
+            "min_learning_rate": args.min_learning_rate
+            if args.min_learning_rate is not None
+            else "",
             "seed": args.seed,
+            "device": str(device),
             "parameter_count": parameter_count,
             "tokenizer": tokenizer_type(tokenizer),
             "tokenizer_path": str(args.tokenizer_path) if args.tokenizer_path is not None else "",
@@ -342,7 +412,7 @@ def main() -> None:
     print(f"\ncheckpoint saved to {args.checkpoint}")
 
     model.eval()
-    context = torch.tensor([default_context_ids(tokenizer)], dtype=torch.long)
+    context = torch.tensor([default_context_ids(tokenizer)], dtype=torch.long, device=device)
     generated = model.generate(
         context,
         max_new_tokens=args.generate_tokens,

@@ -13,6 +13,18 @@ def require_checkpoint_key(checkpoint: dict[str, Any], key: str) -> Any:
     return checkpoint[key]
 
 
+def validate_tied_model_weights(model_state_dict: dict[str, torch.Tensor]) -> None:
+    token_key = "token_embedding_table.weight"
+    head_key = "lm_head.weight"
+    if token_key not in model_state_dict or head_key not in model_state_dict:
+        return
+    if not torch.equal(model_state_dict[token_key], model_state_dict[head_key]):
+        raise ValueError(
+            "checkpoint has separate token embedding and lm head weights; "
+            "retrain with the tied-weight model or migrate the checkpoint explicitly"
+        )
+
+
 def load_tokenizer(checkpoint: dict[str, Any]) -> CharTokenizer | BPETokenizer:
     if "tokenizer" in checkpoint:
         tokenizer_payload = checkpoint["tokenizer"]
@@ -40,6 +52,7 @@ def load_checkpoint(
     if not isinstance(config_payload, dict):
         raise ValueError("checkpoint config must be a dictionary")
     model_state_dict = require_checkpoint_key(checkpoint, "model_state_dict")
+    validate_tied_model_weights(model_state_dict)
     require_checkpoint_key(checkpoint, "step")
     require_checkpoint_key(checkpoint, "losses")
 

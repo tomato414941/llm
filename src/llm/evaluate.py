@@ -5,6 +5,7 @@ from pathlib import Path
 import torch
 
 from llm.checkpoint import load_checkpoint
+from llm.device import resolve_device
 from llm.tokenizer import tokenizer_from_payload
 from llm.training import get_batch, split_train_val
 
@@ -70,7 +71,7 @@ def estimate_validation_loss(
     was_training = model.training
     model.eval()
     try:
-        losses = torch.zeros(eval_iters)
+        losses = torch.zeros(eval_iters, device=val_data.device)
         for index in range(eval_iters):
             xb, yb = get_batch(val_data, block_size, batch_size)
             _, loss = model(xb, yb)
@@ -98,13 +99,17 @@ def main() -> None:
     parser.add_argument("--tokens", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--eval-iters", type=int, default=20)
+    parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     args = parser.parse_args()
     validate_args(args)
+    device = resolve_device(args.device)
+    print(f"device: {device}")
 
     model, _tokenizer, checkpoint = load_checkpoint(args.checkpoint)
+    model = model.to(device)
     prepared = load_prepared_tokens(args.tokens)
     validate_vocab_size(model.config.vocab_size, prepared)
-    data = prepared_tokens(prepared)
+    data = prepared_tokens(prepared).to(device)
     _train_data, val_data = split_train_val(data)
     block_size = model.config.block_size
 

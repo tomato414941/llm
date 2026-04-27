@@ -63,9 +63,16 @@ Success criteria:
 
 No-dependency JSONL evaluator:
 
-- input is a task JSONL file plus a saved prediction JSONL file
-- output is a local CSV scoring summary suitable for review and comparison
-- it does not run inference, use RunPod, download models, or call APIs
+- input is one or more task JSONL files plus a saved prediction JSONL file
+- `evals/leverage_smoke.jsonl` is the smoke layer for evaluator wiring and
+  prediction format checks
+- `evals/project_judgment_v0.jsonl` is the project-judgment layer for more
+  meaningful leverage-track comparisons
+- pass multiple layers with repeated `--tasks` arguments
+- output includes a local CSV scoring file and, when requested, a
+  `--summary-output` CSV for rollups suitable for review and comparison
+- it scores saved predictions only; it does not run inference, use RunPod,
+  download models, call APIs, or fetch datasets
 - use it before any paid or networked run to make the eval target explicit
 
 Non-goals:

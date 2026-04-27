@@ -17,6 +17,55 @@ def write_jsonl(path: Path, rows: list[dict[str, object]]) -> None:
     )
 
 
+def task(
+    task_id: str,
+    *,
+    category: str = "qa",
+    expected: str = "ok",
+) -> dict[str, object]:
+    return {
+        "id": task_id,
+        "category": category,
+        "prompt": f"Return {expected}.",
+        "scoring": {"type": "exact", "expected": expected},
+    }
+
+
+def prediction(
+    task_id: str,
+    *,
+    model: str = "example",
+    response: str = "ok",
+) -> dict[str, object]:
+    return {"task_id": task_id, "model": model, "response": response}
+
+
+def cli_env() -> dict[str, str]:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(Path.cwd() / "src"), env["PYTHONPATH"]]
+        if env.get("PYTHONPATH")
+        else [str(Path.cwd() / "src")]
+    )
+    return env
+
+
+def run_evaluate_cli(args: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, "-m", "llm.leverage.evaluate", *args],
+        check=False,
+        cwd=Path.cwd(),
+        env=cli_env(),
+        text=True,
+        capture_output=True,
+    )
+
+
+def read_csv(path: Path) -> list[dict[str, str]]:
+    with path.open(newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
 def test_score_response_contains_all_passes_only_when_all_terms_are_present() -> None:
     scoring = {"type": "contains_all", "phrases": ["red", "blue"]}
 
@@ -88,6 +137,64 @@ def test_load_tasks_rejects_duplicate_task_ids(tmp_path: Path) -> None:
         evaluate.load_tasks(tasks_path)
 
 
+def test_cli_accepts_multiple_task_files_and_writes_suite_column(tmp_path: Path) -> None:
+    alpha_tasks_path = tmp_path / "alpha.jsonl"
+    beta_tasks_path = tmp_path / "beta.jsonl"
+    predictions_path = tmp_path / "predictions.jsonl"
+    output_path = tmp_path / "detail.csv"
+    write_jsonl(alpha_tasks_path, [task("alpha-one")])
+    write_jsonl(beta_tasks_path, [task("beta-one")])
+    write_jsonl(
+        predictions_path,
+        [prediction("alpha-one"), prediction("beta-one")],
+    )
+
+    result = run_evaluate_cli(
+        [
+            "--tasks",
+            str(alpha_tasks_path),
+            "--tasks",
+            str(beta_tasks_path),
+            "--predictions",
+            str(predictions_path),
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    assert result.returncode == 0, result.stderr
+    rows = read_csv(output_path)
+    assert [row["task_id"] for row in rows] == ["alpha-one", "beta-one"]
+    assert [row["suite"] for row in rows] == ["alpha", "beta"]
+    assert [row["passed"] for row in rows] == ["true", "true"]
+
+
+def test_cli_rejects_duplicate_task_ids_across_task_files(tmp_path: Path) -> None:
+    alpha_tasks_path = tmp_path / "alpha.jsonl"
+    beta_tasks_path = tmp_path / "beta.jsonl"
+    predictions_path = tmp_path / "predictions.jsonl"
+    output_path = tmp_path / "detail.csv"
+    write_jsonl(alpha_tasks_path, [task("duplicate")])
+    write_jsonl(beta_tasks_path, [task("duplicate")])
+    write_jsonl(predictions_path, [prediction("duplicate")])
+
+    result = run_evaluate_cli(
+        [
+            "--tasks",
+            str(alpha_tasks_path),
+            "--tasks",
+            str(beta_tasks_path),
+            "--predictions",
+            str(predictions_path),
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    assert result.returncode != 0
+    assert "duplicate" in result.stderr
+
+
 def test_load_tasks_rejects_unknown_scoring_type(tmp_path: Path) -> None:
     tasks_path = tmp_path / "tasks.jsonl"
     write_jsonl(
@@ -120,6 +227,20 @@ def test_load_predictions_rejects_prediction_for_missing_task(tmp_path: Path) ->
         evaluate.load_predictions(predictions_path, {"known"})
 
 
+def test_load_predictions_rejects_duplicate_model_task_prediction(tmp_path: Path) -> None:
+    predictions_path = tmp_path / "predictions.jsonl"
+    write_jsonl(
+        predictions_path,
+        [
+            prediction("only"),
+            prediction("only", response="ok again"),
+        ],
+    )
+
+    with pytest.raises(ValueError, match="duplicate"):
+        evaluate.load_predictions(predictions_path, {"only"})
+
+
 def test_evaluate_predictions_rejects_model_with_missing_task() -> None:
     tasks = {
         "first": evaluate.Task(
@@ -141,6 +262,97 @@ def test_evaluate_predictions_rejects_model_with_missing_task() -> None:
 
     with pytest.raises(ValueError, match="missing predictions"):
         evaluate.evaluate_predictions(tasks, predictions)
+
+
+def test_evaluate_predictions_rejects_empty_predictions() -> None:
+    tasks = {
+        "first": evaluate.Task(
+            id="first",
+            category="qa",
+            prompt="First?",
+            scoring={"type": "exact", "expected": "yes"},
+        )
+    }
+
+    with pytest.raises(ValueError, match="at least one prediction"):
+        evaluate.evaluate_predictions(tasks, [])
+
+
+def test_cli_combined_task_coverage_requires_every_task_for_each_model(tmp_path: Path) -> None:
+    alpha_tasks_path = tmp_path / "alpha.jsonl"
+    beta_tasks_path = tmp_path / "beta.jsonl"
+    predictions_path = tmp_path / "predictions.jsonl"
+    output_path = tmp_path / "detail.csv"
+    write_jsonl(alpha_tasks_path, [task("alpha-one")])
+    write_jsonl(beta_tasks_path, [task("beta-one")])
+    write_jsonl(predictions_path, [prediction("alpha-one")])
+
+    result = run_evaluate_cli(
+        [
+            "--tasks",
+            str(alpha_tasks_path),
+            "--tasks",
+            str(beta_tasks_path),
+            "--predictions",
+            str(predictions_path),
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    assert result.returncode != 0
+    assert "missing predictions" in result.stderr
+    assert "beta-one" in result.stderr
+
+
+def test_cli_writes_summary_output_with_overall_rows(tmp_path: Path) -> None:
+    alpha_tasks_path = tmp_path / "alpha.jsonl"
+    beta_tasks_path = tmp_path / "beta.jsonl"
+    predictions_path = tmp_path / "predictions.jsonl"
+    detail_path = tmp_path / "detail.csv"
+    summary_path = tmp_path / "summary.csv"
+    write_jsonl(alpha_tasks_path, [task("alpha-qa", category="qa")])
+    write_jsonl(beta_tasks_path, [task("beta-reasoning", category="reasoning", expected="4")])
+    write_jsonl(
+        predictions_path,
+        [
+            prediction("alpha-qa"),
+            prediction("beta-reasoning", response="wrong"),
+        ],
+    )
+
+    result = run_evaluate_cli(
+        [
+            "--tasks",
+            str(alpha_tasks_path),
+            "--tasks",
+            str(beta_tasks_path),
+            "--predictions",
+            str(predictions_path),
+            "--output",
+            str(detail_path),
+            "--summary-output",
+            str(summary_path),
+        ]
+    )
+
+    assert result.returncode == 0, result.stderr
+    rows = read_csv(summary_path)
+    row_keys = {(row["model"], row["suite"], row["category"]) for row in rows}
+    assert ("example", "alpha", "qa") in row_keys
+    assert ("example", "beta", "reasoning") in row_keys
+    assert ("example", "alpha", "__overall__") in row_keys
+    assert ("example", "beta", "__overall__") in row_keys
+    overall = next(
+        row
+        for row in rows
+        if row["model"] == "example"
+        and row["suite"] == "alpha"
+        and row["category"] == "__overall__"
+    )
+    assert overall["task_count"] == "1"
+    assert overall["passed_count"] == "1"
+    assert overall["pass_rate"] == "1.000"
 
 
 def test_cli_writes_csv_scores(tmp_path: Path) -> None:
@@ -179,34 +391,96 @@ def test_cli_writes_csv_scores(tmp_path: Path) -> None:
         ],
     )
 
-    env = os.environ.copy()
-    env["PYTHONPATH"] = os.pathsep.join(
-        [str(Path.cwd() / "src"), env["PYTHONPATH"]]
-        if env.get("PYTHONPATH")
-        else [str(Path.cwd() / "src")]
-    )
-    result = subprocess.run(
+    result = run_evaluate_cli(
         [
-            sys.executable,
-            "-m",
-            "llm.leverage.evaluate",
             "--tasks",
             str(tasks_path),
             "--predictions",
             str(predictions_path),
             "--output",
             str(output_path),
-        ],
-        check=False,
-        cwd=Path.cwd(),
-        env=env,
-        text=True,
-        capture_output=True,
+        ]
     )
 
     assert result.returncode == 0, result.stderr
-    with output_path.open(newline="", encoding="utf-8") as handle:
-        rows = list(csv.DictReader(handle))
+    rows = read_csv(output_path)
 
     assert [row["task_id"] for row in rows] == ["contains", "exact", "regex"]
     assert [row["passed"] for row in rows] == ["true", "false", "true"]
+
+
+def test_real_leverage_smoke_eval_contract() -> None:
+    tasks_path = Path("evals/leverage_smoke.jsonl")
+    predictions_path = Path("experiments/leverage/predictions.example.jsonl")
+
+    tasks = evaluate.load_tasks(tasks_path)
+    predictions = evaluate.load_predictions(predictions_path, set(tasks))
+    results = evaluate.evaluate_predictions(tasks, predictions)
+
+    assert set(tasks) == {
+        "qa_capital_france",
+        "qa_water_freezing",
+        "summary_mission",
+        "summary_runpod",
+        "instruction_json",
+        "instruction_bullets",
+        "reasoning_arithmetic",
+        "reasoning_order",
+        "coding_python_function",
+        "coding_sql_count",
+        "qa_author",
+        "instruction_lowercase",
+    }
+    assert {task.category for task in tasks.values()} == {
+        "coding",
+        "instruction",
+        "qa",
+        "reasoning",
+        "summarization",
+    }
+    assert len(predictions) == len(tasks)
+    assert {prediction.model for prediction in predictions} == {"example-baseline"}
+    assert all(result.model == "example-baseline" for result in results)
+    assert all(result.passed for result in results)
+
+
+def test_real_project_judgment_eval_contract() -> None:
+    tasks_path = Path("evals/project_judgment_v0.jsonl")
+    predictions_path = Path("experiments/leverage/project_judgment_v0.example.jsonl")
+
+    tasks = evaluate.load_tasks(tasks_path)
+    predictions = evaluate.load_predictions(predictions_path, set(tasks))
+    results = evaluate.evaluate_predictions(tasks, predictions)
+
+    assert len(tasks) == 18
+    assert {task.category for task in tasks.values()} == {
+        "coding_repo_reasoning",
+        "eval_design",
+        "experiment_judgment",
+        "loss_curve_interpretation",
+        "runpod_cost_awareness",
+        "track_distinction",
+    }
+    assert len(predictions) == len(tasks)
+    assert {prediction.model for prediction in predictions} == {"example-baseline"}
+    assert all(result.suite == "project_judgment_v0" for result in results)
+    assert all(result.passed for result in results)
+
+
+def test_real_two_layer_eval_contract() -> None:
+    tasks = evaluate.load_task_suites(
+        [
+            Path("evals/leverage_smoke.jsonl"),
+            Path("evals/project_judgment_v0.jsonl"),
+        ]
+    )
+    predictions = evaluate.load_predictions(
+        Path("experiments/leverage/two_layer.example.jsonl"),
+        set(tasks),
+    )
+    results = evaluate.evaluate_predictions(tasks, predictions)
+
+    assert len(tasks) == 30
+    assert len(predictions) == len(tasks)
+    assert {result.suite for result in results} == {"leverage_smoke", "project_judgment_v0"}
+    assert all(result.passed for result in results)

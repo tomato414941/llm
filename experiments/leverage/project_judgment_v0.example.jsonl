@@ -1,0 +1,18 @@
+{"task_id":"pj_exp_001","model":"example-baseline","response":"No. The blocking issue is that the new run used a smaller dataset shard, so it is not comparable to the baseline."}
+{"task_id":"pj_exp_002","model":"example-baseline","response":"The problem is multiple variables changed at once; isolate one change before attributing the accuracy gain."}
+{"task_id":"pj_exp_003","model":"example-baseline","response":"REPEAT"}
+{"task_id":"pj_cost_001","model":"example-baseline","response":"no. At $2.40/hour for 9 hours, the projected cost is $21.60."}
+{"task_id":"pj_cost_002","model":"example-baseline","response":"Stop the idle pod and save a snapshot or checkpoint so state can be restored without paying for idle compute."}
+{"task_id":"pj_cost_003","model":"example-baseline","response":"Add a smoke test and a cost cap before launching the 48-hour run."}
+{"task_id":"pj_track_001","model":"example-baseline","response":"research"}
+{"task_id":"pj_track_002","model":"example-baseline","response":"Preserve the distinction between engineering repair and research viability, and track them as separate decisions."}
+{"task_id":"pj_track_003","model":"example-baseline","response":"operations"}
+{"task_id":"pj_loss_001","model":"example-baseline","response":"overfitting"}
+{"task_id":"pj_loss_002","model":"example-baseline","response":"Check the learning rate and the data pipeline first."}
+{"task_id":"pj_loss_003","model":"example-baseline","response":"No. A worse final checkpoint alone is not enough if the moving average is still improving."}
+{"task_id":"pj_repo_001","model":"example-baseline","response":"npm install"}
+{"task_id":"pj_repo_002","model":"example-baseline","response":"leave README.md unchanged because those unrelated edits belong to someone else."}
+{"task_id":"pj_repo_003","model":"example-baseline","response":"Check git status and find the relevant tests before editing."}
+{"task_id":"pj_eval_001","model":"example-baseline","response":"The flaw is using exact match for an open-ended essay; that scoring will be brittle."}
+{"task_id":"pj_eval_002","model":"example-baseline","response":"contains_all"}
+{"task_id":"pj_eval_003","model":"example-baseline","response":"Fix the category imbalance by adding coverage for loss curves and repo reasoning."}

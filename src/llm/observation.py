@@ -114,9 +114,15 @@ def write_observation(path: Path, observation: Observation | list[Observation]) 
 
 def append_summary_row(path: Path, observation: Observation) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    file_exists = path.exists()
-    with path.open("a", encoding="utf-8", newline="") as summary_file:
+    rows: list[dict[str, object]] = []
+    if path.exists():
+        with path.open(encoding="utf-8", newline="") as summary_file:
+            rows = [
+                {field: row.get(field, "") for field in SUMMARY_FIELDS}
+                for row in csv.DictReader(summary_file)
+            ]
+    rows.append(summary_row(observation))
+    with path.open("w", encoding="utf-8", newline="") as summary_file:
         writer = csv.DictWriter(summary_file, fieldnames=SUMMARY_FIELDS)
-        if not file_exists:
-            writer.writeheader()
-        writer.writerow(summary_row(observation))
+        writer.writeheader()
+        writer.writerows(rows)

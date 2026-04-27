@@ -24,8 +24,12 @@ Directory roles:
 
 Leverage JSONL evaluation is local and deterministic. Store tasks under `evals/`,
 store saved model predictions under `experiments/leverage/`, then run the
-evaluator to produce reviewable CSV summaries. The evaluator does not run models,
-create RunPod jobs, download weights, or call APIs.
+evaluator to produce reviewable CSV summaries. Use `evals/leverage_smoke.jsonl`
+as the smoke layer and `evals/project_judgment_v0.jsonl` as the
+project-judgment layer. Pass multiple layers with repeated `--tasks` arguments
+and write aggregate rollups with `--summary-output`. The evaluator scores saved
+predictions only; it does not run models, create RunPod jobs, download weights,
+call APIs, or fetch datasets.
 
 Do not commit:
 

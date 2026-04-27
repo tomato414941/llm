@@ -125,21 +125,33 @@ uv run python -m llm.observe \
 ```
 
 For leverage experiments, use the no-dependency JSONL evaluator only after model
-outputs already exist. It reads local JSONL records, applies deterministic scoring
-rules, and writes a local CSV summary. It does not run models, start RunPod, or
-call external APIs.
+outputs already exist. It reads saved local JSONL predictions, applies
+deterministic scoring rules, and writes local CSV summaries. The evaluator is an
+offline scoring step only: it does not run models, start RunPod, call external
+APIs, download weights, or fetch datasets.
 
-Run the included smoke evaluation against saved example predictions:
+The committed eval layers are:
+
+- `evals/leverage_smoke.jsonl`: small smoke checks for evaluator wiring and
+  prediction format.
+- `evals/project_judgment_v0.jsonl`: project-specific judgment checks for the
+  leverage track once saved predictions exist.
+
+Run both layers against saved predictions by passing `--tasks` more than once:
 
 ```bash
 uv run python -m llm.leverage.evaluate \
   --tasks evals/leverage_smoke.jsonl \
-  --predictions experiments/leverage/predictions.example.jsonl \
-  --output experiments/leverage/scores.csv
+  --tasks evals/project_judgment_v0.jsonl \
+  --predictions experiments/leverage/two_layer.example.jsonl \
+  --output /tmp/leverage_scores.csv \
+  --summary-output /tmp/leverage_summary.csv
 ```
 
 Task JSONL records use `id`, `category`, `prompt`, and `scoring`. Prediction
-JSONL records use `task_id`, `model`, and `response`.
+JSONL records use `task_id`, `model`, and `response`. Prediction files must be
+created by a separate inference or manual collection step before this command is
+run.
 
 Or use the run config for the same observation settings:
 

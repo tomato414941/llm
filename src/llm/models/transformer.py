@@ -29,7 +29,7 @@ class FeedForward(nn.Module):
         super().__init__()
         self.network = nn.Sequential(
             nn.Linear(embedding_dim, 4 * embedding_dim),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Linear(4 * embedding_dim, embedding_dim),
             nn.Dropout(dropout),
         )
@@ -88,6 +88,7 @@ class TransformerLanguageModel(nn.Module):
         self.final_layer_norm = nn.LayerNorm(config.embedding_dim)
         self.lm_head = nn.Linear(config.embedding_dim, config.vocab_size)
         self.apply(self._init_weights)
+        self.lm_head.weight = self.token_embedding_table.weight
 
     def _init_weights(self, module: nn.Module) -> None:
         if isinstance(module, nn.Linear):

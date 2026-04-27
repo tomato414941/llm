@@ -16,7 +16,7 @@ class LanguageModel(Protocol):
 
 
 def get_batch(data: torch.Tensor, block_size: int, batch_size: int) -> tuple[torch.Tensor, torch.Tensor]:
-    ix = torch.randint(len(data) - block_size, (batch_size,))
+    ix = torch.randint(len(data) - block_size, (batch_size,), device=data.device)
     x = torch.stack([data[i : i + block_size] for i in ix])
     y = torch.stack([data[i + 1 : i + block_size + 1] for i in ix])
     return x, y
@@ -41,7 +41,7 @@ def estimate_loss(
     try:
         out = {}
         for split, data in (("train", train_data), ("val", val_data)):
-            losses = torch.zeros(eval_iters)
+            losses = torch.zeros(eval_iters, device=data.device)
             for index in range(eval_iters):
                 xb, yb = get_batch(data, block_size, batch_size)
                 _, loss = model(xb, yb)

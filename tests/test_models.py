@@ -7,6 +7,7 @@ from llm.models import (
     TransformerConfig,
     TransformerLanguageModel,
 )
+from llm.models.transformer import FeedForward
 
 
 def test_self_attention_head_returns_sequence_features() -> None:
@@ -59,6 +60,12 @@ def test_multi_head_attention_returns_projected_features() -> None:
     assert out.shape == (2, 3, 4)
 
 
+def test_feed_forward_uses_gelu_activation() -> None:
+    feed_forward = FeedForward(embedding_dim=4)
+
+    assert isinstance(feed_forward.network[1], torch.nn.GELU)
+
+
 def test_transformer_language_model_returns_sequence_logits_and_loss() -> None:
     config = TransformerConfig(
         vocab_size=5,
@@ -76,6 +83,19 @@ def test_transformer_language_model_returns_sequence_logits_and_loss() -> None:
 
     assert logits.shape == (2, 3, 5)
     assert loss is not None
+
+
+def test_transformer_language_model_ties_token_embedding_and_lm_head_weights() -> None:
+    config = TransformerConfig(
+        vocab_size=5,
+        block_size=3,
+        embedding_dim=4,
+        num_heads=2,
+        num_layers=2,
+    )
+    model = TransformerLanguageModel(config)
+
+    assert model.lm_head.weight is model.token_embedding_table.weight
 
 
 def test_transformer_language_model_rejects_too_long_context() -> None:

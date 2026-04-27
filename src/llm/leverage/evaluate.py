@@ -13,6 +13,7 @@ class Task:
     category: str
     prompt: str
     scoring: dict[str, Any]
+    suite: str = ""
 
 
 @dataclass(frozen=True)
@@ -30,15 +31,17 @@ class ScoreResult:
     score: float
     passed: bool
     reason: str
+    suite: str = ""
 
 
 def load_tasks(path: Path) -> dict[str, Task]:
     tasks: dict[str, Task] = {}
+    suite = path.stem
     for line_number, payload in load_jsonl(path):
         require_keys(payload, {"id", "category", "prompt", "scoring"}, "task", line_number)
         task_id = require_string(payload["id"], f"task line {line_number} field 'id'")
         if task_id in tasks:
-            raise ValueError(f"duplicate task id {task_id!r} at line {line_number}")
+            raise ValueError(f"duplicate task id {task_id!r} in {path} at line {line_number}")
         category = require_string(payload["category"], f"task {task_id!r} field 'category'")
         prompt = require_string(payload["prompt"], f"task {task_id!r} field 'prompt'")
         scoring = payload["scoring"]
@@ -50,24 +53,47 @@ def load_tasks(path: Path) -> dict[str, Task]:
             category=category,
             prompt=prompt,
             scoring=scoring,
+            suite=suite,
         )
+    return tasks
+
+
+def load_task_suites(paths: list[Path]) -> dict[str, Task]:
+    tasks: dict[str, Task] = {}
+    sources: dict[str, Path] = {}
+    for path in paths:
+        for task_id, task in load_tasks(path).items():
+            if task_id in tasks:
+                raise ValueError(
+                    f"duplicate task id {task_id!r} in {path}; already loaded from {sources[task_id]}"
+                )
+            tasks[task_id] = task
+            sources[task_id] = path
     return tasks
 
 
 def load_predictions(path: Path, task_ids: set[str] | None = None) -> list[Prediction]:
     predictions: list[Prediction] = []
+    seen: set[tuple[str, str]] = set()
     for line_number, payload in load_jsonl(path):
         require_keys(payload, {"task_id", "model", "response"}, "prediction", line_number)
         task_id = require_string(payload["task_id"], f"prediction line {line_number} field 'task_id'")
         if task_ids is not None and task_id not in task_ids:
             raise ValueError(f"prediction references missing task id {task_id!r} at line {line_number}")
         model = require_string(payload["model"], f"prediction line {line_number} field 'model'")
+        key = (model, task_id)
+        if key in seen:
+            raise ValueError(
+                f"duplicate prediction for model {model!r} and task id {task_id!r} at line {line_number}"
+            )
+        seen.add(key)
         response = require_string(payload["response"], f"prediction line {line_number} field 'response'")
         predictions.append(Prediction(task_id=task_id, model=model, response=response))
     return predictions
 
 
 def evaluate_predictions(tasks: dict[str, Task], predictions: list[Prediction]) -> list[ScoreResult]:
+    validate_no_duplicate_predictions(predictions)
     validate_prediction_coverage(set(tasks), predictions)
     results: list[ScoreResult] = []
     for prediction in predictions:
@@ -79,6 +105,7 @@ def evaluate_predictions(tasks: dict[str, Task], predictions: list[Prediction]) 
             ScoreResult(
                 model=prediction.model,
                 task_id=prediction.task_id,
+                suite=task.suite,
                 category=task.category,
                 score=score,
                 passed=passed,
@@ -88,7 +115,20 @@ def evaluate_predictions(tasks: dict[str, Task], predictions: list[Prediction]) 
     return results
 
 
+def validate_no_duplicate_predictions(predictions: list[Prediction]) -> None:
+    seen: set[tuple[str, str]] = set()
+    for prediction in predictions:
+        key = (prediction.model, prediction.task_id)
+        if key in seen:
+            raise ValueError(
+                f"duplicate prediction for model {prediction.model!r} and task id {prediction.task_id!r}"
+            )
+        seen.add(key)
+
+
 def validate_prediction_coverage(task_ids: set[str], predictions: list[Prediction]) -> None:
+    if not predictions:
+        raise ValueError("prediction file must contain at least one prediction")
     by_model: dict[str, set[str]] = {}
     for prediction in predictions:
         by_model.setdefault(prediction.model, set()).add(prediction.task_id)
@@ -105,18 +145,59 @@ def write_results(path: Path, results: list[ScoreResult]) -> None:
     with path.open("w", encoding="utf-8", newline="") as file:
         writer = csv.DictWriter(
             file,
-            fieldnames=["model", "task_id", "category", "score", "passed", "reason"],
+            fieldnames=["model", "suite", "task_id", "category", "score", "passed", "reason"],
         )
         writer.writeheader()
         for result in results:
             writer.writerow(
                 {
                     "model": result.model,
+                    "suite": result.suite,
                     "task_id": result.task_id,
                     "category": result.category,
                     "score": f"{result.score:.1f}",
                     "passed": str(result.passed).lower(),
                     "reason": result.reason,
+                }
+            )
+
+
+def write_summary(path: Path, results: list[ScoreResult]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fieldnames = [
+        "model",
+        "suite",
+        "category",
+        "task_count",
+        "passed_count",
+        "avg_score",
+        "pass_rate",
+    ]
+    groups: dict[tuple[str, str, str], list[ScoreResult]] = {}
+    for result in results:
+        groups.setdefault((result.model, result.suite, result.category), []).append(result)
+        groups.setdefault((result.model, result.suite, "__overall__"), []).append(result)
+        groups.setdefault((result.model, "__overall__", "__overall__"), []).append(result)
+
+    with path.open("w", encoding="utf-8", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        for key in sorted(groups):
+            group_results = groups[key]
+            task_count = len(group_results)
+            passed_count = sum(1 for result in group_results if result.passed)
+            avg_score = sum(result.score for result in group_results) / task_count
+            pass_rate = passed_count / task_count
+            model, suite, category = key
+            writer.writerow(
+                {
+                    "model": model,
+                    "suite": suite,
+                    "category": category,
+                    "task_count": str(task_count),
+                    "passed_count": str(passed_count),
+                    "avg_score": f"{avg_score:.3f}",
+                    "pass_rate": f"{pass_rate:.3f}",
                 }
             )
 
@@ -216,18 +297,21 @@ def regex_pattern(scoring: dict[str, Any]) -> str:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--tasks", type=Path, required=True)
+    parser.add_argument("--tasks", type=Path, required=True, action="append")
     parser.add_argument("--predictions", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--summary-output", type=Path)
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    tasks = load_tasks(args.tasks)
+    tasks = load_task_suites(args.tasks)
     predictions = load_predictions(args.predictions, set(tasks))
     results = evaluate_predictions(tasks, predictions)
     write_results(args.output, results)
+    if args.summary_output is not None:
+        write_summary(args.summary_output, results)
 
 
 if __name__ == "__main__":

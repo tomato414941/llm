@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Hybrid lab for learning and building toward small general-purpose LLMs."
 requires-python = ">=3.11,<3.13"
 dependencies = [
-    "torch>=2.2",
+    "torch>=2.2,<2.9",
 ]
 
 [build-system]

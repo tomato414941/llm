@@ -4,6 +4,7 @@ from pathlib import Path
 import torch
 
 from llm.checkpoint import load_checkpoint
+from llm.device import resolve_device
 from llm.tokenizer import BPETokenizer, CharTokenizer
 
 
@@ -40,7 +41,8 @@ def generate_sample(
     temperature: float,
     top_k: int | None,
 ) -> str:
-    context = torch.tensor([prompt_context_ids(tokenizer, prompt)], dtype=torch.long)
+    device = next(model.parameters()).device
+    context = torch.tensor([prompt_context_ids(tokenizer, prompt)], dtype=torch.long, device=device)
     generated = model.generate(
         context,
         max_new_tokens=max_new_tokens,
@@ -81,10 +83,14 @@ def main() -> None:
     parser.add_argument("--top-k", type=int)
     parser.add_argument("--seed", type=int, default=1337)
     parser.add_argument("--samples", type=int, default=1)
+    parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     args = parser.parse_args()
     validate_args(args)
+    device = resolve_device(args.device)
+    print(f"device: {device}")
 
     model, tokenizer, checkpoint = load_checkpoint(args.checkpoint)
+    model = model.to(device)
     torch.manual_seed(args.seed)
 
     print(f"checkpoint step: {checkpoint['step']}")

@@ -1,4 +1,3 @@
-output_path,checkpoint_path,tokens_path,checkpoint_step,validation_loss,validation_perplexity,prompt,seed,samples,max_new_tokens,temperature,top_k
-experiments/observations/first_observation.md,checkpoints/first_observation.pt,data/processed/tinyshakespeare_bpe_500.pt,99,5.076207637786865,160.16549714108447,KING:,1337,3,200,1.0,20
-experiments/observations/baseline_1k.md,checkpoints/baseline_1k.pt,data/processed/tinyshakespeare_bpe_500.pt,999,3.763073444366455,43.08062863131826,KING:,1337,3,200,1.0,20
-experiments/observations/baseline_1k_medium.md,checkpoints/baseline_1k_medium.pt,data/processed/tinyshakespeare_bpe_500.pt,999,3.4160609245300293,30.449236639460675,KING:,1337,3,200,1.0,20
+output_path,checkpoint_path,tokens_path,checkpoint_step,validation_loss,validation_perplexity,run_id,prompt_id,prompt,seed,samples,max_new_tokens,temperature,top_k
+experiments/observations/pico_gpt2_tinyshakespeare.md,checkpoints/pico_gpt2_tinyshakespeare.pt,data/processed/tinyshakespeare_bpe_500.pt,2999,3.342092275619507,28.278230705586186,pico_gpt2_tinyshakespeare,king_open,KING:,1337,3,300,1.0,20
+experiments/observations/pico_gpt2_tinyshakespeare.md,checkpoints/pico_gpt2_tinyshakespeare.pt,data/processed/tinyshakespeare_bpe_500.pt,2999,3.342092275619507,28.278230705586186,pico_gpt2_tinyshakespeare,scene_open,SCENE,1337,3,300,1.0,20

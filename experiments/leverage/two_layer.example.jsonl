@@ -1,0 +1,30 @@
+{"task_id":"qa_capital_france","model":"example-baseline","response":"Paris"}
+{"task_id":"qa_water_freezing","model":"example-baseline","response":"0"}
+{"task_id":"summary_mission","model":"example-baseline","response":"The lab has two tracks: one from scratch for mechanics and one for open models closer to practical LLM behavior."}
+{"task_id":"summary_runpod","model":"example-baseline","response":"RunPod is paid compute, so record the cost, runtime, files, stopping condition, and outputs before using it."}
+{"task_id":"instruction_json","model":"example-baseline","response":"{\"status\":\"ok\"}"}
+{"task_id":"instruction_bullets","model":"example-baseline","response":"- apples\n- oranges"}
+{"task_id":"reasoning_arithmetic","model":"example-baseline","response":"22"}
+{"task_id":"reasoning_order","model":"example-baseline","response":"Cy"}
+{"task_id":"coding_python_function","model":"example-baseline","response":"def add_one(x):\n    return x + 1"}
+{"task_id":"coding_sql_count","model":"example-baseline","response":"SELECT COUNT(*) FROM users;"}
+{"task_id":"qa_author","model":"example-baseline","response":"William Shakespeare"}
+{"task_id":"instruction_lowercase","model":"example-baseline","response":"ready"}
+{"task_id":"pj_exp_001","model":"example-baseline","response":"No. The blocking issue is that the new run used a smaller dataset shard, so it is not comparable to the baseline."}
+{"task_id":"pj_exp_002","model":"example-baseline","response":"The problem is multiple variables changed at once; isolate one change before attributing the accuracy gain."}
+{"task_id":"pj_exp_003","model":"example-baseline","response":"REPEAT"}
+{"task_id":"pj_cost_001","model":"example-baseline","response":"no. At $2.40/hour for 9 hours, the projected cost is $21.60."}
+{"task_id":"pj_cost_002","model":"example-baseline","response":"Stop the idle pod and save a snapshot or checkpoint so state can be restored without paying for idle compute."}
+{"task_id":"pj_cost_003","model":"example-baseline","response":"Add a smoke test and a cost cap before launching the 48-hour run."}
+{"task_id":"pj_track_001","model":"example-baseline","response":"research"}
+{"task_id":"pj_track_002","model":"example-baseline","response":"Preserve the distinction between engineering repair and research viability, and track them as separate decisions."}
+{"task_id":"pj_track_003","model":"example-baseline","response":"operations"}
+{"task_id":"pj_loss_001","model":"example-baseline","response":"overfitting"}
+{"task_id":"pj_loss_002","model":"example-baseline","response":"Check the learning rate and the data pipeline first."}
+{"task_id":"pj_loss_003","model":"example-baseline","response":"No. A worse final checkpoint alone is not enough if the moving average is still improving."}
+{"task_id":"pj_repo_001","model":"example-baseline","response":"npm install"}
+{"task_id":"pj_repo_002","model":"example-baseline","response":"leave README.md unchanged because those unrelated edits belong to someone else."}
+{"task_id":"pj_repo_003","model":"example-baseline","response":"Check git status and find the relevant tests before editing."}
+{"task_id":"pj_eval_001","model":"example-baseline","response":"The flaw is using exact match for an open-ended essay; that scoring will be brittle."}
+{"task_id":"pj_eval_002","model":"example-baseline","response":"contains_all"}
+{"task_id":"pj_eval_003","model":"example-baseline","response":"Fix the category imbalance by adding coverage for loss curves and repo reasoning."}

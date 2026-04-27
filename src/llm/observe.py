@@ -7,6 +7,7 @@ import torch
 
 from llm.checkpoint import load_checkpoint
 from llm.config import compact_defaults, load_toml, observe_config_defaults
+from llm.device import resolve_device
 from llm.evaluate import (
     estimate_validation_loss,
     load_prepared_tokens,
@@ -76,10 +77,13 @@ def checkpoint_run_id(checkpoint: dict[str, object]) -> str:
 
 
 def load_observation_context(args: argparse.Namespace) -> ObservationContext:
+    device = resolve_device(args.device)
+    print(f"device: {device}")
     model, tokenizer, checkpoint = load_checkpoint(args.checkpoint)
+    model = model.to(device)
     prepared = load_prepared_tokens(args.tokens)
     validate_vocab_size(model.config.vocab_size, prepared)
-    data = prepared_tokens(prepared)
+    data = prepared_tokens(prepared).to(device)
     _train_data, val_data = split_train_val(data)
     block_size = model.config.block_size
     if len(val_data) <= block_size:
@@ -169,6 +173,7 @@ def build_parser(defaults: dict[str, object]) -> argparse.ArgumentParser:
     parser.add_argument("--top-k", type=int)
     parser.add_argument("--seed", type=int)
     parser.add_argument("--samples", type=int)
+    parser.add_argument("--device", choices=("auto", "cpu", "cuda"))
     return parser
 
 
@@ -180,6 +185,7 @@ def parse_args() -> argparse.Namespace:
         "temperature": 1.0,
         "seed": 1337,
         "samples": 1,
+        "device": "auto",
     }
     config_parser = argparse.ArgumentParser(add_help=False)
     config_parser.add_argument("--config", type=Path)

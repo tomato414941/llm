@@ -8,7 +8,6 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from runpod_train_once import (
-    DEFAULT_IMAGE,
     DEFAULT_REMOTE_DIR,
     DEFAULT_RUNPODCTL,
     DEFAULT_SECRET_PATH,
@@ -40,6 +39,7 @@ from runpod_train_once import (
 DEFAULT_MODEL = "Qwen/Qwen3.5-35B-A3B-FP8"
 DEFAULT_MODEL_LABEL = "qwen3_5_35b_a3b_fp8"
 DEFAULT_POD_NAME_PREFIX = "llm-qwen-eval-once"
+DEFAULT_IMAGE = "vllm/vllm-openai:latest"
 DEFAULT_OUTPUT = Path("experiments/leverage/qwen3_5_35b_a3b_fp8_runpod.jsonl")
 DEFAULT_SCORES = Path("experiments/leverage/qwen3_5_35b_a3b_fp8_scores.csv")
 DEFAULT_SUMMARY = Path("experiments/leverage/qwen3_5_35b_a3b_fp8_summary.csv")
@@ -85,27 +85,13 @@ def remote_setup_command() -> str:
         "curl -LsSf https://astral.sh/uv/install.sh | sh; "
         "fi; "
         "export PATH=\"$HOME/.local/bin:$PATH\"; "
-        "UV_LINK_MODE=copy uv sync --extra dev; "
-        "UV_LINK_MODE=copy uv pip install vllm"
+        "UV_LINK_MODE=copy uv sync --extra dev"
     )
 
 
 def remote_vllm_server_command(args: argparse.Namespace) -> str:
-    library_path = (
-        "export LD_LIBRARY_PATH=\"$(uv run python - <<'PY'\n"
-        "from pathlib import Path\n"
-        "import site\n"
-        "paths = []\n"
-        "for base in site.getsitepackages():\n"
-        "    nvidia = Path(base) / 'nvidia'\n"
-        "    if nvidia.exists():\n"
-        "        paths.extend(str(path) for path in nvidia.glob('*/lib') if path.is_dir())\n"
-        "print(':'.join(paths))\n"
-        "PY\n"
-        "):${LD_LIBRARY_PATH:-}\""
-    )
     server = (
-        "UV_LINK_MODE=copy uv run python -m vllm.entrypoints.openai.api_server "
+        "python -m vllm.entrypoints.openai.api_server "
         f"--model {q(args.model)} "
         f"--served-model-name {q(args.model)} "
         "--host 127.0.0.1 "
@@ -130,7 +116,7 @@ def remote_vllm_server_command(args: argparse.Namespace) -> str:
         "set -euo pipefail; "
         "cd \"$REMOTE_DIR\"; "
         "export PATH=\"$HOME/.local/bin:$PATH\"; "
-        f"{library_path}; "
+        "export VLLM_ENABLE_CUDA_COMPATIBILITY=1; "
         f"{server}; {wait}"
     )
 

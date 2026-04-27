@@ -178,7 +178,8 @@ context length modest, sync back only JSONL/CSV results, and remove the pod as
 soon as the run finishes or fails clearly.
 
 The automated one-shot RunPod path uses the FP8 Qwen3.5 variant to keep the
-first inference spike bounded:
+first inference spike bounded. It uses the official vLLM OpenAI-compatible
+server image rather than installing vLLM into a generic PyTorch image:
 
 ```bash
 uv run python scripts/runpod/runpod_qwen_eval_once.py
@@ -188,6 +189,7 @@ Defaults:
 
 - model: `Qwen/Qwen3.5-35B-A3B-FP8`
 - GPU: 1x `NVIDIA A100 80GB PCIe`
+- image: `vllm/vllm-openai:latest`
 - cost ceiling: `$5.00`
 - context: `8192`
 - workload: committed leverage eval prompts only

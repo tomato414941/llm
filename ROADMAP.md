@@ -91,7 +91,7 @@ First RunPod spike:
 - objective: verify that `Qwen/Qwen3.5-35B-A3B` can serve this project's eval
   prompts and produce saved JSONL predictions
 - workload: inference only; no training or fine-tuning
-- model server: vLLM OpenAI-compatible API
+- model server: official `vllm/vllm-openai` OpenAI-compatible API image
 - first model artifact: `Qwen/Qwen3.5-35B-A3B-FP8`
 - first GPU target: 1x `NVIDIA A100 80GB PCIe`
 - first cost ceiling: `$5.00`

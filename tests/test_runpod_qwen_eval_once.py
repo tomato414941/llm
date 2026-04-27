@@ -38,7 +38,7 @@ def args(tmp_path: Path) -> Namespace:
         max_cost=5.0,
         pod_name_prefix="llm-qwen-eval-once",
         pod_name="llm-qwen-eval-once-20260427-000000",
-        image="runpod/pytorch:test",
+        image="vllm/vllm-openai:test",
         container_disk_size=80,
         volume_size=120,
         remote_volume="/workspace",
@@ -80,6 +80,7 @@ def test_runpodctl_create_command_uses_a100_and_cost_ceiling(tmp_path: Path) -> 
     assert command[:3] == ["/home/dev/bin/runpodctl", "create", "pod"]
     assert command[command.index("--gpuType") + 1] == "NVIDIA A100 80GB PCIe"
     assert command[command.index("--gpuCount") + 1] == "1"
+    assert command[command.index("--imageName") + 1] == "vllm/vllm-openai:test"
     assert command[command.index("--cost") + 1] == "5.0"
     assert command[command.index("--volumeSize") + 1] == "120"
 
@@ -100,9 +101,8 @@ def test_rsync_to_remote_syncs_only_repo_inputs(tmp_path: Path) -> None:
 def test_remote_vllm_server_uses_fp8_model_and_short_context(tmp_path: Path) -> None:
     command = remote_vllm_server_command(args(tmp_path))
 
-    assert "uv run python -m vllm.entrypoints.openai.api_server" in command
-    assert "LD_LIBRARY_PATH" in command
-    assert "nvidia.glob('*/lib')" in command
+    assert "python -m vllm.entrypoints.openai.api_server" in command
+    assert "VLLM_ENABLE_CUDA_COMPATIBILITY=1" in command
     assert "--model Qwen/Qwen3.5-35B-A3B-FP8" in command
     assert "--language-model-only" in command
     assert "--max-model-len 8192" in command
@@ -110,10 +110,11 @@ def test_remote_vllm_server_uses_fp8_model_and_short_context(tmp_path: Path) -> 
     assert "http://127.0.0.1:8000/v1/models" in command
 
 
-def test_remote_setup_installs_stable_vllm() -> None:
+def test_remote_setup_does_not_install_vllm() -> None:
     command = runpod_qwen_eval_once.remote_setup_command()
 
-    assert "uv pip install vllm" in command
+    assert "uv sync --extra dev" in command
+    assert "uv pip install vllm" not in command
     assert "--pre vllm" not in command
     assert "wheels.vllm.ai/nightly" not in command
 

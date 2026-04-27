@@ -64,6 +64,27 @@ def test_response_text_reads_openai_chat_completion_text() -> None:
     )
 
 
+def test_response_text_reads_openai_content_parts() -> None:
+    assert (
+        collect_openai.response_text(
+            {
+                "choices": [
+                    {
+                        "message": {
+                            "content": [
+                                {"type": "text", "text": "first"},
+                                {"type": "output_text", "content": " second"},
+                                " third",
+                            ]
+                        }
+                    }
+                ]
+            },
+        )
+        == "first second third"
+    )
+
+
 def test_chat_client_sends_user_agent(monkeypatch: pytest.MonkeyPatch) -> None:
     seen_headers: list[str] = []
 

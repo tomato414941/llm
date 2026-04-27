@@ -240,7 +240,9 @@ but `/v1/models` stays unavailable, treat it as an image/model/vLLM
 compatibility issue and inspect container logs before trying a larger GPU.
 
 If the prebuilt `vllm/vllm-openai` image never exposes ports, use the SSH-based
-path on a RunPod PyTorch CUDA 12.8 image so the vLLM log is available:
+path on a RunPod PyTorch CUDA 12.8 image so the vLLM log is available. This path
+installs vLLM with `--torch-backend=cu128` to avoid pulling a CUDA 13 runtime
+into the CUDA 12.8 image:
 
 ```bash
 uv run python scripts/runpod/runpod_qwen_eval_once.py \

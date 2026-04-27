@@ -40,7 +40,7 @@ DEFAULT_MODEL = "Qwen/Qwen3-14B-FP8"
 DEFAULT_MODEL_LABEL = "qwen3_14b_fp8"
 DEFAULT_POD_NAME_PREFIX = "llm-qwen-eval-once"
 DEFAULT_IMAGE = "vllm/vllm-openai:latest"
-DEFAULT_VLLM_INSTALL = "vllm --torch-backend=auto --extra-index-url https://wheels.vllm.ai/nightly"
+DEFAULT_VLLM_INSTALL = "vllm --torch-backend=cu128"
 DEFAULT_OUTPUT = Path("experiments/leverage/qwen3_14b_fp8_runpod.jsonl")
 DEFAULT_SCORES = Path("experiments/leverage/qwen3_14b_fp8_scores.csv")
 DEFAULT_SUMMARY = Path("experiments/leverage/qwen3_14b_fp8_summary.csv")

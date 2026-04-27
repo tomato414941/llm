@@ -51,8 +51,7 @@ class ApiEndpoint:
 
 def server_args(args: argparse.Namespace) -> str:
     parts = [
-        "vllm",
-        "serve",
+        "--model",
         args.model,
         "--served-model-name",
         args.served_model_name,
@@ -156,13 +155,14 @@ def wait_for_api_endpoint(
     raise TimeoutError(f"pod did not expose public HTTP port {args.server_port} within {timeout_seconds} seconds")
 
 
-def wait_for_models(endpoint: ApiEndpoint, timeout_seconds: int) -> None:
+def wait_for_models(endpoint: ApiEndpoint, timeout_seconds: int, api_key: str) -> None:
     deadline = time.monotonic() + timeout_seconds
     url = endpoint.base_url.rstrip("/") + "/models"
+    probe = request.Request(url, headers={"Authorization": f"Bearer {api_key}"})
     while time.monotonic() < deadline:
         try:
-            with request.urlopen(url, timeout=5) as response:
-                if response.status < 500:
+            with request.urlopen(probe, timeout=5) as response:
+                if 200 <= response.status < 300:
                     return
         except (error.URLError, TimeoutError):
             pass
@@ -403,7 +403,7 @@ def main() -> int:
             print(f"created pod: {pod_id}")
             endpoint = wait_for_api_endpoint(runner, args, pod_id, args.wait_seconds)
             print(f"api: {endpoint.base_url}")
-            wait_for_models(endpoint, args.api_wait_seconds)
+            wait_for_models(endpoint, args.api_wait_seconds, args.api_key)
 
         ensure_before_deadline(deadline)
         run_local_command(

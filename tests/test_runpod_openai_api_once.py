@@ -26,6 +26,7 @@ normalize_args = runpod_openai_api_once.normalize_args
 preflight = runpod_openai_api_once.preflight
 runpodctl_create_api_command = runpod_openai_api_once.runpodctl_create_api_command
 server_args = runpod_openai_api_once.server_args
+wait_for_models = runpod_openai_api_once.wait_for_models
 
 
 def args(tmp_path: Path) -> Namespace:
@@ -126,7 +127,8 @@ def test_server_args_are_model_generic() -> None:
 
     command = server_args(run_args)
 
-    assert command.startswith("vllm serve provider/model")
+    assert command.startswith("--model provider/model")
+    assert "vllm serve" not in command
     assert "--served-model-name served" in command
     assert "--host 0.0.0.0" in command
     assert "--port 8000" in command
@@ -151,6 +153,7 @@ def test_server_args_include_custom_port_and_extra_vllm_args() -> None:
 
 def test_runpodctl_create_api_command_exposes_http_without_ssh(tmp_path: Path) -> None:
     command = runpodctl_create_api_command(args(tmp_path))
+    server_command = command[command.index("--args") + 1]
 
     assert command[:3] == ["/home/dev/bin/runpodctl", "create", "pod"]
     assert command[command.index("--imageName") + 1] == "vllm/vllm-openai:test"
@@ -159,7 +162,9 @@ def test_runpodctl_create_api_command_exposes_http_without_ssh(tmp_path: Path) -
     assert command[command.index("--cost") + 1] == "2.0"
     assert command[command.index("--mem") + 1] == "29"
     assert command[command.index("--env") + 1] == "VLLM_ENABLE_CUDA_COMPATIBILITY=1"
-    assert "--api-key" in command[-1]
+    assert server_command.startswith("--model Qwen/Qwen3-14B-FP8")
+    assert "--api-key" in server_command
+    assert "vllm serve" not in server_command
     assert "openssh-server" not in command
     assert "rsync" not in command
 
@@ -265,6 +270,30 @@ def test_local_evaluate_command_scores_saved_predictions(tmp_path: Path) -> None
     assert "llm.leverage.evaluate" in command
     assert command[command.index("--predictions") + 1] == "experiments/leverage/qwen.jsonl"
     assert command[command.index("--summary-output") + 1] == "experiments/leverage/qwen_summary.csv"
+
+
+def test_wait_for_models_sends_authorization_header(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen_headers: list[str] = []
+
+    class Response:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    def fake_urlopen(probe, timeout):
+        seen_headers.append(probe.get_header("Authorization"))
+        assert timeout == 5
+        return Response()
+
+    monkeypatch.setattr(runpod_openai_api_once.request, "urlopen", fake_urlopen)
+
+    wait_for_models(ApiEndpoint("http://host:8000/v1", "host", 8000), 1, "runpod-local")
+
+    assert seen_headers == ["Bearer runpod-local"]
 
 
 def test_parse_env_requires_name_value_pairs() -> None:

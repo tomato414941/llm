@@ -100,6 +100,7 @@ def test_rsync_to_remote_syncs_only_repo_inputs(tmp_path: Path) -> None:
 def test_remote_vllm_server_uses_fp8_model_and_short_context(tmp_path: Path) -> None:
     command = remote_vllm_server_command(args(tmp_path))
 
+    assert "uv run python -m vllm.entrypoints.openai.api_server" in command
     assert "--model Qwen/Qwen3.5-35B-A3B-FP8" in command
     assert "--language-model-only" in command
     assert "--max-model-len 8192" in command

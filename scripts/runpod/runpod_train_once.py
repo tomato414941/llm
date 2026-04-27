@@ -268,13 +268,10 @@ def pod_connection(pod: dict[str, str]) -> PodConnection | None:
     ports = pod.get("PORTS", "")
     if not ports:
         return None
-    if "22" not in ports and "tcp" not in ports.lower():
-        return None
-    matches = re.findall(r"([A-Za-z0-9.-]+):(\d+)", ports)
-    if not matches:
-        return None
-    host, public_port = matches[-1]
-    return PodConnection(host=host, port=int(public_port))
+    pattern = re.compile(r"([A-Za-z0-9.-]+):(\d+)->22\s*\(([^)]*)\)")
+    for host, public_port, labels in pattern.findall(ports):
+        if "tcp" in labels.lower() and "prv" not in labels.lower():
+            return PodConnection(host=host, port=int(public_port))
     return None
 
 

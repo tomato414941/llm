@@ -17,6 +17,7 @@ cleanup_pod = runpod_train_once.cleanup_pod
 ensure_before_deadline = runpod_train_once.ensure_before_deadline
 find_created_pod = runpod_train_once.find_created_pod
 output_paths = runpod_train_once.output_paths
+pod_connection = runpod_train_once.pod_connection
 preflight = runpod_train_once.preflight
 redact = runpod_train_once.redact
 remote_cuda_preflight_command = runpod_train_once.remote_cuda_preflight_command
@@ -286,6 +287,23 @@ def test_find_created_pod_uses_before_after_diff() -> None:
 def test_find_created_pod_rejects_missing_created_pod() -> None:
     with pytest.raises(RuntimeError, match="created pod"):
         find_created_pod([], [{"ID": "other", "NAME": "other"}], "same")
+
+
+def test_pod_connection_uses_public_tcp_ssh_mapping() -> None:
+    pod = {
+        "PORTS": (
+            "193.183.22.53:1874->22 (pub,tcp),"
+            "100.65.25.175:60615->19123 (prv,http)"
+        )
+    }
+
+    assert pod_connection(pod) == PodConnection("193.183.22.53", 1874)
+
+
+def test_pod_connection_ignores_private_http_mapping() -> None:
+    pod = {"PORTS": "100.65.25.175:60615->19123 (prv,http)"}
+
+    assert pod_connection(pod) is None
 
 
 def test_ssh_base_uses_non_hanging_options(tmp_path) -> None:

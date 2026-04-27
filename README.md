@@ -153,6 +153,50 @@ JSONL records use `task_id`, `model`, and `response`. Prediction files must be
 created by a separate inference or manual collection step before this command is
 run.
 
+Collect Qwen3.5 predictions through an OpenAI-compatible API:
+
+```bash
+export OPENAI_BASE_URL="https://<provider>/v1"
+export OPENAI_API_KEY="..."
+
+uv run python -m llm.leverage.collect_openai \
+  --tasks evals/leverage_smoke.jsonl \
+  --tasks evals/project_judgment_v0.jsonl \
+  --model Qwen/Qwen3.5-35B-A3B \
+  --model-label qwen3_5_35b_a3b \
+  --output experiments/leverage/qwen3_5_35b_a3b.jsonl
+```
+
+The collector only calls the configured API endpoint and writes saved
+predictions. It does not use RunPod, download weights, or fine-tune models.
+
+For a RunPod self-hosted spike, start an OpenAI-compatible server for
+`Qwen/Qwen3.5-35B-A3B`, point `OPENAI_BASE_URL` at that server, run the same
+collector command, then score the saved predictions with `llm.leverage.evaluate`.
+The first spike should be inference-only, use the committed eval files, keep the
+context length modest, sync back only JSONL/CSV results, and remove the pod as
+soon as the run finishes or fails clearly.
+
+The automated one-shot RunPod path uses the FP8 Qwen3.5 variant to keep the
+first inference spike bounded:
+
+```bash
+uv run python scripts/runpod/runpod_qwen_eval_once.py
+```
+
+Defaults:
+
+- model: `Qwen/Qwen3.5-35B-A3B-FP8`
+- GPU: 1x `NVIDIA A100 80GB PCIe`
+- cost ceiling: `$5.00`
+- context: `8192`
+- workload: committed leverage eval prompts only
+- cleanup: remove the pod after success or failure
+
+Use `--dry-run` first to inspect the exact commands without creating a pod.
+Generated Qwen JSONL/CSV outputs are local experiment artifacts and are ignored
+by git.
+
 Or use the run config for the same observation settings:
 
 ```bash

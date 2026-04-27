@@ -100,7 +100,7 @@ def remote_setup_command(args: argparse.Namespace) -> str:
 
 def remote_vllm_server_command(args: argparse.Namespace) -> str:
     server = (
-        "uv run python -m vllm.entrypoints.openai.api_server "
+        ".venv/bin/python -m vllm.entrypoints.openai.api_server "
         f"--model {q(args.model)} "
         f"--served-model-name {q(args.model)} "
         "--host 127.0.0.1 "

@@ -205,6 +205,40 @@ Pin the RunPod image or vLLM/PyTorch/CUDA combination explicitly before
 spending on larger runs, and use the script's readiness diagnostics to capture
 the last pod `PORTS` state and proxy HTTP status.
 
+The next Qwen3.5 compatibility check should prefer a prebuilt vLLM CUDA 12.9
+nightly image instead of installing vLLM inside the pod. Keep the first run
+short and inference-only; the goal is to prove that `/v1/models` becomes ready
+and that the committed eval pipeline can produce JSONL/CSV artifacts:
+
+```bash
+uv run python scripts/runpod/runpod_openai_api_once.py \
+  --model Qwen/Qwen3.5-4B \
+  --served-model-name Qwen/Qwen3.5-4B \
+  --model-label qwen3_5_4b \
+  --image vllm/vllm-openai:cu129-nightly \
+  --gpu-type "NVIDIA L40S" \
+  --max-cost 0.8 \
+  --max-allowed-cost 0.8 \
+  --mem 120 \
+  --vcpu 12 \
+  --container-disk-size 120 \
+  --volume-size 120 \
+  --max-model-len 4096 \
+  --max-tokens 256 \
+  --reasoning-parser qwen3 \
+  --wait-seconds 180 \
+  --api-wait-seconds 600 \
+  --max-runtime-minutes 20 \
+  --output experiments/leverage/qwen3_5_4b_runpod.jsonl \
+  --scores-output experiments/leverage/qwen3_5_4b_scores.csv \
+  --summary-output experiments/leverage/qwen3_5_4b_summary.csv
+```
+
+If HTTP ports never appear, stop treating it as a model-quality problem. First
+debug RunPod port publication or switch to the SSH-based path. If ports appear
+but `/v1/models` stays unavailable, treat it as an image/model/vLLM
+compatibility issue and inspect container logs before trying a larger GPU.
+
 The script is not Qwen-specific. Override `--model`, `--model-label`, `--image`,
 and server args for any RunPod image that exposes an OpenAI-compatible API.
 

@@ -241,8 +241,8 @@ compatibility issue and inspect container logs before trying a larger GPU.
 
 If the prebuilt `vllm/vllm-openai` image never exposes ports, use the SSH-based
 path on a RunPod PyTorch CUDA 12.8 image so the vLLM log is available. This path
-installs vLLM with `--torch-backend=cu128` to avoid pulling a CUDA 13 runtime
-into the CUDA 12.8 image:
+installs the pinned vLLM `0.20.0+cu129` wheel directly, avoiding the PyPI
+default CUDA 13 wheel:
 
 ```bash
 uv run python scripts/runpod/runpod_qwen_eval_once.py \

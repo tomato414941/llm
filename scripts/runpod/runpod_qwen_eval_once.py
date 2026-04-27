@@ -40,7 +40,11 @@ DEFAULT_MODEL = "Qwen/Qwen3-14B-FP8"
 DEFAULT_MODEL_LABEL = "qwen3_14b_fp8"
 DEFAULT_POD_NAME_PREFIX = "llm-qwen-eval-once"
 DEFAULT_IMAGE = "vllm/vllm-openai:latest"
-DEFAULT_VLLM_INSTALL = "vllm --torch-backend=cu128"
+DEFAULT_VLLM_INSTALL = (
+    "https://github.com/vllm-project/vllm/releases/download/v0.20.0/"
+    "vllm-0.20.0%2Bcu129-cp38-abi3-manylinux_2_31_x86_64.whl "
+    "--torch-backend=cu129"
+)
 DEFAULT_OUTPUT = Path("experiments/leverage/qwen3_14b_fp8_runpod.jsonl")
 DEFAULT_SCORES = Path("experiments/leverage/qwen3_14b_fp8_scores.csv")
 DEFAULT_SUMMARY = Path("experiments/leverage/qwen3_14b_fp8_summary.csv")

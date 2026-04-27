@@ -40,7 +40,11 @@ def args(tmp_path: Path) -> Namespace:
         pod_name="llm-qwen-eval-once-20260427-000000",
         image="vllm/vllm-openai:test",
         install_vllm=False,
-        vllm_install="vllm --torch-backend=cu128",
+        vllm_install=(
+            "https://github.com/vllm-project/vllm/releases/download/v0.20.0/"
+            "vllm-0.20.0%2Bcu129-cp38-abi3-manylinux_2_31_x86_64.whl "
+            "--torch-backend=cu129"
+        ),
         container_disk_size=80,
         volume_size=120,
         remote_volume="/workspace",
@@ -124,14 +128,16 @@ def test_remote_setup_does_not_install_vllm() -> None:
     assert "wheels.vllm.ai/nightly" not in command
 
 
-def test_remote_setup_can_install_cuda128_vllm_for_pytorch_images() -> None:
+def test_remote_setup_can_install_pinned_vllm_wheel_for_pytorch_images() -> None:
     run_args = args(Path("/tmp"))
     run_args.install_vllm = True
 
     command = runpod_qwen_eval_once.remote_setup_command(run_args)
 
     assert "uv sync --extra dev" in command
-    assert "uv pip install vllm --torch-backend=cu128" in command
+    assert "uv pip install https://github.com/vllm-project/vllm/releases/download/v0.20.0/" in command
+    assert "vllm-0.20.0%2Bcu129" in command
+    assert "--torch-backend=cu129" in command
 
 
 def test_remote_collect_command_uses_openai_compatible_local_server(tmp_path: Path) -> None:

@@ -230,8 +230,16 @@ def test_api_endpoint_from_pod_uses_public_http_mapping() -> None:
     assert endpoint == ApiEndpoint("http://104.1.2.3:45678/v1", "104.1.2.3", 45678)
 
 
+def test_api_endpoint_from_pod_uses_private_http_mapping_when_no_public_mapping() -> None:
+    pod = {"PORTS": "100.65.25.175:60579->8000 (prv,http)"}
+
+    endpoint = api_endpoint_from_pod(pod, 8000)
+
+    assert endpoint == ApiEndpoint("http://100.65.25.175:60579/v1", "100.65.25.175", 60579)
+
+
 def test_api_endpoint_from_pod_falls_back_to_runpod_proxy_url() -> None:
-    pod = {"ID": "pod123", "STATUS": "RUNNING", "PORTS": ""}
+    pod = {"ID": "pod123", "STATUS": "RUNNING", "PORTS": "100.65.25.175:60580->19123 (prv,http)"}
 
     endpoint = api_endpoint_from_pod(pod, 8000)
 
@@ -240,6 +248,12 @@ def test_api_endpoint_from_pod_falls_back_to_runpod_proxy_url() -> None:
         "pod123-8000.proxy.runpod.net",
         443,
     )
+
+
+def test_api_endpoint_from_pod_waits_for_ports_before_proxy_fallback() -> None:
+    pod = {"ID": "pod123", "STATUS": "RUNNING", "PORTS": ""}
+
+    assert api_endpoint_from_pod(pod, 8000) is None
 
 
 def test_api_endpoint_from_pod_ignores_public_tcp_mapping_without_http_label() -> None:

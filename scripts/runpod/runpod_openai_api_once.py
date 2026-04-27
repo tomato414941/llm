@@ -128,11 +128,18 @@ def api_endpoint_from_pod(pod: dict[str, str], server_port: int) -> ApiEndpoint 
             host, _, port_text = host_port.rpartition(":")
             port = int(port_text) if host and port_text.isdigit() else (443 if scheme == "https" else 80)
             return ApiEndpoint(base_url=url.rstrip("/") + "/v1", host=host or host_port, port=port)
+    private_endpoint: ApiEndpoint | None = None
     for host, public_port, container_port, labels in parse_port_mappings(pod.get("PORTS", "")):
-        if container_port == server_port and "http" in labels and "prv" not in labels:
-            return ApiEndpoint(base_url=f"http://{host}:{public_port}/v1", host=host, port=public_port)
+        if container_port != server_port or "http" not in labels:
+            continue
+        endpoint = ApiEndpoint(base_url=f"http://{host}:{public_port}/v1", host=host, port=public_port)
+        if "prv" not in labels:
+            return endpoint
+        private_endpoint = endpoint
+    if private_endpoint is not None:
+        return private_endpoint
     pod_id = pod.get("ID")
-    if pod_id and str(pod.get("STATUS", "")).upper() == "RUNNING":
+    if pod_id and ports and str(pod.get("STATUS", "")).upper() == "RUNNING":
         host = f"{pod_id}-{server_port}.proxy.runpod.net"
         return ApiEndpoint(base_url=f"https://{host}/v1", host=host, port=443)
     return None

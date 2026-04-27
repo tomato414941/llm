@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import argparse
 from dataclasses import dataclass
+import os
 from pathlib import Path
 import re
+import signal
 import subprocess
 import sys
 import time
@@ -49,7 +51,8 @@ class ApiEndpoint:
 
 def server_args(args: argparse.Namespace) -> str:
     parts = [
-        "--model",
+        "vllm",
+        "serve",
         args.model,
         "--served-model-name",
         args.served_model_name,
@@ -129,6 +132,10 @@ def api_endpoint_from_pod(pod: dict[str, str], server_port: int) -> ApiEndpoint 
     for host, public_port, container_port, labels in parse_port_mappings(pod.get("PORTS", "")):
         if container_port == server_port and "http" in labels and "prv" not in labels:
             return ApiEndpoint(base_url=f"http://{host}:{public_port}/v1", host=host, port=public_port)
+    pod_id = pod.get("ID")
+    if pod_id and str(pod.get("STATUS", "")).upper() == "RUNNING":
+        host = f"{pod_id}-{server_port}.proxy.runpod.net"
+        return ApiEndpoint(base_url=f"https://{host}/v1", host=host, port=443)
     return None
 
 
@@ -229,15 +236,29 @@ def run_local_command(
     print(f"$ {redact_command(command, secrets)}")
     if dry_run:
         return
-    completed = subprocess.run(
-        command,
-        cwd=cwd,
-        check=False,
-        text=True,
-        timeout=remaining_seconds(deadline),
-    )
-    if completed.returncode != 0:
-        raise CommandError(f"command failed with exit code {completed.returncode}")
+    process = subprocess.Popen(command, cwd=cwd, text=True, start_new_session=True)
+    try:
+        return_code = process.wait(timeout=remaining_seconds(deadline))
+    except BaseException:
+        os.killpg(process.pid, signal.SIGTERM)
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.wait()
+        raise
+    if return_code != 0:
+        raise CommandError(f"command failed with exit code {return_code}")
+
+
+def cleanup_named_pods(runner: Runner, args: argparse.Namespace, pod_id: str | None) -> None:
+    if runner.dry_run:
+        return
+    for pod in active_pods(runner, args):
+        if pod_id is not None and pod.get("ID") == pod_id:
+            continue
+        if pod.get("NAME") == args.pod_name:
+            runner.run([args.runpodctl, "remove", "pod", str(pod["ID"])], check=False)
 
 
 def remaining_seconds(deadline: float | None) -> float | None:
@@ -329,9 +350,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--runpodctl", default=DEFAULT_RUNPODCTL)
     parser.add_argument("--secret-path", type=Path, default=DEFAULT_SECRET_PATH)
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
-    parser.add_argument("--wait-seconds", type=int, default=900)
-    parser.add_argument("--api-wait-seconds", type=int, default=900)
-    parser.add_argument("--max-runtime-minutes", type=int, default=60)
+    parser.add_argument("--wait-seconds", type=int, default=180)
+    parser.add_argument("--api-wait-seconds", type=int, default=600)
+    parser.add_argument("--max-runtime-minutes", type=int, default=20)
     parser.add_argument("--secure-cloud", action="store_true")
     parser.add_argument("--allow-existing-pods", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
@@ -403,6 +424,7 @@ def main() -> int:
         success = True
         return 0
     finally:
+        cleanup_named_pods(runner, args, pod_id)
         cleanup_pod(runner, args, pod_id, success=success)
         if not args.dry_run:
             remaining = active_pods(runner, args)

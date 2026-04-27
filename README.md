@@ -153,7 +153,7 @@ JSONL records use `task_id`, `model`, and `response`. Prediction files must be
 created by a separate inference or manual collection step before this command is
 run.
 
-Collect Qwen predictions through an OpenAI-compatible API:
+Collect predictions through any OpenAI-compatible chat completions API:
 
 ```bash
 export OPENAI_BASE_URL="https://<provider>/v1"
@@ -162,32 +162,34 @@ export OPENAI_API_KEY="..."
 uv run python -m llm.leverage.collect_openai \
   --tasks evals/leverage_smoke.jsonl \
   --tasks evals/project_judgment_v0.jsonl \
-  --model Qwen/Qwen3-14B-FP8 \
-  --model-label qwen3_14b_fp8 \
-  --output experiments/leverage/qwen3_14b_fp8.jsonl
+  --model <provider-model-id> \
+  --model-label <local_label> \
+  --output experiments/leverage/<local_label>.jsonl
 ```
 
 The collector only calls the configured API endpoint and writes saved
 predictions. It does not use RunPod, download weights, or fine-tune models.
 
-For a RunPod self-hosted spike, start an OpenAI-compatible server for
-`Qwen/Qwen3-14B-FP8`, point `OPENAI_BASE_URL` at that server, run the same
-collector command, then score the saved predictions with `llm.leverage.evaluate`.
-The first spike should be inference-only, use the committed eval files, keep the
-context length modest, sync back only JSONL/CSV results, and remove the pod as
-soon as the run finishes or fails clearly.
+For a RunPod self-hosted spike, start an OpenAI-compatible model server, point
+`OPENAI_BASE_URL` at that server, run the same collector command, then score the
+saved predictions with `llm.leverage.evaluate`. The first spike should be
+inference-only, use the committed eval files, keep the context length modest,
+sync back only JSONL/CSV results, and remove the pod as soon as the run finishes
+or fails clearly.
 
-The automated one-shot RunPod path uses the FP8 Qwen3 14B variant to keep the
-first inference spike bounded. It uses the official vLLM OpenAI-compatible
-server image rather than installing vLLM into a generic PyTorch image:
+The preferred automated RunPod path treats the pod as a temporary
+OpenAI-compatible HTTP model server. It starts the server container, runs the
+collector and evaluator locally, then removes the pod. It defaults to a small
+FP8 Qwen model, but the model, label, image, GPU, and output paths are CLI
+options:
 
 ```bash
-uv run python scripts/runpod/runpod_qwen_eval_once.py
+uv run python scripts/runpod/runpod_openai_api_once.py --dry-run
 ```
 
 Defaults:
 
-- model: `Qwen/Qwen3-14B-FP8`
+- model: `Qwen/Qwen3-14B-FP8` unless overridden with `--model`
 - GPU: 1x `NVIDIA GeForce RTX 4090`
 - image: `vllm/vllm-openai:latest`
 - cost ceiling: `$2.00`
@@ -196,9 +198,13 @@ Defaults:
 - workload: committed leverage eval prompts only
 - cleanup: remove the pod after success or failure
 
-Use `--dry-run` first to inspect the exact commands without creating a pod.
-Generated Qwen JSONL/CSV outputs are local experiment artifacts and are ignored
-by git.
+The script is not Qwen-specific. Override `--model`, `--model-label`, `--image`,
+and server args for any RunPod image that exposes an OpenAI-compatible API.
+
+Use `--dry-run` first to inspect the exact commands without creating a pod. Do
+not start a paid pod unless the objective, cost ceiling, stopping condition, and
+cleanup plan are explicit. Generated prediction JSONL and score CSV outputs are
+local experiment artifacts and are ignored by git.
 
 Or use the run config for the same observation settings:
 

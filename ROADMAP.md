@@ -75,31 +75,29 @@ No-dependency JSONL evaluator:
   download models, call APIs, or fetch datasets
 - use it before any paid or networked run to make the eval target explicit
 
-First real-model target:
+OpenAI-compatible collection:
 
-- `Qwen/Qwen3-14B-FP8` is the first planned leverage target because it is a
-  strong enough Qwen open-weight model with Apache 2.0 licensing on Hugging Face
-  and is more practical than the 35B target on available RunPod GPUs
-- collect predictions through an OpenAI-compatible API with
-  `llm.leverage.collect_openai`
-- when using RunPod, host the same model behind an OpenAI-compatible endpoint
-  and run only the committed eval prompts first
+- collect predictions through any OpenAI-compatible chat completions endpoint
+  with `llm.leverage.collect_openai`
+- RunPod is only one possible host for that endpoint; hosted APIs and local
+  servers use the same saved-prediction flow
 - provider-specific API terms, authentication, and costs are separate from this
   repository and must stay out of commits
 
-First RunPod spike:
+One-shot RunPod spike:
 
-- objective: verify that `Qwen/Qwen3-14B-FP8` can serve this project's eval
+- objective: verify that a selected open model can serve this project's eval
   prompts and produce saved JSONL predictions
 - workload: inference only; no training or fine-tuning
-- model server: official `vllm/vllm-openai` OpenAI-compatible API image
-- first model artifact: `Qwen/Qwen3-14B-FP8`
-- first GPU target: 1x `NVIDIA GeForce RTX 4090`
-- first cost ceiling: `$2.00`
+- model server: temporary OpenAI-compatible HTTP API on RunPod
+- default model artifact: `Qwen/Qwen3-14B-FP8`, override with `--model` when a
+  different compatible model is the target
+- default GPU target: 1x `NVIDIA GeForce RTX 4090`
+- default cost ceiling: `$2.00`
 - initial context: keep the server context well below the model maximum unless
   a long-context test is the explicit objective
 - input files: committed eval JSONL files only
-- output files: one prediction JSONL file and evaluator CSV summaries
+- output files: local prediction JSONL file and evaluator CSV summaries
 - stopping condition: all committed leverage eval tasks have saved predictions,
   or the serving setup fails clearly
 - cleanup: remove the pod immediately after syncing results and verify no active
@@ -149,7 +147,8 @@ structure. It is not a general-purpose LLM.
 
 1. From-scratch next step: define a nano GPT-2 smoke config and estimate cost
    before any paid run.
-2. Leverage next step: run the Qwen3 14B collection path against the committed
-   eval layers through either a hosted API or a short RunPod inference spike.
+2. Leverage next step: run the OpenAI-compatible collection path against the
+   committed eval layers through either a hosted API or a short RunPod inference
+   spike.
 3. Shared next step: keep results comparable with explicit baselines, configs,
    and observation notes.

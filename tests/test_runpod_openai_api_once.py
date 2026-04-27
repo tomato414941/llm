@@ -26,6 +26,7 @@ normalize_args = runpod_openai_api_once.normalize_args
 preflight = runpod_openai_api_once.preflight
 runpodctl_create_api_command = runpod_openai_api_once.runpodctl_create_api_command
 server_args = runpod_openai_api_once.server_args
+wait_for_api_endpoint = runpod_openai_api_once.wait_for_api_endpoint
 wait_for_models = runpod_openai_api_once.wait_for_models
 
 
@@ -309,6 +310,51 @@ def test_wait_for_models_sends_authorization_header(monkeypatch: pytest.MonkeyPa
     wait_for_models(ApiEndpoint("http://host:8000/v1", "host", 8000), 1, "runpod-local")
 
     assert seen_headers == ["Bearer runpod-local", runpod_openai_api_once.DEFAULT_USER_AGENT]
+
+
+def test_wait_for_models_reports_last_http_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = iter([0.0, 0.0, 2.0])
+
+    def fake_urlopen(_probe, timeout):
+        assert timeout == 5
+        raise runpod_openai_api_once.error.HTTPError(
+            "http://host:8000/v1/models",
+            502,
+            "Bad Gateway",
+            {},
+            None,
+        )
+
+    monkeypatch.setattr(runpod_openai_api_once.time, "monotonic", lambda: next(calls))
+    monkeypatch.setattr(runpod_openai_api_once.time, "sleep", lambda _seconds: None)
+    monkeypatch.setattr(runpod_openai_api_once.request, "urlopen", fake_urlopen)
+
+    with pytest.raises(TimeoutError, match="last_status=HTTP 502"):
+        wait_for_models(ApiEndpoint("http://host:8000/v1", "host", 8000), 1, "runpod-local")
+
+
+def test_wait_for_api_endpoint_reports_last_pod_ports(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    calls = iter([0.0, 0.0, 2.0])
+    run_args = args(tmp_path)
+    runner = RecordingRunner()
+
+    monkeypatch.setattr(runpod_openai_api_once.time, "monotonic", lambda: next(calls))
+    monkeypatch.setattr(runpod_openai_api_once.time, "sleep", lambda _seconds: None)
+    monkeypatch.setattr(
+        runpod_openai_api_once,
+        "list_pods",
+        lambda _runner, _args: [
+            {
+                "ID": "pod123",
+                "STATUS": "RUNNING",
+                "PORTS": "100.65.25.175:60615->19123 (prv,http)",
+                "IMAGE NAME": "vllm/vllm-openai:latest",
+            }
+        ],
+    )
+
+    with pytest.raises(TimeoutError, match="60615->19123"):
+        wait_for_api_endpoint(runner, run_args, "pod123", 1)
 
 
 def test_parse_env_requires_name_value_pairs() -> None:

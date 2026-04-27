@@ -198,6 +198,13 @@ Defaults:
 - workload: committed leverage eval prompts only
 - cleanup: remove the pod after success or failure
 
+For Qwen3.5 and newer model spikes, do not treat `latest` as a stable
+compatibility contract. A failed A4000 debug run showed that installing current
+vLLM can pull a PyTorch/CUDA stack newer than the host NVIDIA driver supports.
+Pin the RunPod image or vLLM/PyTorch/CUDA combination explicitly before
+spending on larger runs, and use the script's readiness diagnostics to capture
+the last pod `PORTS` state and proxy HTTP status.
+
 The script is not Qwen-specific. Override `--model`, `--model-label`, `--image`,
 and server args for any RunPod image that exposes an OpenAI-compatible API.
 

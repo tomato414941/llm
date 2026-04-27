@@ -151,14 +151,25 @@ def wait_for_api_endpoint(
     timeout_seconds: int,
 ) -> ApiEndpoint:
     deadline = time.monotonic() + timeout_seconds
+    last_pod: dict[str, str] | None = None
     while time.monotonic() < deadline:
         pod = next((item for item in list_pods(runner, args) if item.get("ID") == pod_id), None)
         if pod is not None:
+            last_pod = pod
             endpoint = api_endpoint_from_pod(pod, args.server_port)
             if endpoint is not None:
                 return endpoint
         time.sleep(10)
-    raise TimeoutError(f"pod did not expose public HTTP port {args.server_port} within {timeout_seconds} seconds")
+    details = "pod was not found"
+    if last_pod is not None:
+        details = (
+            f"status={last_pod.get('STATUS', '')!r}, "
+            f"ports={last_pod.get('PORTS', '')!r}, "
+            f"image={last_pod.get('IMAGE NAME', '')!r}"
+        )
+    raise TimeoutError(
+        f"pod did not expose public HTTP port {args.server_port} within {timeout_seconds} seconds: {details}"
+    )
 
 
 def wait_for_models(endpoint: ApiEndpoint, timeout_seconds: int, api_key: str) -> None:
@@ -171,15 +182,21 @@ def wait_for_models(endpoint: ApiEndpoint, timeout_seconds: int, api_key: str) -
             "User-Agent": DEFAULT_USER_AGENT,
         },
     )
+    last_status = ""
     while time.monotonic() < deadline:
         try:
             with request.urlopen(probe, timeout=5) as response:
+                last_status = f"HTTP {response.status}"
                 if 200 <= response.status < 300:
                     return
+        except error.HTTPError as exc:
+            last_status = f"HTTP {exc.code}: {exc.reason}"
         except (error.URLError, TimeoutError):
-            pass
+            last_status = "request failed"
         time.sleep(5)
-    raise TimeoutError(f"OpenAI-compatible API did not become ready: {endpoint.base_url}")
+    raise TimeoutError(
+        f"OpenAI-compatible API did not become ready: {endpoint.base_url}; last_status={last_status}"
+    )
 
 
 def local_collect_command(args: argparse.Namespace, endpoint: ApiEndpoint) -> list[str]:

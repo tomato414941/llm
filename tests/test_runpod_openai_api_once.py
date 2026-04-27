@@ -300,6 +300,7 @@ def test_wait_for_models_sends_authorization_header(monkeypatch: pytest.MonkeyPa
 
     def fake_urlopen(probe, timeout):
         seen_headers.append(probe.get_header("Authorization"))
+        seen_headers.append(probe.get_header("User-agent"))
         assert timeout == 5
         return Response()
 
@@ -307,7 +308,7 @@ def test_wait_for_models_sends_authorization_header(monkeypatch: pytest.MonkeyPa
 
     wait_for_models(ApiEndpoint("http://host:8000/v1", "host", 8000), 1, "runpod-local")
 
-    assert seen_headers == ["Bearer runpod-local"]
+    assert seen_headers == ["Bearer runpod-local", runpod_openai_api_once.DEFAULT_USER_AGENT]
 
 
 def test_parse_env_requires_name_value_pairs() -> None:

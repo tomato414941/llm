@@ -11,6 +11,7 @@ from llm.leverage.evaluate import Task, load_task_suites
 DEFAULT_MODEL = "Qwen/Qwen3.5-35B-A3B"
 DEFAULT_MODEL_LABEL = "qwen3_5_35b_a3b"
 DEFAULT_SYSTEM_PROMPT = "Return only the requested answer. Do not include hidden reasoning."
+DEFAULT_USER_AGENT = "llm-runpod-eval/1.0"
 
 
 ChatClient = Callable[[dict[str, Any]], str]
@@ -54,6 +55,7 @@ def chat_completions_client(base_url: str, api_key: str, timeout_seconds: float)
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
+                "User-Agent": DEFAULT_USER_AGENT,
             },
             method="POST",
         )

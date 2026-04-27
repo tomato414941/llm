@@ -64,6 +64,32 @@ def test_response_text_reads_openai_chat_completion_text() -> None:
     )
 
 
+def test_chat_client_sends_user_agent(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen_headers: list[str] = []
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return b'{"choices":[{"message":{"content":"ok"}}]}'
+
+    def fake_urlopen(http_request, timeout):
+        seen_headers.append(http_request.get_header("User-agent"))
+        assert timeout == 3
+        return Response()
+
+    monkeypatch.setattr(collect_openai.request, "urlopen", fake_urlopen)
+
+    client = collect_openai.chat_completions_client("https://example.test/v1", "secret", 3)
+
+    assert client({"messages": []}) == "ok"
+    assert seen_headers == [collect_openai.DEFAULT_USER_AGENT]
+
+
 def test_collect_predictions_writes_prediction_jsonl(tmp_path: Path) -> None:
     output = tmp_path / "predictions.jsonl"
     payloads: list[dict[str, object]] = []

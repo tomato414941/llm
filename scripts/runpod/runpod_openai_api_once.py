@@ -40,6 +40,7 @@ DEFAULT_OUTPUT = Path("experiments/leverage/qwen3_14b_fp8_runpod.jsonl")
 DEFAULT_SCORES = Path("experiments/leverage/qwen3_14b_fp8_scores.csv")
 DEFAULT_SUMMARY = Path("experiments/leverage/qwen3_14b_fp8_summary.csv")
 DEFAULT_API_KEY = "runpod-local"
+DEFAULT_USER_AGENT = "llm-runpod-eval/1.0"
 
 
 @dataclass(frozen=True)
@@ -163,7 +164,13 @@ def wait_for_api_endpoint(
 def wait_for_models(endpoint: ApiEndpoint, timeout_seconds: int, api_key: str) -> None:
     deadline = time.monotonic() + timeout_seconds
     url = endpoint.base_url.rstrip("/") + "/models"
-    probe = request.Request(url, headers={"Authorization": f"Bearer {api_key}"})
+    probe = request.Request(
+        url,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "User-Agent": DEFAULT_USER_AGENT,
+        },
+    )
     while time.monotonic() < deadline:
         try:
             with request.urlopen(probe, timeout=5) as response:

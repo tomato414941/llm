@@ -40,6 +40,7 @@ DEFAULT_MODEL = "Qwen/Qwen3-14B-FP8"
 DEFAULT_MODEL_LABEL = "qwen3_14b_fp8"
 DEFAULT_POD_NAME_PREFIX = "llm-qwen-eval-once"
 DEFAULT_IMAGE = "vllm/vllm-openai:latest"
+DEFAULT_VLLM_INSTALL = "vllm --torch-backend=auto --extra-index-url https://wheels.vllm.ai/nightly"
 DEFAULT_OUTPUT = Path("experiments/leverage/qwen3_14b_fp8_runpod.jsonl")
 DEFAULT_SCORES = Path("experiments/leverage/qwen3_14b_fp8_scores.csv")
 DEFAULT_SUMMARY = Path("experiments/leverage/qwen3_14b_fp8_summary.csv")
@@ -77,7 +78,10 @@ def rsync_from_remote_command(args: argparse.Namespace, connection: PodConnectio
     ]
 
 
-def remote_setup_command() -> str:
+def remote_setup_command(args: argparse.Namespace) -> str:
+    install_vllm = ""
+    if args.install_vllm:
+        install_vllm = f"; uv pip install {args.vllm_install}"
     return (
         "set -euo pipefail; "
         "cd \"$REMOTE_DIR\"; "
@@ -86,6 +90,7 @@ def remote_setup_command() -> str:
         "fi; "
         "export PATH=\"$HOME/.local/bin:$PATH\"; "
         "UV_LINK_MODE=copy uv sync --extra dev"
+        f"{install_vllm}"
     )
 
 
@@ -210,6 +215,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pod-name-prefix", default=DEFAULT_POD_NAME_PREFIX)
     parser.add_argument("--pod-name")
     parser.add_argument("--image", default=DEFAULT_IMAGE)
+    parser.add_argument("--install-vllm", action="store_true")
+    parser.add_argument("--vllm-install", default=DEFAULT_VLLM_INSTALL)
     parser.add_argument("--container-disk-size", type=int, default=80)
     parser.add_argument("--volume-size", type=int, default=120)
     parser.add_argument("--remote-volume", default="/workspace")
@@ -279,7 +286,11 @@ def main() -> int:
         ensure_before_deadline(deadline)
         run_with_deadline(runner, rsync_to_remote_command(args, connection), cwd=args.repo_root, deadline=deadline)
         ensure_before_deadline(deadline)
-        run_with_deadline(runner, ssh_command(args, connection, with_remote_dir(args, remote_setup_command())), deadline=deadline)
+        run_with_deadline(
+            runner,
+            ssh_command(args, connection, with_remote_dir(args, remote_setup_command(args))),
+            deadline=deadline,
+        )
         ensure_before_deadline(deadline)
         run_with_deadline(runner, ssh_command(args, connection, with_remote_dir(args, remote_vllm_server_command(args))), deadline=deadline)
         ensure_before_deadline(deadline)

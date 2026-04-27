@@ -239,6 +239,31 @@ debug RunPod port publication or switch to the SSH-based path. If ports appear
 but `/v1/models` stays unavailable, treat it as an image/model/vLLM
 compatibility issue and inspect container logs before trying a larger GPU.
 
+If the prebuilt `vllm/vllm-openai` image never exposes ports, use the SSH-based
+path on a RunPod PyTorch CUDA 12.8 image so the vLLM log is available:
+
+```bash
+uv run python scripts/runpod/runpod_qwen_eval_once.py \
+  --model Qwen/Qwen3.5-4B \
+  --model-label qwen3_5_4b \
+  --image runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404 \
+  --install-vllm \
+  --gpu-type "NVIDIA L40S" \
+  --max-cost 0.8 \
+  --mem 120 \
+  --vcpu 12 \
+  --container-disk-size 120 \
+  --volume-size 120 \
+  --max-model-len 4096 \
+  --max-tokens 256 \
+  --wait-seconds 240 \
+  --ssh-wait-seconds 180 \
+  --max-runtime-minutes 30 \
+  --output experiments/leverage/qwen3_5_4b_runpod.jsonl \
+  --scores-output experiments/leverage/qwen3_5_4b_scores.csv \
+  --summary-output experiments/leverage/qwen3_5_4b_summary.csv
+```
+
 The script is not Qwen-specific. Override `--model`, `--model-label`, `--image`,
 and server args for any RunPod image that exposes an OpenAI-compatible API.
 

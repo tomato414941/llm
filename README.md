@@ -14,6 +14,9 @@ The goal is not hyperparameter tuning yet. The goal is to keep the implementatio
 small enough to read, run, and change while building the core pieces of a GPT-style
 model.
 
+See `ROADMAP.md` for the split between the from-scratch learning track and the
+open-model leverage track.
+
 ## Setup
 
 ```bash
@@ -120,6 +123,23 @@ uv run python -m llm.observe \
   --output experiments/observations/first_observation.md \
   --summary-output experiments/summaries/observations.csv
 ```
+
+For leverage experiments, use the no-dependency JSONL evaluator only after model
+outputs already exist. It reads local JSONL records, applies deterministic scoring
+rules, and writes a local CSV summary. It does not run models, start RunPod, or
+call external APIs.
+
+Run the included smoke evaluation against saved example predictions:
+
+```bash
+uv run python -m llm.leverage.evaluate \
+  --tasks evals/leverage_smoke.jsonl \
+  --predictions experiments/leverage/predictions.example.jsonl \
+  --output experiments/leverage/scores.csv
+```
+
+Task JSONL records use `id`, `category`, `prompt`, and `scoring`. Prediction
+JSONL records use `task_id`, `model`, and `response`.
 
 Or use the run config for the same observation settings:
 

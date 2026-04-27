@@ -91,6 +91,19 @@ def remote_setup_command() -> str:
 
 
 def remote_vllm_server_command(args: argparse.Namespace) -> str:
+    library_path = (
+        "export LD_LIBRARY_PATH=\"$(uv run python - <<'PY'\n"
+        "from pathlib import Path\n"
+        "import site\n"
+        "paths = []\n"
+        "for base in site.getsitepackages():\n"
+        "    nvidia = Path(base) / 'nvidia'\n"
+        "    if nvidia.exists():\n"
+        "        paths.extend(str(path) for path in nvidia.glob('*/lib') if path.is_dir())\n"
+        "print(':'.join(paths))\n"
+        "PY\n"
+        "):${LD_LIBRARY_PATH:-}\""
+    )
     server = (
         "UV_LINK_MODE=copy uv run python -m vllm.entrypoints.openai.api_server "
         f"--model {q(args.model)} "
@@ -117,6 +130,7 @@ def remote_vllm_server_command(args: argparse.Namespace) -> str:
         "set -euo pipefail; "
         "cd \"$REMOTE_DIR\"; "
         "export PATH=\"$HOME/.local/bin:$PATH\"; "
+        f"{library_path}; "
         f"{server}; {wait}"
     )
 

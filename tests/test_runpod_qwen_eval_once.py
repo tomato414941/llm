@@ -101,6 +101,8 @@ def test_remote_vllm_server_uses_fp8_model_and_short_context(tmp_path: Path) -> 
     command = remote_vllm_server_command(args(tmp_path))
 
     assert "uv run python -m vllm.entrypoints.openai.api_server" in command
+    assert "LD_LIBRARY_PATH" in command
+    assert "nvidia.glob('*/lib')" in command
     assert "--model Qwen/Qwen3.5-35B-A3B-FP8" in command
     assert "--language-model-only" in command
     assert "--max-model-len 8192" in command

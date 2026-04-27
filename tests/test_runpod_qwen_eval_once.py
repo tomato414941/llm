@@ -108,6 +108,14 @@ def test_remote_vllm_server_uses_fp8_model_and_short_context(tmp_path: Path) -> 
     assert "http://127.0.0.1:8000/v1/models" in command
 
 
+def test_remote_setup_installs_stable_vllm() -> None:
+    command = runpod_qwen_eval_once.remote_setup_command()
+
+    assert "uv pip install vllm" in command
+    assert "--pre vllm" not in command
+    assert "wheels.vllm.ai/nightly" not in command
+
+
 def test_remote_collect_command_uses_openai_compatible_local_server(tmp_path: Path) -> None:
     command = remote_collect_command(args(tmp_path))
 

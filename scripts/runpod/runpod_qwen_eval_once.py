@@ -86,7 +86,7 @@ def remote_setup_command() -> str:
         "fi; "
         "export PATH=\"$HOME/.local/bin:$PATH\"; "
         "UV_LINK_MODE=copy uv sync --extra dev; "
-        "uv pip install --pre vllm --extra-index-url https://wheels.vllm.ai/nightly"
+        "UV_LINK_MODE=copy uv pip install vllm"
     )
 
 

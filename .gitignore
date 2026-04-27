@@ -32,6 +32,9 @@ wandb/
 experiments/leverage/qwen3_5_35b_a3b_fp8_runpod.jsonl
 experiments/leverage/qwen3_5_35b_a3b_fp8_scores.csv
 experiments/leverage/qwen3_5_35b_a3b_fp8_summary.csv
+experiments/leverage/qwen3_14b_fp8_runpod.jsonl
+experiments/leverage/qwen3_14b_fp8_scores.csv
+experiments/leverage/qwen3_14b_fp8_summary.csv
 *.pt
 *.pth
 *.ckpt

@@ -36,13 +36,13 @@ from runpod_train_once import (
 )
 
 
-DEFAULT_MODEL = "Qwen/Qwen3.5-35B-A3B-FP8"
-DEFAULT_MODEL_LABEL = "qwen3_5_35b_a3b_fp8"
+DEFAULT_MODEL = "Qwen/Qwen3-14B-FP8"
+DEFAULT_MODEL_LABEL = "qwen3_14b_fp8"
 DEFAULT_POD_NAME_PREFIX = "llm-qwen-eval-once"
 DEFAULT_IMAGE = "vllm/vllm-openai:latest"
-DEFAULT_OUTPUT = Path("experiments/leverage/qwen3_5_35b_a3b_fp8_runpod.jsonl")
-DEFAULT_SCORES = Path("experiments/leverage/qwen3_5_35b_a3b_fp8_scores.csv")
-DEFAULT_SUMMARY = Path("experiments/leverage/qwen3_5_35b_a3b_fp8_summary.csv")
+DEFAULT_OUTPUT = Path("experiments/leverage/qwen3_14b_fp8_runpod.jsonl")
+DEFAULT_SCORES = Path("experiments/leverage/qwen3_14b_fp8_scores.csv")
+DEFAULT_SUMMARY = Path("experiments/leverage/qwen3_14b_fp8_summary.csv")
 SYNC_DIRS = ("src", "tests", "evals")
 SYNC_FILES = ("pyproject.toml", "uv.lock", "README.md", "AGENTS.md", "LICENSE")
 
@@ -204,9 +204,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-model-len", type=int, default=8192)
     parser.add_argument("--max-tokens", type=int, default=512)
     parser.add_argument("--temperature", type=float, default=0.0)
-    parser.add_argument("--gpu-type", default="NVIDIA A100 80GB PCIe")
+    parser.add_argument("--gpu-type", default="NVIDIA GeForce RTX 4090")
     parser.add_argument("--gpu-count", type=int, default=1)
-    parser.add_argument("--max-cost", type=float, default=5.0)
+    parser.add_argument("--max-cost", type=float, default=2.0)
     parser.add_argument("--pod-name-prefix", default=DEFAULT_POD_NAME_PREFIX)
     parser.add_argument("--pod-name")
     parser.add_argument("--image", default=DEFAULT_IMAGE)
@@ -214,8 +214,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--volume-size", type=int, default=120)
     parser.add_argument("--remote-volume", default="/workspace")
     parser.add_argument("--remote-dir", default=DEFAULT_REMOTE_DIR)
-    parser.add_argument("--vcpu", type=int, default=16)
-    parser.add_argument("--mem", type=int, default=80)
+    parser.add_argument("--vcpu", type=int, default=8)
+    parser.add_argument("--mem", type=int, default=30)
     parser.add_argument("--secure-cloud", action="store_true")
     parser.add_argument("--runpodctl", default=DEFAULT_RUNPODCTL)
     parser.add_argument("--secret-path", type=Path, default=DEFAULT_SECRET_PATH)

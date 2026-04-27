@@ -25,17 +25,17 @@ runpodctl_create_command = runpod_qwen_eval_once.runpodctl_create_command
 def args(tmp_path: Path) -> Namespace:
     return Namespace(
         tasks=[Path("evals/leverage_smoke.jsonl"), Path("evals/project_judgment_v0.jsonl")],
-        model="Qwen/Qwen3.5-35B-A3B-FP8",
-        model_label="qwen3_5_35b_a3b_fp8",
+        model="Qwen/Qwen3-14B-FP8",
+        model_label="qwen3_14b_fp8",
         output=Path("experiments/leverage/qwen.jsonl"),
         scores_output=Path("experiments/leverage/qwen_scores.csv"),
         summary_output=Path("experiments/leverage/qwen_summary.csv"),
         max_model_len=8192,
         max_tokens=512,
         temperature=0.0,
-        gpu_type="NVIDIA A100 80GB PCIe",
+        gpu_type="NVIDIA GeForce RTX 4090",
         gpu_count=1,
-        max_cost=5.0,
+        max_cost=2.0,
         pod_name_prefix="llm-qwen-eval-once",
         pod_name="llm-qwen-eval-once-20260427-000000",
         image="vllm/vllm-openai:test",
@@ -43,8 +43,8 @@ def args(tmp_path: Path) -> Namespace:
         volume_size=120,
         remote_volume="/workspace",
         remote_dir="/workspace/llm",
-        vcpu=16,
-        mem=80,
+        vcpu=8,
+        mem=30,
         secure_cloud=False,
         runpodctl="/home/dev/bin/runpodctl",
         secret_path=tmp_path / "runpod",
@@ -72,16 +72,16 @@ def write_repo_shape(tmp_path: Path) -> None:
     (tmp_path / "runpod.pub").write_text("ssh-ed25519 public-key", encoding="utf-8")
 
 
-def test_runpodctl_create_command_uses_a100_and_cost_ceiling(tmp_path: Path) -> None:
+def test_runpodctl_create_command_uses_4090_and_cost_ceiling(tmp_path: Path) -> None:
     write_repo_shape(tmp_path)
 
     command = runpodctl_create_command(args(tmp_path))
 
     assert command[:3] == ["/home/dev/bin/runpodctl", "create", "pod"]
-    assert command[command.index("--gpuType") + 1] == "NVIDIA A100 80GB PCIe"
+    assert command[command.index("--gpuType") + 1] == "NVIDIA GeForce RTX 4090"
     assert command[command.index("--gpuCount") + 1] == "1"
     assert command[command.index("--imageName") + 1] == "vllm/vllm-openai:test"
-    assert command[command.index("--cost") + 1] == "5.0"
+    assert command[command.index("--cost") + 1] == "2.0"
     assert command[command.index("--volumeSize") + 1] == "120"
 
 
@@ -103,7 +103,7 @@ def test_remote_vllm_server_uses_fp8_model_and_short_context(tmp_path: Path) -> 
 
     assert "python -m vllm.entrypoints.openai.api_server" in command
     assert "VLLM_ENABLE_CUDA_COMPATIBILITY=1" in command
-    assert "--model Qwen/Qwen3.5-35B-A3B-FP8" in command
+    assert "--model Qwen/Qwen3-14B-FP8" in command
     assert "--language-model-only" in command
     assert "--max-model-len 8192" in command
     assert "--reasoning-parser qwen3" in command

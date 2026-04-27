@@ -77,8 +77,9 @@ No-dependency JSONL evaluator:
 
 First real-model target:
 
-- `Qwen/Qwen3.5-35B-A3B` is the first planned leverage target because it is a
-  strong Qwen open-weight model with Apache 2.0 licensing on Hugging Face
+- `Qwen/Qwen3-14B-FP8` is the first planned leverage target because it is a
+  strong enough Qwen open-weight model with Apache 2.0 licensing on Hugging Face
+  and is more practical than the 35B target on available RunPod GPUs
 - collect predictions through an OpenAI-compatible API with
   `llm.leverage.collect_openai`
 - when using RunPod, host the same model behind an OpenAI-compatible endpoint
@@ -88,13 +89,13 @@ First real-model target:
 
 First RunPod spike:
 
-- objective: verify that `Qwen/Qwen3.5-35B-A3B` can serve this project's eval
+- objective: verify that `Qwen/Qwen3-14B-FP8` can serve this project's eval
   prompts and produce saved JSONL predictions
 - workload: inference only; no training or fine-tuning
 - model server: official `vllm/vllm-openai` OpenAI-compatible API image
-- first model artifact: `Qwen/Qwen3.5-35B-A3B-FP8`
-- first GPU target: 1x `NVIDIA A100 80GB PCIe`
-- first cost ceiling: `$5.00`
+- first model artifact: `Qwen/Qwen3-14B-FP8`
+- first GPU target: 1x `NVIDIA GeForce RTX 4090`
+- first cost ceiling: `$2.00`
 - initial context: keep the server context well below the model maximum unless
   a long-context test is the explicit objective
 - input files: committed eval JSONL files only
@@ -148,7 +149,7 @@ structure. It is not a general-purpose LLM.
 
 1. From-scratch next step: define a nano GPT-2 smoke config and estimate cost
    before any paid run.
-2. Leverage next step: run the Qwen3.5 collection path against the committed
+2. Leverage next step: run the Qwen3 14B collection path against the committed
    eval layers through either a hosted API or a short RunPod inference spike.
 3. Shared next step: keep results comparable with explicit baselines, configs,
    and observation notes.

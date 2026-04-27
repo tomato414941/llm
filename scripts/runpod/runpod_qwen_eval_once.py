@@ -215,7 +215,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--remote-volume", default="/workspace")
     parser.add_argument("--remote-dir", default=DEFAULT_REMOTE_DIR)
     parser.add_argument("--vcpu", type=int, default=8)
-    parser.add_argument("--mem", type=int, default=30)
+    parser.add_argument("--mem", type=int, default=29)
     parser.add_argument("--secure-cloud", action="store_true")
     parser.add_argument("--runpodctl", default=DEFAULT_RUNPODCTL)
     parser.add_argument("--secret-path", type=Path, default=DEFAULT_SECRET_PATH)

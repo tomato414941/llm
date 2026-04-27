@@ -44,7 +44,7 @@ def args(tmp_path: Path) -> Namespace:
         remote_volume="/workspace",
         remote_dir="/workspace/llm",
         vcpu=8,
-        mem=30,
+        mem=29,
         secure_cloud=False,
         runpodctl="/home/dev/bin/runpodctl",
         secret_path=tmp_path / "runpod",
@@ -82,6 +82,7 @@ def test_runpodctl_create_command_uses_4090_and_cost_ceiling(tmp_path: Path) -> 
     assert command[command.index("--gpuCount") + 1] == "1"
     assert command[command.index("--imageName") + 1] == "vllm/vllm-openai:test"
     assert command[command.index("--cost") + 1] == "2.0"
+    assert command[command.index("--mem") + 1] == "29"
     assert command[command.index("--volumeSize") + 1] == "120"
 
 

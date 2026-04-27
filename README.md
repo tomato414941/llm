@@ -191,6 +191,7 @@ Defaults:
 - GPU: 1x `NVIDIA GeForce RTX 4090`
 - image: `vllm/vllm-openai:latest`
 - cost ceiling: `$2.00`
+- memory request: `29 GB`
 - context: `8192`
 - workload: committed leverage eval prompts only
 - cleanup: remove the pod after success or failure

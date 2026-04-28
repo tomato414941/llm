@@ -205,6 +205,11 @@ Pin the RunPod image or vLLM/PyTorch/CUDA combination explicitly before
 spending on larger runs, and use the script's readiness diagnostics to capture
 the last pod `PORTS` state and proxy HTTP status.
 
+The most cost-controlled path is to build and publish a fixed image before
+creating another paid pod. See `docker/runpod-vllm-qwen/README.md`. The image
+wraps a pinned vLLM base image with a stable entrypoint, a GPU smoke test, and
+Qwen3.5-4B defaults so RunPod startup does not spend time installing packages.
+
 The next Qwen3.5 compatibility check should prefer a prebuilt vLLM CUDA 12.9
 nightly image instead of installing vLLM inside the pod. Keep the first run
 short and inference-only; the goal is to prove that `/v1/models` becomes ready

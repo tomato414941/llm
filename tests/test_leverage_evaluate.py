@@ -87,6 +87,30 @@ def test_score_response_regex_uses_pattern_match() -> None:
     assert evaluate.score_response(scoring, "April 27, 2026")[1] is False
 
 
+def test_score_response_json_fields_checks_required_and_array_values() -> None:
+    scoring = {
+        "type": "json_fields",
+        "required": {"decision": "do_not_run_yet"},
+        "array_contains": {"required_controls": ["dry_run", "cost_cap"]},
+    }
+
+    assert (
+        evaluate.score_response(
+            scoring,
+            '{"decision":"do_not_run_yet","required_controls":["cost_cap","dry_run","extra"]}',
+        )[1]
+        is True
+    )
+    assert (
+        evaluate.score_response(
+            scoring,
+            '{"decision":"run_now","required_controls":["cost_cap","dry_run"]}',
+        )[1]
+        is False
+    )
+    assert evaluate.score_response(scoring, "not json")[1] is False
+
+
 @pytest.mark.parametrize(
     "task",
     [
@@ -475,7 +499,7 @@ def test_real_leverage_model_spec_eval_contract() -> None:
     predictions = evaluate.load_predictions(predictions_path, set(tasks))
     results = evaluate.evaluate_predictions(tasks, predictions)
 
-    assert len(tasks) == 12
+    assert len(tasks) == 18
     assert {task.category for task in tasks.values()} == {
         "conciseness",
         "cost_awareness",
@@ -490,6 +514,7 @@ def test_real_leverage_model_spec_eval_contract() -> None:
     assert {prediction.model for prediction in predictions} == {"example-baseline"}
     assert all(result.suite == "leverage-model-spec" for result in results)
     assert all(result.passed for result in results)
+    assert sum(1 for task in tasks.values() if task.scoring["type"] == "json_fields") == 6
 
 
 def test_real_two_layer_eval_contract() -> None:

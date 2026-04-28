@@ -220,6 +220,8 @@ def score_response(scoring: dict[str, Any], response: str) -> tuple[float, bool,
         if re.search(pattern, response):
             return 1.0, True, "response matched regex"
         return 0.0, False, "response did not match regex"
+    if scoring_type == "json_fields":
+        return score_json_fields(scoring, response)
     raise ValueError(f"unknown scoring type {scoring_type!r}")
 
 
@@ -266,6 +268,8 @@ def validate_scoring(scoring: dict[str, Any], task_id: str) -> None:
         exact_expected(scoring)
     elif scoring_type == "regex":
         regex_pattern(scoring)
+    elif scoring_type == "json_fields":
+        json_fields_spec(scoring)
     else:
         raise ValueError(f"unknown scoring type {scoring_type!r} for task {task_id!r}")
 
@@ -293,6 +297,42 @@ def regex_pattern(scoring: dict[str, Any]) -> str:
     except re.error as error:
         raise ValueError(f"regex scoring pattern is invalid: {error}") from error
     return pattern
+
+
+def json_fields_spec(scoring: dict[str, Any]) -> tuple[dict[str, Any], dict[str, list[Any]]]:
+    required = scoring.get("required", {})
+    array_contains = scoring.get("array_contains", {})
+    if not isinstance(required, dict):
+        raise ValueError("json_fields scoring field 'required' must be an object")
+    if not isinstance(array_contains, dict):
+        raise ValueError("json_fields scoring field 'array_contains' must be an object")
+    for field, values in array_contains.items():
+        if not isinstance(field, str):
+            raise ValueError("json_fields array_contains keys must be strings")
+        if not isinstance(values, list):
+            raise ValueError("json_fields array_contains values must be lists")
+    return required, array_contains
+
+
+def score_json_fields(scoring: dict[str, Any], response: str) -> tuple[float, bool, str]:
+    required, array_contains = json_fields_spec(scoring)
+    try:
+        payload = json.loads(response)
+    except json.JSONDecodeError as error:
+        return 0.0, False, f"response was not valid JSON: {error.msg}"
+    if not isinstance(payload, dict):
+        return 0.0, False, "response JSON was not an object"
+    for field, expected in required.items():
+        if payload.get(field) != expected:
+            return 0.0, False, f"field {field!r} did not equal {expected!r}"
+    for field, expected_values in array_contains.items():
+        actual = payload.get(field)
+        if not isinstance(actual, list):
+            return 0.0, False, f"field {field!r} was not a list"
+        missing = [value for value in expected_values if value not in actual]
+        if missing:
+            return 0.0, False, f"field {field!r} missing required values: {missing!r}"
+    return 1.0, True, "json fields matched"
 
 
 def parse_args() -> argparse.Namespace:

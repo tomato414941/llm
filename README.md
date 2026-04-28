@@ -210,6 +210,11 @@ The leverage track is organized around a scalable loop:
 teacher generation -> structural filter -> model judge -> student training -> held-out eval
 ```
 
+The target behavior for this loop is defined in
+`docs/leverage_model_spec.md`. Use that spec as the reference for generation
+prompts, judge rubrics, reviewed-instruction promotion, and held-out eval
+coverage.
+
 Avoid treating small hand-written or manually reviewed data as the source of
 capability. The current reviewed instructions are bootstrap material for wiring
 the loop and testing SFT export, not a final dataset.

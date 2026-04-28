@@ -204,6 +204,16 @@ outputs. The committed seed inputs live in
 not training data yet. Treat generated answers as experiment artifacts until
 they have been reviewed and promoted deliberately.
 
+The leverage track is organized around a scalable loop:
+
+```text
+teacher generation -> structural filter -> model judge -> student training -> held-out eval
+```
+
+Avoid treating small hand-written or manually reviewed data as the source of
+capability. The current reviewed instructions are bootstrap material for wiring
+the loop and testing SFT export, not a final dataset.
+
 The leverage data lifecycle is:
 
 ```text
@@ -227,11 +237,13 @@ Keep `evals/` separate from this flow. Eval files are held-out scoring tasks,
 not training-data generation inputs. Do not copy held-out eval prompts into
 instruction generation seeds or reviewed instruction rows.
 
-Promotion into `datasets/reviewed_instructions/` is manual. A reviewer should
-read the raw answer, verify correctness and usefulness, remove any private or
-environment-specific content, preserve provenance with `source_prompt_id`, and
-only then add an accepted row to the reviewed dataset. Exported files under
-`data/sft/` are derived training inputs; they are not the source of truth.
+Promotion into `datasets/reviewed_instructions/` is manual but should be sparse:
+use it for bootstrap examples, spot checks, or deliberately accepted rows. A
+reviewer should read the raw answer, verify correctness and usefulness, remove
+any private or environment-specific content, preserve provenance with
+`source_prompt_id`, and only then add an accepted row to the reviewed dataset.
+Exported files under `data/sft/` are derived training inputs; they are not the
+source of truth.
 
 Before model judging or promotion, run the structural filter over raw
 instruction outputs:
@@ -243,9 +255,10 @@ uv run python -m llm.leverage.filter_instruction_outputs \
   --candidates-output experiments/leverage/instruction_outputs/qwen3_5_flash_openrouter_candidates.jsonl
 ```
 
-This filter performs only scalable hygiene checks such as schema, source prompt,
-empty output, secret markers, and obvious length issues. It does not replace a
-model judge and does not promote rows into `datasets/`.
+This filter performs only structural hygiene checks such as schema, source
+prompt, empty output, secret markers, and obvious length issues. It is not a
+quality scorer, does not replace a model judge, and does not promote rows into
+`datasets/`.
 
 The first weight-changing leverage experiment is specified in
 `configs/leverage_sft_smoke.toml` and `docs/leverage_sft_smoke.md`. It is a

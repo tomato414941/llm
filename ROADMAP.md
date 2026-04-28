@@ -44,6 +44,16 @@ Non-goals:
 Purpose: work with models that already have broad language capability, then
 evaluate, adapt, distill, or operate them under practical constraints.
 
+The leverage track should favor scalable learning loops over hand-crafted
+rules. The intended loop is:
+
+```text
+teacher generation -> structural filter -> model judge -> student training -> held-out eval
+```
+
+Small reviewed datasets are bootstrap material for this loop, not the main
+source of capability.
+
 Good work for this track:
 
 - evaluate small open models on simple QA, instruction following, summarization,
@@ -53,6 +63,7 @@ Good work for this track:
 - try LoRA or SFT on a narrow dataset
 - distill outputs from a stronger model into a smaller one
 - design task-specific evals that make model changes measurable
+- add model-judge and preference steps that scale beyond manual row review
 
 Success criteria:
 
@@ -60,6 +71,8 @@ Success criteria:
 - experiments are cheaper than training from scratch
 - data, prompts, and evaluation rules are versioned
 - improvements are compared against a baseline model
+- human effort focuses on seed distribution, spot checks, and metric review
+  rather than hand-labeling most rows
 
 No-dependency JSONL evaluator:
 
@@ -108,6 +121,7 @@ Non-goals:
 - treating an open model as an opaque demo only
 - spending GPU time before the eval target is clear
 - mixing leverage results with from-scratch claims
+- polishing a tiny hand-written dataset as if it were the source of capability
 
 ## RunPod Policy
 

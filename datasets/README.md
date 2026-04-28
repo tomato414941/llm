@@ -13,6 +13,8 @@ and treat them as datasets. Promote only selected rows manually into
 
 Reviewed instruction/answer examples for the leverage track. This is the
 versioned source data that can later be exported into SFT training JSONL.
+The current file is bootstrap data for validating the pipeline; it is not meant
+to become the primary source of capability through manual polishing.
 
 Each row contains:
 
@@ -25,9 +27,10 @@ Each row contains:
 
 These rows are reviewed source data, not proof of model improvement. They
 should only be exported for training after a held-out evaluation target is
-selected.
+selected. For scale, prefer teacher generation, structural filtering, model
+judging, and held-out evaluation over manual row-by-row curation.
 
-Promotion from raw outputs is explicit and row-by-row:
+Promotion from raw outputs is explicit and row-by-row, but it should stay sparse:
 
 1. Start from a raw generated answer under
    `experiments/leverage/instruction_outputs/`.

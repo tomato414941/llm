@@ -3,6 +3,11 @@
 Use these rules before promoting generated answers into a committed reviewed
 instruction file.
 
+Reviewed instructions are a bootstrap mechanism and promotion boundary, not a
+manual labeling strategy for building capability at scale. Prefer structural
+filtering and model judging for large batches, then use these rules for sparse
+promotion and spot checks.
+
 Raw generated answers remain experiment artifacts. The expected raw location is
 `experiments/leverage/instruction_outputs/`; the reviewed location is
 `datasets/reviewed_instructions/`.
@@ -21,7 +26,8 @@ Raw generated answers remain experiment artifacts. The expected raw location is
 ## Review Status
 
 Use `accepted_instruction` only when the row passed review and can be considered
-for a small SFT/LoRA experiment.
+for a small SFT/LoRA experiment. Do not use it for rows that only passed the
+structural filter.
 
 Do not use this status for raw generated outputs. Raw outputs should remain
 under `experiments/leverage/instruction_outputs/` until reviewed.

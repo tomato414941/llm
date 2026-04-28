@@ -73,8 +73,10 @@ def build_payload(
     judge_model: str,
     max_tokens: int,
     temperature: float,
+    reasoning_effort: str,
+    exclude_reasoning: bool,
 ) -> dict[str, Any]:
-    return {
+    payload: dict[str, Any] = {
         "model": judge_model,
         "messages": [
             {
@@ -86,6 +88,12 @@ def build_payload(
         "max_tokens": max_tokens,
         "temperature": temperature,
     }
+    if reasoning_effort != "provider_default" or exclude_reasoning:
+        reasoning: dict[str, Any] = {"exclude": exclude_reasoning}
+        if reasoning_effort != "provider_default":
+            reasoning["effort"] = reasoning_effort
+        payload["reasoning"] = reasoning
+    return payload
 
 
 def parse_judge_response(text: str) -> dict[str, Any]:
@@ -152,12 +160,23 @@ def judge_rows(
     judge_label: str,
     max_tokens: int,
     temperature: float,
+    reasoning_effort: str,
+    exclude_reasoning: bool,
     limit: int | None,
 ) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     selected_rows = rows[:limit] if limit is not None else rows
     for _line_number, row in selected_rows:
-        response = client(build_payload(row, judge_model=judge_model, max_tokens=max_tokens, temperature=temperature))
+        response = client(
+            build_payload(
+                row,
+                judge_model=judge_model,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                reasoning_effort=reasoning_effort,
+                exclude_reasoning=exclude_reasoning,
+            )
+        )
         records.append(
             judgment_record(row, judge_model=judge_model, judge_label=judge_label, judge_response=response)
         )
@@ -228,6 +247,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--judge-label", default=DEFAULT_JUDGE_LABEL)
     parser.add_argument("--max-tokens", type=int, default=512)
     parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument(
+        "--reasoning-effort",
+        choices=("provider_default", "none", "minimal", "low", "medium", "high", "xhigh"),
+        default="none",
+    )
+    parser.add_argument("--exclude-reasoning", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--timeout-seconds", type=float, default=60.0)
     parser.add_argument("--limit", type=int)
     parser.add_argument("--overwrite", action="store_true")
@@ -261,6 +286,8 @@ def main() -> int:
         judge_label=args.judge_label,
         max_tokens=args.max_tokens,
         temperature=args.temperature,
+        reasoning_effort=args.reasoning_effort,
+        exclude_reasoning=args.exclude_reasoning,
         limit=args.limit,
     )
     write_jsonl(args.output, judgments, overwrite=args.overwrite)

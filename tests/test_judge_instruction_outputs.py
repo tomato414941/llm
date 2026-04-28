@@ -45,9 +45,17 @@ def test_answer_id_separates_generator_model() -> None:
 
 
 def test_build_payload_contains_rubric_and_candidate_answer() -> None:
-    payload = judge.build_payload(raw_row(), judge_model="judge/model", max_tokens=256, temperature=0.0)
+    payload = judge.build_payload(
+        raw_row(),
+        judge_model="judge/model",
+        max_tokens=256,
+        temperature=0.0,
+        reasoning_effort="none",
+        exclude_reasoning=True,
+    )
 
     assert payload["model"] == "judge/model"
+    assert payload["reasoning"] == {"exclude": True, "effort": "none"}
     user_message = payload["messages"][1]["content"]
     assert "candidate_answer" in user_message
     assert "Use hosted inference before renting GPUs." in user_message
@@ -99,6 +107,8 @@ def test_judge_rows_honors_limit() -> None:
         judge_label="judge_label",
         max_tokens=256,
         temperature=0.0,
+        reasoning_effort="none",
+        exclude_reasoning=True,
         limit=1,
     )
 

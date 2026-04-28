@@ -38,6 +38,8 @@ def args(tmp_path: Path) -> Namespace:
         judge_label="judge_label",
         max_tokens=512,
         temperature=0.0,
+        reasoning_effort="none",
+        exclude_reasoning=True,
         timeout_seconds=60.0,
         limit=2,
         repo_root=tmp_path,
@@ -61,6 +63,8 @@ def test_judge_command_targets_judge_module(tmp_path: Path) -> None:
 
     assert "llm.leverage.judge_instruction_outputs" in command
     assert command[command.index("--judge-model") + 1] == "judge/model"
+    assert command[command.index("--reasoning-effort") + 1] == "none"
+    assert "--exclude-reasoning" in command
     assert command[command.index("--limit") + 1] == "2"
 
 

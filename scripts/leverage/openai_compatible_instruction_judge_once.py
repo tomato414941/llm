@@ -59,10 +59,16 @@ def judge_command(args: argparse.Namespace) -> list[str]:
         str(args.max_tokens),
         "--temperature",
         str(args.temperature),
+        "--reasoning-effort",
+        args.reasoning_effort,
         "--timeout-seconds",
         str(args.timeout_seconds),
         "--overwrite",
     ]
+    if args.exclude_reasoning:
+        command.append("--exclude-reasoning")
+    else:
+        command.append("--no-exclude-reasoning")
     if args.limit is not None:
         command.extend(["--limit", str(args.limit)])
     return command
@@ -115,6 +121,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--judge-label", default=DEFAULT_JUDGE_LABEL)
     parser.add_argument("--max-tokens", type=int, default=512)
     parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument(
+        "--reasoning-effort",
+        choices=("provider_default", "none", "minimal", "low", "medium", "high", "xhigh"),
+        default="none",
+    )
+    parser.add_argument("--exclude-reasoning", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--timeout-seconds", type=float, default=60.0)
     parser.add_argument("--limit", type=int)
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())

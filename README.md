@@ -223,6 +223,11 @@ data/sft/
 Keep `evals/` separate from this flow. Eval files are held-out scoring tasks,
 not training-data generation inputs.
 
+The first weight-changing leverage experiment is specified in
+`configs/leverage_sft_smoke.toml` and `docs/leverage_sft_smoke.md`. It is a
+small LoRA/SFT wiring smoke over the reviewed instruction data, not a quality
+claim.
+
 For a RunPod self-hosted spike, start an OpenAI-compatible model server, point
 `OPENAI_BASE_URL` at that server, run the same collector command, then score the
 saved predictions with `llm.leverage.evaluate`. The first spike should be

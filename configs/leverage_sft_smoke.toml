@@ -1,0 +1,58 @@
+[experiment]
+name = "leverage_sft_smoke"
+track = "leverage"
+objective = "Verify that reviewed instructions can be exported and used for a bounded LoRA/SFT smoke run."
+status = "planned"
+
+[model]
+student = "Qwen/Qwen3.5-0.6B"
+fallback_student = "Qwen/Qwen3-0.6B"
+selection_reason = "Small Qwen-family student for a low-cost first weight-changing experiment."
+
+[data]
+reviewed_instructions = "datasets/reviewed_instructions/leverage_v0.jsonl"
+train_export = "data/sft/leverage_v0.train.jsonl"
+eval_tasks = [
+  "evals/leverage_smoke.jsonl",
+  "evals/project_judgment_v0.jsonl",
+]
+
+[method]
+first_choice = "lora"
+fallback = "full_sft"
+max_train_examples = 10
+max_epochs = 3
+max_runtime_minutes = 30
+notes = "This is a wiring smoke, not a quality-improvement run."
+
+[runpod]
+required = false
+use_when = "Only when local setup cannot run the selected student model and the exact smoke objective is still worth paid GPU time."
+gpu_target = "NVIDIA GeForce RTX 4090"
+max_cost_usd = 1.00
+cleanup_required = true
+
+[outputs]
+root = "outputs/leverage_sft_smoke"
+adapter_dir = "outputs/leverage_sft_smoke/adapter"
+logs = "outputs/leverage_sft_smoke/logs"
+metrics = "experiments/leverage_sft/leverage_sft_smoke_metrics.csv"
+notes = "experiments/leverage_sft/leverage_sft_smoke.md"
+
+[success]
+criteria = [
+  "reviewed instructions validate successfully",
+  "training export is regenerated from reviewed instructions",
+  "training command completes on at most 10 examples",
+  "adapter or checkpoint artifact is written",
+  "held-out eval command can run before and after training",
+]
+
+[stop]
+conditions = [
+  "dependency setup exceeds the planned runtime",
+  "selected student model cannot be loaded on the available GPU",
+  "loss becomes NaN",
+  "cost cap would be exceeded",
+  "any paid resource cannot be cleaned up immediately",
+]

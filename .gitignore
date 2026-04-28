@@ -40,6 +40,7 @@ experiments/leverage/qwen3_0_6b_scores.csv
 experiments/leverage/qwen3_0_6b_summary.csv
 experiments/leverage/*runpod*.jsonl
 experiments/leverage/*runpod*.csv
+experiments/leverage/instruction_outputs/*.jsonl
 *.pt
 *.pth
 *.ckpt
@@ -49,3 +50,4 @@ experiments/leverage/*runpod*.csv
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !data/sft/.gitkeep
+!experiments/leverage/instruction_outputs/.gitkeep

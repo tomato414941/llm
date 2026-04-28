@@ -4,6 +4,11 @@ This directory stores committed, reviewed dataset source files that are small
 enough to inspect. Large generated data, raw model outputs, checkpoints, and
 private data must stay out of git.
 
+Raw instruction-generation outputs belong under
+`experiments/leverage/instruction_outputs/`. Do not edit those files into shape
+and treat them as datasets. Promote only selected rows manually into
+`datasets/reviewed_instructions/` after review.
+
 ## `reviewed_instructions/leverage_v0.jsonl`
 
 Reviewed instruction/answer examples for the leverage track. This is the
@@ -21,6 +26,16 @@ Each row contains:
 These rows are reviewed source data, not proof of model improvement. They
 should only be exported for training after a held-out evaluation target is
 selected.
+
+Promotion from raw outputs is explicit and row-by-row:
+
+1. Start from a raw generated answer under
+   `experiments/leverage/instruction_outputs/`.
+2. Verify the answer against `datasets/reviewed_instructions/review_rules.md`.
+3. Rewrite or reject anything that is incorrect, generic, private, or detached
+   from the source prompt.
+4. Add only accepted rows to `reviewed_instructions/leverage_v0.jsonl` with
+   stable provenance in `source_prompt_id` and `review`.
 
 Validate reviewed instruction files before adding or exporting them:
 

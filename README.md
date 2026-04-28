@@ -211,17 +211,27 @@ prompts/
   fixed generation inputs for teacher models
 
 experiments/leverage/
-  raw model outputs, predictions, scores, and other run artifacts
+  run artifacts for leverage experiments
+
+experiments/leverage/instruction_outputs/
+  raw teacher-model answers generated from prompts; not committed dataset source
 
 datasets/reviewed_instructions/
-  committed instruction/answer source data after review
+  manually promoted instruction/answer source data after review
 
 data/sft/
   generated training JSONL exports; ignored by git
 ```
 
 Keep `evals/` separate from this flow. Eval files are held-out scoring tasks,
-not training-data generation inputs.
+not training-data generation inputs. Do not copy held-out eval prompts into
+instruction generation seeds or reviewed instruction rows.
+
+Promotion into `datasets/reviewed_instructions/` is manual. A reviewer should
+read the raw answer, verify correctness and usefulness, remove any private or
+environment-specific content, preserve provenance with `source_prompt_id`, and
+only then add an accepted row to the reviewed dataset. Exported files under
+`data/sft/` are derived training inputs; they are not the source of truth.
 
 The first weight-changing leverage experiment is specified in
 `configs/leverage_sft_smoke.toml` and `docs/leverage_sft_smoke.md`. It is a

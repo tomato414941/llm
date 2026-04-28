@@ -3,6 +3,10 @@
 Use these rules before promoting generated answers into a committed reviewed
 instruction file.
 
+Raw generated answers remain experiment artifacts. The expected raw location is
+`experiments/leverage/instruction_outputs/`; the reviewed location is
+`datasets/reviewed_instructions/`.
+
 ## Required Checks
 
 - The row is not copied from a held-out eval prompt.
@@ -20,7 +24,7 @@ Use `accepted_instruction` only when the row passed review and can be considered
 for a small SFT/LoRA experiment.
 
 Do not use this status for raw generated outputs. Raw outputs should remain
-under `experiments/leverage/` until reviewed.
+under `experiments/leverage/instruction_outputs/` until reviewed.
 
 ## Promotion Boundary
 

@@ -42,6 +42,8 @@ experiments/leverage/*runpod*.jsonl
 experiments/leverage/*runpod*.csv
 experiments/leverage/instruction_outputs/*.jsonl
 experiments/leverage/instruction_outputs/*.csv
+experiments/leverage/instruction_outputs/*judgment*.jsonl
+experiments/leverage/instruction_outputs/*judgment*.csv
 *.pt
 *.pth
 *.ckpt

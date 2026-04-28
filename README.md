@@ -260,6 +260,17 @@ prompt, empty output, secret markers, and obvious length issues. It is not a
 quality scorer, does not replace a model judge, and does not promote rows into
 `datasets/`.
 
+Run a model judge over filtered candidates with an explicit small limit first:
+
+```bash
+uv run python scripts/leverage/openai_compatible_instruction_judge_once.py \
+  --limit 2
+```
+
+Judge outputs use separate `generator_model` and `judge_model` fields so the
+same schema can later support generator-by-judge evaluation matrices. The judge
+step is an automated scorer, not automatic promotion into `datasets/`.
+
 The first weight-changing leverage experiment is specified in
 `configs/leverage_sft_smoke.toml` and `docs/leverage_sft_smoke.md`. It is a
 small LoRA/SFT wiring smoke over the reviewed instruction data, not a quality

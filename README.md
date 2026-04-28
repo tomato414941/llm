@@ -172,7 +172,7 @@ predictions. It does not use RunPod, download weights, or fine-tune models.
 
 The current practical path should start with an external OpenAI-compatible
 provider instead of a self-hosted RunPod pod. For OpenRouter, store the API key
-outside the repository at `~/.secrets/llm-openrouter`, then dry-run the complete
+outside the repository at `~/.secrets/openrouter`, then dry-run the complete
 collection and scoring command before making a paid request:
 
 ```bash

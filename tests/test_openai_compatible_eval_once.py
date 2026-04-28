@@ -15,11 +15,14 @@ SPEC.loader.exec_module(openai_compatible_eval_once)
 
 api_key_for_run = openai_compatible_eval_once.api_key_for_run
 collect_command = openai_compatible_eval_once.collect_command
+collect_env = openai_compatible_eval_once.collect_env
+display_command = openai_compatible_eval_once.display_command
 evaluate_command = openai_compatible_eval_once.evaluate_command
 normalize_args = openai_compatible_eval_once.normalize_args
 parse_args = openai_compatible_eval_once.parse_args
 preflight = openai_compatible_eval_once.preflight
 redact_command = openai_compatible_eval_once.redact_command
+run_command = openai_compatible_eval_once.run_command
 
 
 def args(tmp_path: Path) -> Namespace:
@@ -56,7 +59,7 @@ def test_parse_args_defaults_to_openrouter_qwen(monkeypatch: pytest.MonkeyPatch)
     assert parsed.base_url == "https://openrouter.ai/api/v1"
     assert parsed.model == "qwen/qwen3.5-flash-02-23"
     assert parsed.model_label == "qwen3_5_flash_openrouter"
-    assert parsed.secret_path == Path.home() / ".secrets" / "llm-openrouter"
+    assert parsed.secret_path == Path.home() / ".secrets" / "openrouter"
     assert parsed.tasks == [
         Path("evals/leverage_smoke.jsonl"),
         Path("evals/project_judgment_v0.jsonl"),
@@ -70,15 +73,42 @@ def test_collect_command_targets_openai_compatible_api(tmp_path: Path) -> None:
     command = collect_command(run_args, "secret-key")
 
     assert command[:4] == [
-        "env",
-        "OPENAI_BASE_URL=https://openrouter.ai/api/v1",
-        "OPENAI_API_KEY=secret-key",
         "uv",
+        "run",
+        "python",
+        "-u",
     ]
     assert "llm.leverage.collect_openai" in command
     assert command[command.index("--model") + 1] == "qwen/qwen3.5-flash-02-23"
     assert command[command.index("--model-label") + 1] == "qwen3_5_flash_openrouter"
     assert command[command.index("--thinking-mode") + 1] == "none"
+
+
+def test_collect_env_keeps_api_key_out_of_process_arguments(tmp_path: Path) -> None:
+    run_args = args(tmp_path)
+
+    command = collect_command(run_args, "secret-key")
+    env = collect_env(run_args, "secret-key")
+
+    assert "secret-key" not in command
+    assert env == {
+        "OPENAI_BASE_URL": "https://openrouter.ai/api/v1",
+        "OPENAI_API_KEY": "secret-key",
+    }
+
+
+def test_display_command_includes_redactable_env_for_dry_run(tmp_path: Path) -> None:
+    run_args = args(tmp_path)
+    command = collect_command(run_args, "secret-key")
+    env = collect_env(run_args, "secret-key")
+
+    displayed = display_command(command, env_overrides=env)
+
+    assert displayed[:3] == [
+        "env",
+        "OPENAI_API_KEY=secret-key",
+        "OPENAI_BASE_URL=https://openrouter.ai/api/v1",
+    ]
 
 
 def test_evaluate_command_scores_saved_predictions(tmp_path: Path) -> None:
@@ -108,6 +138,29 @@ def test_redact_command_hides_api_key() -> None:
     command = ["env", "OPENAI_API_KEY=secret-key", "uv"]
 
     assert redact_command(command, ["secret-key"]) == "env OPENAI_API_KEY=[REDACTED] uv"
+
+
+def test_run_command_redacts_failed_command(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    def fake_run(command, cwd, check, env):
+        assert check is False
+        assert cwd == tmp_path
+        assert env["OPENAI_API_KEY"] == "secret-key"
+        return openai_compatible_eval_once.subprocess.CompletedProcess(command, 1)
+
+    monkeypatch.setattr(openai_compatible_eval_once.subprocess, "run", fake_run)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        run_command(
+            ["env", "OPENAI_API_KEY=secret-key", "uv"],
+            cwd=tmp_path,
+            secrets=["secret-key"],
+            dry_run=False,
+            env_overrides={"OPENAI_API_KEY": "secret-key"},
+        )
+
+    message = str(exc_info.value)
+    assert "secret-key" not in message
+    assert "OPENAI_API_KEY=[REDACTED]" in message
 
 
 def test_preflight_requires_committed_task_files(tmp_path: Path) -> None:

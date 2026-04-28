@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import os
 from pathlib import Path
 import shlex
 import subprocess
@@ -8,7 +9,7 @@ import subprocess
 DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_MODEL = "qwen/qwen3.5-flash-02-23"
 DEFAULT_MODEL_LABEL = "qwen3_5_flash_openrouter"
-DEFAULT_SECRET_PATH = Path.home() / ".secrets" / "llm-openrouter"
+DEFAULT_SECRET_PATH = Path.home() / ".secrets" / "openrouter"
 DEFAULT_TASKS = [Path("evals/leverage_smoke.jsonl"), Path("evals/project_judgment_v0.jsonl")]
 DEFAULT_OUTPUT = Path("experiments/leverage/qwen3_5_flash_openrouter.jsonl")
 DEFAULT_SCORES = Path("experiments/leverage/qwen3_5_flash_openrouter_scores.csv")
@@ -39,9 +40,6 @@ def redact_command(command: list[str], secrets: list[str]) -> str:
 
 def collect_command(args: argparse.Namespace, api_key: str) -> list[str]:
     command = [
-        "env",
-        f"OPENAI_BASE_URL={args.base_url}",
-        f"OPENAI_API_KEY={api_key}",
         "uv",
         "run",
         "python",
@@ -73,6 +71,13 @@ def collect_command(args: argparse.Namespace, api_key: str) -> list[str]:
     return command
 
 
+def collect_env(args: argparse.Namespace, api_key: str) -> dict[str, str]:
+    return {
+        "OPENAI_BASE_URL": args.base_url,
+        "OPENAI_API_KEY": api_key,
+    }
+
+
 def evaluate_command(args: argparse.Namespace) -> list[str]:
     command = ["uv", "run", "python", "-u", "-m", "llm.leverage.evaluate"]
     for task in args.tasks:
@@ -90,11 +95,32 @@ def evaluate_command(args: argparse.Namespace) -> list[str]:
     return command
 
 
-def run_command(command: list[str], *, cwd: Path, secrets: list[str], dry_run: bool) -> None:
-    print(f"$ {redact_command(command, secrets)}")
+def display_command(command: list[str], *, env_overrides: dict[str, str] | None) -> list[str]:
+    if not env_overrides:
+        return command
+    env_parts = [f"{name}={value}" for name, value in sorted(env_overrides.items())]
+    return ["env", *env_parts, *command]
+
+
+def run_command(
+    command: list[str],
+    *,
+    cwd: Path,
+    secrets: list[str],
+    dry_run: bool,
+    env_overrides: dict[str, str] | None = None,
+) -> None:
+    printable = display_command(command, env_overrides=env_overrides)
+    print(f"$ {redact_command(printable, secrets)}")
     if dry_run:
         return
-    subprocess.run(command, cwd=cwd, check=True)
+    env = os.environ.copy()
+    if env_overrides:
+        env.update(env_overrides)
+    result = subprocess.run(command, cwd=cwd, check=False, env=env)
+    if result.returncode != 0:
+        redacted = redact_command(printable, secrets)
+        raise RuntimeError(f"command failed with exit code {result.returncode}: {redacted}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -155,7 +181,13 @@ def main() -> int:
     preflight(args)
     api_key = api_key_for_run(args)
     secrets = [api_key]
-    run_command(collect_command(args, api_key), cwd=args.repo_root, secrets=secrets, dry_run=args.dry_run)
+    run_command(
+        collect_command(args, api_key),
+        cwd=args.repo_root,
+        secrets=secrets,
+        dry_run=args.dry_run,
+        env_overrides=collect_env(args, api_key),
+    )
     run_command(evaluate_command(args), cwd=args.repo_root, secrets=secrets, dry_run=args.dry_run)
     return 0
 

@@ -34,6 +34,8 @@ def args(tmp_path: Path) -> Namespace:
         max_tokens=512,
         temperature=0.2,
         thinking_mode="none",
+        reasoning_effort="none",
+        exclude_reasoning=True,
         timeout_seconds=60.0,
         repo_root=tmp_path,
         dry_run=True,
@@ -58,6 +60,8 @@ def test_parse_args_defaults_to_openrouter_instruction_collection(
     assert parsed.secret_path == Path.home() / ".secrets" / "openrouter"
     assert parsed.seeds == Path("prompts/leverage-training-seed-v0.jsonl")
     assert parsed.output == Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter.jsonl")
+    assert parsed.reasoning_effort == "none"
+    assert parsed.exclude_reasoning is True
 
 
 def test_collect_command_targets_instruction_collector(tmp_path: Path) -> None:
@@ -69,6 +73,8 @@ def test_collect_command_targets_instruction_collector(tmp_path: Path) -> None:
     assert command[command.index("--seeds") + 1] == "prompts/leverage-training-seed-v0.jsonl"
     assert command[command.index("--model") + 1] == "qwen/qwen3.5-flash-02-23"
     assert command[command.index("--output") + 1] == "experiments/leverage/instruction-outputs/qwen.jsonl"
+    assert command[command.index("--reasoning-effort") + 1] == "none"
+    assert "--exclude-reasoning" in command
 
 
 def test_collect_env_keeps_api_key_out_of_process_arguments(tmp_path: Path) -> None:

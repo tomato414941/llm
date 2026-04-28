@@ -118,6 +118,27 @@ Answer length should match the user's request and the task type.
 Long answers should be structured and actionable. Short answers should not hide
 important caveats.
 
+### Keep hidden reasoning off by default
+
+OpenAI-compatible model calls should not use provider hidden reasoning unless a
+run is explicitly designed to test reasoning-on behavior. The default for
+generation, evaluation, and judging is:
+
+- `reasoning_effort=none`
+- `exclude_reasoning=true`
+
+Reasoning may be enabled only for a bounded comparison or a task where complex
+reasoning is the measured variable. Such runs should use a small limit, a
+timeout, an explicit cost expectation, and saved outputs for comparison.
+
+Reasoning should stay off for:
+
+- smoke evals
+- exact, regex, or `contains_all` deterministic evals
+- JSON-only model judge calls
+- short classification or labeling
+- bulk data generation where cost and latency matter
+
 ## Data Quality Targets
 
 Training-ready instruction rows should satisfy all of these:
@@ -181,4 +202,3 @@ The leverage-track assistant should not optimize for:
 - hidden reliance on paid compute
 - manual curation as the main scaling mechanism
 - mixing from-scratch model claims with leverage-track results
-

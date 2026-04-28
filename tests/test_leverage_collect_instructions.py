@@ -69,6 +69,8 @@ def test_build_payload_uses_seed_system_prompt_and_user_prompt() -> None:
         temperature=0.1,
         thinking_mode="none",
         thinking_param="chat_template_kwargs",
+        reasoning_effort="none",
+        exclude_reasoning=True,
     )
 
     assert payload == {
@@ -79,6 +81,7 @@ def test_build_payload_uses_seed_system_prompt_and_user_prompt() -> None:
         ],
         "max_tokens": 256,
         "temperature": 0.1,
+        "reasoning": {"exclude": True, "effort": "none"},
     }
 
 
@@ -106,6 +109,8 @@ def test_collect_outputs_writes_raw_review_schema(tmp_path: Path) -> None:
         temperature=0.1,
         thinking_mode="none",
         thinking_param="chat_template_kwargs",
+        reasoning_effort="none",
+        exclude_reasoning=True,
         overwrite=False,
     )
 

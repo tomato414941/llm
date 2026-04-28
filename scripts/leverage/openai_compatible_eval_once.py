@@ -63,11 +63,17 @@ def collect_command(args: argparse.Namespace, api_key: str) -> list[str]:
             str(args.temperature),
             "--thinking-mode",
             args.thinking_mode,
+            "--reasoning-effort",
+            args.reasoning_effort,
             "--timeout-seconds",
             str(args.timeout_seconds),
             "--overwrite",
         ]
     )
+    if args.exclude_reasoning:
+        command.append("--exclude-reasoning")
+    else:
+        command.append("--no-exclude-reasoning")
     return command
 
 
@@ -137,6 +143,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-tokens", type=int, default=512)
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--thinking-mode", choices=("disabled", "none"), default="none")
+    parser.add_argument(
+        "--reasoning-effort",
+        choices=("provider_default", "none", "minimal", "low", "medium", "high", "xhigh"),
+        default="none",
+    )
+    parser.add_argument("--exclude-reasoning", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--timeout-seconds", type=float, default=60.0)
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--dry-run", action="store_true")

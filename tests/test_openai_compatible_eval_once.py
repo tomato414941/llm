@@ -39,6 +39,8 @@ def args(tmp_path: Path) -> Namespace:
         max_tokens=512,
         temperature=0.0,
         thinking_mode="none",
+        reasoning_effort="none",
+        exclude_reasoning=True,
         timeout_seconds=60.0,
         repo_root=tmp_path,
         dry_run=True,
@@ -65,6 +67,8 @@ def test_parse_args_defaults_to_openrouter_qwen(monkeypatch: pytest.MonkeyPatch)
         Path("evals/project-judgment-v0.jsonl"),
     ]
     assert parsed.thinking_mode == "none"
+    assert parsed.reasoning_effort == "none"
+    assert parsed.exclude_reasoning is True
 
 
 def test_collect_command_targets_openai_compatible_api(tmp_path: Path) -> None:
@@ -82,6 +86,8 @@ def test_collect_command_targets_openai_compatible_api(tmp_path: Path) -> None:
     assert command[command.index("--model") + 1] == "qwen/qwen3.5-flash-02-23"
     assert command[command.index("--model-label") + 1] == "qwen3-5-flash-openrouter"
     assert command[command.index("--thinking-mode") + 1] == "none"
+    assert command[command.index("--reasoning-effort") + 1] == "none"
+    assert "--exclude-reasoning" in command
 
 
 def test_collect_env_keeps_api_key_out_of_process_arguments(tmp_path: Path) -> None:

@@ -30,6 +30,8 @@ def test_build_payload_disables_qwen_thinking_with_chat_template_kwargs() -> Non
         temperature=0.0,
         thinking_mode="disabled",
         thinking_param="chat_template_kwargs",
+        reasoning_effort="none",
+        exclude_reasoning=True,
     )
 
     assert payload["model"] == "Qwen/Qwen3.5-35B-A3B"
@@ -38,6 +40,7 @@ def test_build_payload_disables_qwen_thinking_with_chat_template_kwargs() -> Non
         {"role": "user", "content": "Say ok."},
     ]
     assert payload["chat_template_kwargs"] == {"enable_thinking": False}
+    assert payload["reasoning"] == {"exclude": True, "effort": "none"}
 
 
 def test_build_payload_can_omit_thinking_controls() -> None:
@@ -49,10 +52,13 @@ def test_build_payload_can_omit_thinking_controls() -> None:
         temperature=0.0,
         thinking_mode="none",
         thinking_param="chat_template_kwargs",
+        reasoning_effort="provider_default",
+        exclude_reasoning=False,
     )
 
     assert "chat_template_kwargs" not in payload
     assert "enable_thinking" not in payload
+    assert "reasoning" not in payload
 
 
 def test_response_text_reads_openai_chat_completion_text() -> None:
@@ -133,6 +139,8 @@ def test_collect_predictions_writes_prediction_jsonl(tmp_path: Path) -> None:
         temperature=0.0,
         thinking_mode="disabled",
         thinking_param="chat_template_kwargs",
+        reasoning_effort="none",
+        exclude_reasoning=True,
         overwrite=False,
     )
 
@@ -167,6 +175,8 @@ def test_collect_predictions_refuses_existing_output_without_overwrite(tmp_path:
             temperature=0.0,
             thinking_mode="disabled",
             thinking_param="chat_template_kwargs",
+            reasoning_effort="none",
+            exclude_reasoning=True,
             overwrite=False,
         )
 

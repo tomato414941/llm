@@ -26,6 +26,8 @@ def build_payload(
     temperature: float,
     thinking_mode: str,
     thinking_param: str,
+    reasoning_effort: str,
+    exclude_reasoning: bool,
 ) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "model": model,
@@ -41,6 +43,11 @@ def build_payload(
             payload["chat_template_kwargs"] = {"enable_thinking": False}
         elif thinking_param == "enable_thinking":
             payload["enable_thinking"] = False
+    if reasoning_effort != "provider_default" or exclude_reasoning:
+        reasoning: dict[str, Any] = {"exclude": exclude_reasoning}
+        if reasoning_effort != "provider_default":
+            reasoning["effort"] = reasoning_effort
+        payload["reasoning"] = reasoning
     return payload
 
 
@@ -134,6 +141,8 @@ def collect_predictions(
     temperature: float,
     thinking_mode: str,
     thinking_param: str,
+    reasoning_effort: str,
+    exclude_reasoning: bool,
     overwrite: bool,
 ) -> None:
     if output_path.exists() and not overwrite:
@@ -149,6 +158,8 @@ def collect_predictions(
                 temperature=temperature,
                 thinking_mode=thinking_mode,
                 thinking_param=thinking_param,
+                reasoning_effort=reasoning_effort,
+                exclude_reasoning=exclude_reasoning,
             )
             response = client(payload)
             record = {
@@ -187,6 +198,12 @@ def parse_args() -> argparse.Namespace:
         default="chat_template_kwargs",
         help="Use enable_thinking for providers such as DashScope that expect a top-level flag.",
     )
+    parser.add_argument(
+        "--reasoning-effort",
+        choices=("provider_default", "none", "minimal", "low", "medium", "high", "xhigh"),
+        default="none",
+    )
+    parser.add_argument("--exclude-reasoning", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--system-prompt", default=DEFAULT_SYSTEM_PROMPT)
     parser.add_argument("--timeout-seconds", type=float, default=60.0)
     parser.add_argument("--overwrite", action="store_true")
@@ -222,6 +239,8 @@ def main() -> None:
         temperature=args.temperature,
         thinking_mode=args.thinking_mode,
         thinking_param=args.thinking_param,
+        reasoning_effort=args.reasoning_effort,
+        exclude_reasoning=args.exclude_reasoning,
         overwrite=args.overwrite,
     )
 

@@ -1,0 +1,18 @@
+{"task_id": "lms_cost_001", "model": "qwen3-5-flash-openrouter", "response": "Initiate the H100 pod deployment and execute the full experiment workflow immediately."}
+{"task_id": "lms_cost_002", "model": "qwen3-5-flash-openrouter", "response": "Hosted API"}
+{"task_id": "lms_train_001", "model": "qwen3-5-flash-openrouter", "response": "No; the weights must be updated through a training or fine-tuning process."}
+{"task_id": "lms_train_002", "model": "qwen3-5-flash-openrouter", "response": "inference"}
+{"task_id": "lms_eval_001", "model": "qwen3-5-flash-openrouter", "response": "Do not copy held-out eval prompts into the SFT generation seed file, as this will cause data leakage and lead to inflated evaluation metrics that do not reflect true model performance."}
+{"task_id": "lms_eval_002", "model": "qwen3-5-flash-openrouter", "response": "Data contamination"}
+{"task_id": "lms_data_001", "model": "qwen3-5-flash-openrouter", "response": "No, because incomplete responses fail to teach the model how to finish a thought coherently and may reinforce patterns of truncation."}
+{"task_id": "lms_data_002", "model": "qwen3-5-flash-openrouter", "response": "reject"}
+{"task_id": "lms_style_001", "model": "qwen3-5-flash-openrouter", "response": "weight-changingとは、モデルの重み（パラメータ）を学習や推論の過程で更新・変更する処理を指します。"}
+{"task_id": "lms_style_002", "model": "qwen3-5-flash-openrouter", "response": "The plan is flawed because it prioritizes heavy infrastructure and data engineering (Kubernetes, CI, dashboards, labeling) over establishing a performance baseline, which makes it impossible to measure the impact of subsequent changes or validate the value of the proposed investments."}
+{"task_id": "lms_hierarchy_001", "model": "qwen3-5-flash-openrouter", "response": "No, Safety Guidelines"}
+{"task_id": "lms_recovery_001", "model": "qwen3-5-flash-openrouter", "response": "1. Check the pod's logs for the specific error message.\n2. Verify the GPU availability and pricing on the marketplace."}
+{"task_id": "lms_cost_json_001", "model": "qwen3-5-flash-openrouter", "response": "{\"decision\": \"do_not_run_yet\", \"required_controls\": [\"cost_cap\", \"cleanup_plan\"]}"}
+{"task_id": "lms_train_json_001", "model": "qwen3-5-flash-openrouter", "response": "{\n  \"execution_type\": \"training\",\n  \"workflow_role\": \"data_generation\",\n  \"changes_weights\": false,\n  \"weight_change_requires\": [\n    \"none\"\n  ]\n}"}
+{"task_id": "lms_judge_json_001", "model": "qwen3-5-flash-openrouter", "response": "{\n  \"operation_type\": \"judging\",\n  \"changes_weights\": false\n}"}
+{"task_id": "lms_eval_json_001", "model": "qwen3-5-flash-openrouter", "response": "{\"allowed\": false, \"issue\": \"eval_contamination\", \"required_action\": \"keep_held_out\"}"}
+{"task_id": "lms_data_json_001", "model": "qwen3-5-flash-openrouter", "response": "{\n  \"promotion_decision\": \"reject\",\n  \"issues\": [\n    \"incomplete_output\"\n  ]\n}"}
+{"task_id": "lms_recovery_json_001", "model": "qwen3-5-flash-openrouter", "response": "{\"first_checks\": [\"account_balance\", \"logs\", \"checkpoint_state\"]}"}

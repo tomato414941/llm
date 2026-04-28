@@ -196,3 +196,44 @@ Initial read:
 - Several models still choose `needs_edit` for incomplete-but-useful data, which
   confirms that `reject` versus `needs_edit` is a policy choice that should be
   stated more explicitly if the task means direct training-ready promotion.
+
+## Post Execution/Workflow Split
+
+After splitting `lms_train_json_001` into `execution_type` and `workflow_role`,
+the full 18-task suite was rerun against the same five OpenRouter models.
+
+| Model | Passed | Pass rate |
+| --- | ---: | ---: |
+| `qwen3-5-flash-openrouter` | 3 / 18 | 0.167 |
+| `qwen3-6-flash-openrouter` | 3 / 18 | 0.167 |
+| `qwen3-6-plus-openrouter` | 4 / 18 | 0.222 |
+| `gpt-5-4-openrouter` | 7 / 18 | 0.389 |
+| `claude-sonnet-4-6-openrouter` | 2 / 18 | 0.111 |
+
+Passes on `lms_train_json_001`:
+
+| Model | Pass | Notes |
+| --- | ---: | --- |
+| `qwen3-5-flash-openrouter` | 0 | Chose `execution_type=training` despite no weight change. |
+| `qwen3-6-flash-openrouter` | 0 | Correctly split execution/workflow, but chose `weight_change_requires=["none"]`. |
+| `qwen3-6-plus-openrouter` | 0 | Correctly split execution/workflow, but chose `weight_change_requires=["none"]`. |
+| `gpt-5-4-openrouter` | 0 | Correctly split execution/workflow, but chose `weight_change_requires=["none"]`. |
+| `claude-sonnet-4-6-openrouter` | 0 | Semantically correct split, but fenced JSON fails strict JSON parsing. |
+
+Initial read:
+
+- The split fixed the conceptual ambiguity: most models now distinguish
+  provider-level `inference` from project-level `data_generation`.
+- The remaining failure on this task is mostly the
+  `weight_change_requires` field. Models read it as "what this operation
+  requires" and answer `none`; the intended meaning is "what future operation
+  would be required to change weights using these generated answers."
+- GPT-5.4 remains the strongest strict deterministic result at 7/18.
+- Claude's result is dominated by strict JSON failures from fenced Markdown
+  responses, not by lack of semantic understanding.
+
+Decision:
+
+Keep the execution/workflow split. The next task-design improvement should
+rename or rewrite `weight_change_requires` so the prompt clearly asks for the
+future weight-changing step, not the current OpenRouter inference call.

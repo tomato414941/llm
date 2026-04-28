@@ -19,6 +19,7 @@ dist/
 # Data and model artifacts
 data/raw/*
 data/processed/*
+data/sft/*
 checkpoints/
 outputs/
 runs/
@@ -47,3 +48,4 @@ experiments/leverage/*runpod*.csv
 # Keep data directories
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+!data/sft/.gitkeep

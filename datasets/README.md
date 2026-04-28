@@ -29,3 +29,12 @@ uv run python -m llm.leverage.validate_sft_candidates \
 
 See `datasets/sft_candidates/review_rules.md` for the review boundary between
 raw generated outputs and accepted SFT candidates.
+
+Export a training JSONL file after validation:
+
+```bash
+uv run python -m llm.leverage.export_sft_dataset --overwrite
+```
+
+The default output is `data/sft/leverage_sft_v0.train.jsonl`. Files under
+`data/sft/` are generated training inputs and are ignored by git.

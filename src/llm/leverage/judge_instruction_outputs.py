@@ -6,12 +6,12 @@ from pathlib import Path
 from typing import Any, Callable
 
 from llm.leverage.collect_instructions import load_jsonl
-from llm.leverage.collect_openai import chat_completions_client
+from llm.leverage.collect_openai import ChatResult, chat_completions_client
 
 
 DEFAULT_JUDGE_MODEL = "qwen/qwen3.5-flash-02-23"
 DEFAULT_JUDGE_LABEL = "qwen3_5_flash_openrouter"
-ChatClient = Callable[[dict[str, Any]], str]
+ChatClient = Callable[[dict[str, Any]], ChatResult | str]
 
 
 def answer_id(row: dict[str, Any]) -> str:
@@ -178,6 +178,12 @@ def failed_judgment_record(
     }
 
 
+def client_response_text(response: ChatResult | str) -> str:
+    if isinstance(response, ChatResult):
+        return response.text
+    return response
+
+
 def judge_rows(
     rows: list[tuple[int, dict[str, Any]]],
     *,
@@ -199,14 +205,16 @@ def judge_rows(
     for _line_number, row in selected_rows:
         if answer_id(row) in completed_answer_ids:
             continue
-        response = client(
-            build_payload(
-                row,
-                judge_model=judge_model,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                reasoning_effort=reasoning_effort,
-                exclude_reasoning=exclude_reasoning,
+        response = client_response_text(
+            client(
+                build_payload(
+                    row,
+                    judge_model=judge_model,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    reasoning_effort=reasoning_effort,
+                    exclude_reasoning=exclude_reasoning,
+                )
             )
         )
         try:

@@ -118,7 +118,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--model-label", default=DEFAULT_MODEL_LABEL)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--max-tokens", type=int, default=512)
+    parser.add_argument("--max-tokens", type=int, default=16384)
     parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument("--thinking-mode", choices=("disabled", "none"), default="none")
     parser.add_argument(

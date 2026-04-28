@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from llm.leverage import judge_instruction_outputs as judge
+from llm.leverage.collect_openai import ChatResult
 
 
 def raw_row(**overrides: object) -> dict[str, object]:
@@ -180,6 +181,22 @@ def test_judge_rows_records_parse_errors_and_continues() -> None:
     )
 
     assert [record["decision"] for record in records] == ["parse_error", "accept"]
+
+
+def test_judge_rows_accepts_chat_result_client_response() -> None:
+    records = judge.judge_rows(
+        [(1, raw_row())],
+        client=lambda _payload: ChatResult(judge_json("accept"), "stop", {"completion_tokens": 24}),
+        judge_model="judge/model",
+        judge_label="judge_label",
+        max_tokens=256,
+        temperature=0.0,
+        reasoning_effort="none",
+        exclude_reasoning=True,
+        limit=None,
+    )
+
+    assert records[0]["decision"] == "accept"
 
 
 def test_load_existing_records_rejects_duplicate_answer_ids(tmp_path: Path) -> None:

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
-from llm.leverage.collect_openai import chat_completions_client
+from llm.leverage.collect_openai import ChatResult, chat_completions_client
 
 
 DEFAULT_MODEL = "qwen/qwen3.5-flash-02-23"
@@ -20,7 +20,7 @@ REQUIRED_FIELDS = {
     "constraints",
 }
 
-ChatClient = Callable[[dict[str, Any]], str]
+ChatClient = Callable[[dict[str, Any]], ChatResult]
 
 
 @dataclass(frozen=True)
@@ -169,11 +169,18 @@ def collect_outputs(
                 "messages": [
                     {"role": "system", "content": seed.system_prompt},
                     {"role": "user", "content": seed.prompt},
-                    {"role": "assistant", "content": response},
+                    {"role": "assistant", "content": response.text},
                 ],
-                "raw_response": response,
+                "raw_response": response.text,
                 "output_format": seed.output_format,
                 "constraints": seed.constraints,
+                "generation": {
+                    "api_model": api_model,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                    "finish_reason": response.finish_reason,
+                    "usage": response.usage,
+                },
                 "review": {"status": "raw"},
             }
             output_file.write(json.dumps(record, ensure_ascii=False) + "\n")
@@ -193,7 +200,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--model-label", default=DEFAULT_MODEL_LABEL)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--max-tokens", type=int, default=512)
+    parser.add_argument("--max-tokens", type=int, default=16384)
     parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument(
         "--thinking-mode",

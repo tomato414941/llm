@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from llm.leverage.collect_openai import ChatResult
 from llm.leverage import collect_instructions
 
 
@@ -101,7 +102,11 @@ def test_collect_outputs_writes_raw_review_schema(tmp_path: Path) -> None:
 
     collect_instructions.collect_outputs(
         seeds,
-        client=lambda _payload: "Use hosted inference before spending GPU time.",
+        client=lambda _payload: ChatResult(
+            "Use hosted inference before spending GPU time.",
+            "stop",
+            {"completion_tokens": 8, "prompt_tokens": 12, "total_tokens": 20},
+        ),
         output_path=output,
         api_model="provider/model",
         model_label="provider_model",
@@ -131,6 +136,13 @@ def test_collect_outputs_writes_raw_review_schema(tmp_path: Path) -> None:
             "raw_response": "Use hosted inference before spending GPU time.",
             "output_format": "short_answer",
             "constraints": ["mention cost"],
+            "generation": {
+                "api_model": "provider/model",
+                "max_tokens": 256,
+                "temperature": 0.1,
+                "finish_reason": "stop",
+                "usage": {"completion_tokens": 8, "prompt_tokens": 12, "total_tokens": 20},
+            },
             "review": {"status": "raw"},
         }
     ]
@@ -184,7 +196,11 @@ def test_collect_outputs_resume_skips_existing_seed_rows(tmp_path: Path) -> None
 
     collect_instructions.collect_outputs(
         seeds,
-        client=lambda payload: f"Generated for {payload['messages'][1]['content']}",
+        client=lambda payload: ChatResult(
+            f"Generated for {payload['messages'][1]['content']}",
+            "stop",
+            {"completion_tokens": 6},
+        ),
         output_path=output,
         api_model="provider/model",
         model_label="provider_model",
@@ -202,3 +218,4 @@ def test_collect_outputs_resume_skips_existing_seed_rows(tmp_path: Path) -> None
     assert [row["source_prompt_id"] for row in rows] == ["lt_seed_001", "lt_seed_002"]
     assert rows[0]["raw_response"] == "Existing answer."
     assert rows[1]["raw_response"] == "Generated for Second prompt"
+    assert rows[1]["generation"]["finish_reason"] == "stop"

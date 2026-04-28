@@ -52,3 +52,9 @@ through, rerun the instruction collection wrapper with `--resume` so completed
 Run the structural filter with `--summary-output` after generation to record
 candidate count, reject reasons, and category distribution before any review or
 promotion step.
+
+Instruction generation uses a large default response cap (`--max-tokens 16384`)
+to avoid treating truncation as a quality failure. Each raw output row stores
+provider metadata under `generation`, including `max_tokens`, `finish_reason`,
+and `usage`. A `finish_reason` such as `length` means the cap or provider limit
+was hit and the row should not be promoted without inspection.

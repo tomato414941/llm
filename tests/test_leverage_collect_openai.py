@@ -70,6 +70,19 @@ def test_response_text_reads_openai_chat_completion_text() -> None:
     )
 
 
+def test_response_result_reads_finish_reason_and_usage() -> None:
+    result = collect_openai.response_result(
+        {
+            "choices": [{"message": {"content": "answer"}, "finish_reason": "length"}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 32, "total_tokens": 42},
+        }
+    )
+
+    assert result.text == "answer"
+    assert result.finish_reason == "length"
+    assert result.usage == {"prompt_tokens": 10, "completion_tokens": 32, "total_tokens": 42}
+
+
 def test_response_text_reads_openai_content_parts() -> None:
     assert (
         collect_openai.response_text(
@@ -113,7 +126,7 @@ def test_chat_client_sends_user_agent(monkeypatch: pytest.MonkeyPatch) -> None:
 
     client = collect_openai.chat_completions_client("https://example.test/v1", "secret", 3)
 
-    assert client({"messages": []}) == "ok"
+    assert client({"messages": []}) == collect_openai.ChatResult("ok", None, {})
     assert seen_headers == [collect_openai.DEFAULT_USER_AGENT]
 
 
@@ -123,7 +136,11 @@ def test_collect_predictions_writes_prediction_jsonl(tmp_path: Path) -> None:
 
     def client(payload):
         payloads.append(payload)
-        return f"response for {payload['messages'][1]['content']}"
+        return collect_openai.ChatResult(
+            f"response for {payload['messages'][1]['content']}",
+            "stop",
+            {"completion_tokens": 4},
+        )
 
     collect_openai.collect_predictions(
         {
@@ -150,11 +167,25 @@ def test_collect_predictions_writes_prediction_jsonl(tmp_path: Path) -> None:
             "task_id": "first",
             "model": "qwen3_5_35b_a3b",
             "response": "response for First?",
+            "generation": {
+                "api_model": "Qwen/Qwen3.5-35B-A3B",
+                "max_tokens": 32,
+                "temperature": 0.0,
+                "finish_reason": "stop",
+                "usage": {"completion_tokens": 4},
+            },
         },
         {
             "task_id": "second",
             "model": "qwen3_5_35b_a3b",
             "response": "response for Second?",
+            "generation": {
+                "api_model": "Qwen/Qwen3.5-35B-A3B",
+                "max_tokens": 32,
+                "temperature": 0.0,
+                "finish_reason": "stop",
+                "usage": {"completion_tokens": 4},
+            },
         },
     ]
 

@@ -2,7 +2,7 @@ import argparse
 import json
 import os
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, NamedTuple
 from urllib import error, request
 
 from llm.leverage.evaluate import Task, load_task_suites
@@ -14,7 +14,13 @@ DEFAULT_SYSTEM_PROMPT = "Return only the requested answer. Do not include hidden
 DEFAULT_USER_AGENT = "llm-openai-compatible-eval/1.0"
 
 
-ChatClient = Callable[[dict[str, Any]], str]
+class ChatResult(NamedTuple):
+    text: str
+    finish_reason: str | None
+    usage: dict[str, Any]
+
+
+ChatClient = Callable[[dict[str, Any]], ChatResult]
 
 
 def build_payload(
@@ -54,7 +60,7 @@ def build_payload(
 def chat_completions_client(base_url: str, api_key: str, timeout_seconds: float) -> ChatClient:
     endpoint = base_url.rstrip("/") + "/chat/completions"
 
-    def complete(payload: dict[str, Any]) -> str:
+    def complete(payload: dict[str, Any]) -> ChatResult:
         body = json.dumps(payload).encode("utf-8")
         http_request = request.Request(
             endpoint,
@@ -78,7 +84,7 @@ def chat_completions_client(base_url: str, api_key: str, timeout_seconds: float)
         except error.URLError as exc:
             reason = redact(str(exc.reason), [api_key])
             raise RuntimeError(f"OpenAI-compatible API request failed: {reason}") from exc
-        return response_text(response_payload)
+        return response_result(response_payload)
 
     return complete
 
@@ -92,6 +98,10 @@ def redact(text: str, secrets: list[str]) -> str:
 
 
 def response_text(response_payload: dict[str, Any]) -> str:
+    return response_result(response_payload).text
+
+
+def response_result(response_payload: dict[str, Any]) -> ChatResult:
     choices = response_payload.get("choices")
     if not isinstance(choices, list) or not choices:
         raise ValueError("API response must contain at least one choice")
@@ -101,13 +111,21 @@ def response_text(response_payload: dict[str, Any]) -> str:
     message = first_choice.get("message")
     if not isinstance(message, dict):
         raise ValueError("API response choice must contain a message object")
+    finish_reason = first_choice.get("finish_reason")
+    if finish_reason is not None and not isinstance(finish_reason, str):
+        raise ValueError("API response finish_reason must be a string or null")
+    usage = response_payload.get("usage")
+    if usage is None:
+        usage = {}
+    if not isinstance(usage, dict):
+        raise ValueError("API response usage must be an object when present")
     content = message.get("content")
     if isinstance(content, str):
-        return content
+        return ChatResult(content, finish_reason, usage)
     if isinstance(content, list):
         parts = content_parts(content)
         if parts:
-            return "".join(parts)
+            return ChatResult("".join(parts), finish_reason, usage)
     raise ValueError("API response message content must be text")
 
 
@@ -165,7 +183,14 @@ def collect_predictions(
             record = {
                 "task_id": task.id,
                 "model": model_label,
-                "response": response,
+                "response": response.text,
+                "generation": {
+                    "api_model": api_model,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                    "finish_reason": response.finish_reason,
+                    "usage": response.usage,
+                },
             }
             output_file.write(json.dumps(record, ensure_ascii=False) + "\n")
             output_file.flush()

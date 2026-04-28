@@ -31,7 +31,7 @@ def args(tmp_path: Path) -> Namespace:
         model="qwen/qwen3.5-flash-02-23",
         model_label="qwen3-5-flash-openrouter",
         output=Path("experiments/leverage/instruction-outputs/qwen.jsonl"),
-        max_tokens=512,
+        max_tokens=16384,
         temperature=0.2,
         thinking_mode="none",
         reasoning_effort="none",
@@ -61,6 +61,7 @@ def test_parse_args_defaults_to_openrouter_instruction_collection(
     assert parsed.secret_path == Path.home() / ".secrets" / "openrouter"
     assert parsed.seeds == Path("prompts/leverage-training-seed-v0.jsonl")
     assert parsed.output == Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter.jsonl")
+    assert parsed.max_tokens == 16384
     assert parsed.reasoning_effort == "none"
     assert parsed.exclude_reasoning is True
     assert parsed.resume is False

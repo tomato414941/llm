@@ -204,6 +204,25 @@ outputs. The committed seed inputs live in
 not training data yet. Treat generated answers as experiment artifacts until
 they have been reviewed and promoted deliberately.
 
+The leverage data lifecycle is:
+
+```text
+prompts/
+  fixed generation inputs for teacher models
+
+experiments/leverage/
+  raw model outputs, predictions, scores, and other run artifacts
+
+datasets/reviewed_instructions/
+  committed instruction/answer source data after review
+
+data/sft/
+  generated training JSONL exports; ignored by git
+```
+
+Keep `evals/` separate from this flow. Eval files are held-out scoring tasks,
+not training-data generation inputs.
+
 For a RunPod self-hosted spike, start an OpenAI-compatible model server, point
 `OPENAI_BASE_URL` at that server, run the same collector command, then score the
 saved predictions with `llm.leverage.evaluate`. The first spike should be

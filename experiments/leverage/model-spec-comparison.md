@@ -244,3 +244,24 @@ Follow-up:
 `future_student_weight_update_step` in the source eval. This makes the current
 OpenRouter call and the later student-model update path separate fields, and
 removes the ambiguous `none` array case.
+
+## Future Step Field Check
+
+After replacing `weight_change_requires`, the full 18-task suite was rerun for
+the two most useful comparison models.
+
+| Model | Passed | `lms_train_json_001` |
+| --- | ---: | ---: |
+| `gpt-5-4-openrouter` | 7 / 18 | 1 |
+| `qwen3-6-plus-openrouter` | 5 / 18 | 1 |
+
+Both models returned the intended structured answer for `lms_train_json_001`:
+the current OpenRouter call is `execution_type=inference`, the workflow role is
+`data_generation`, `changes_weights_now=false`, and the future student update
+step is `SFT_or_LoRA_training`.
+
+Decision:
+
+The field rename fixed the ambiguity for the target task. Keep this schema.
+Further score work should focus on the remaining brittle free-text tasks and
+on explicit promotion policy for incomplete-but-useful generated data.

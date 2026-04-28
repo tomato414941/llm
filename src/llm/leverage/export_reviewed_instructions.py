@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from llm.leverage.validate_sft_candidates import load_jsonl, validate_file
+from llm.leverage.validate_reviewed_instructions import load_jsonl, validate_file
 
 
 def export_rows(rows: list[tuple[int, dict[str, Any]]], *, include_id: bool) -> list[dict[str, Any]]:
@@ -47,12 +47,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--input",
         type=Path,
-        default=Path("datasets/sft_candidates/leverage_sft_v0.jsonl"),
+        default=Path("datasets/reviewed_instructions/leverage_v0.jsonl"),
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("data/sft/leverage_sft_v0.train.jsonl"),
+        default=Path("data/sft/leverage_v0.train.jsonl"),
     )
     parser.add_argument("--eval-dir", type=Path, default=Path("evals"))
     parser.add_argument("--include-id", action=argparse.BooleanOptionalAction, default=True)

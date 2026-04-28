@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from llm.leverage.validate_sft_candidates import validate_file
+from llm.leverage.validate_reviewed_instructions import validate_file
 
 
 def write_jsonl(path: Path, rows: list[dict[str, object]]) -> None:
@@ -13,7 +13,7 @@ def write_jsonl(path: Path, rows: list[dict[str, object]]) -> None:
 
 def valid_row(**overrides: object) -> dict[str, object]:
     row: dict[str, object] = {
-        "id": "sft_test_001",
+        "id": "instr_test_001",
         "source_prompt_id": "lt_seed_test",
         "category": "resource_judgment",
         "messages": [
@@ -22,7 +22,7 @@ def valid_row(**overrides: object) -> dict[str, object]:
             {"role": "assistant", "content": "Use hosted inference for evaluation before spending GPU time."},
         ],
         "review": {
-            "status": "accepted_candidate",
+            "status": "accepted_instruction",
             "author": "tester",
             "notes": "Good minimal row.",
         },
@@ -32,7 +32,7 @@ def valid_row(**overrides: object) -> dict[str, object]:
 
 
 def test_validate_file_reports_duplicate_ids(tmp_path: Path) -> None:
-    dataset = tmp_path / "candidates.jsonl"
+    dataset = tmp_path / "reviewed_instructions.jsonl"
     eval_dir = tmp_path / "evals"
     eval_dir.mkdir()
     write_jsonl(dataset, [valid_row(), valid_row()])
@@ -43,7 +43,7 @@ def test_validate_file_reports_duplicate_ids(tmp_path: Path) -> None:
 
 
 def test_validate_file_rejects_eval_prompt_reuse(tmp_path: Path) -> None:
-    dataset = tmp_path / "candidates.jsonl"
+    dataset = tmp_path / "reviewed_instructions.jsonl"
     eval_dir = tmp_path / "evals"
     eval_dir.mkdir()
     write_jsonl(eval_dir / "heldout.jsonl", [{"id": "eval_1", "prompt": "Do not reuse me."}])
@@ -62,7 +62,7 @@ def test_validate_file_rejects_eval_prompt_reuse(tmp_path: Path) -> None:
 
 
 def test_validate_file_rejects_secret_markers(tmp_path: Path) -> None:
-    dataset = tmp_path / "candidates.jsonl"
+    dataset = tmp_path / "reviewed_instructions.jsonl"
     eval_dir = tmp_path / "evals"
     eval_dir.mkdir()
     write_jsonl(dataset, [valid_row(source_prompt_id="OPENAI_API_KEY")])

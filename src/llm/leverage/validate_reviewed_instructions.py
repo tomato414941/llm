@@ -6,7 +6,7 @@ from typing import Any
 
 REQUIRED_ROW_FIELDS = {"id", "source_prompt_id", "category", "messages", "review"}
 REQUIRED_ROLES = ["system", "user", "assistant"]
-ACCEPTED_STATUS = "accepted_candidate"
+ACCEPTED_STATUS = "accepted_instruction"
 SECRET_MARKERS = [
     "OPENAI_API_KEY",
     "RUNPOD_API_KEY",

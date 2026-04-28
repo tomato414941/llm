@@ -1,7 +1,7 @@
-# SFT Candidate Review Rules
+# Reviewed Instruction Review Rules
 
-Use these rules before promoting generated answers into a committed SFT
-candidate file.
+Use these rules before promoting generated answers into a committed reviewed
+instruction file.
 
 ## Required Checks
 
@@ -16,7 +16,7 @@ candidate file.
 
 ## Review Status
 
-Use `accepted_candidate` only when the row passed review and can be considered
+Use `accepted_instruction` only when the row passed review and can be considered
 for a small SFT/LoRA experiment.
 
 Do not use this status for raw generated outputs. Raw outputs should remain
@@ -24,7 +24,7 @@ under `experiments/leverage/` until reviewed.
 
 ## Promotion Boundary
 
-An accepted candidate is still not proof of value. It becomes useful only after:
+An accepted reviewed instruction is still not proof of value. It becomes useful only after:
 
 - the training split is defined
 - a held-out eval is selected

@@ -2,9 +2,9 @@ import json
 from pathlib import Path
 from typing import Any
 
-from llm.leverage.validate_sft_candidates import validate_file
+from llm.leverage.validate_reviewed_instructions import validate_file
 
-DATASET_PATH = Path("datasets/sft_candidates/leverage_sft_v0.jsonl")
+DATASET_PATH = Path("datasets/reviewed_instructions/leverage_v0.jsonl")
 REQUIRED_ROW_FIELDS = {"id", "source_prompt_id", "category", "messages", "review"}
 REQUIRED_ROLES = ["system", "user", "assistant"]
 
@@ -19,7 +19,7 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def test_sft_candidate_dataset_has_reviewed_chat_schema() -> None:
+def test_reviewed_instruction_dataset_has_reviewed_chat_schema() -> None:
     rows = load_jsonl(DATASET_PATH)
     assert len(rows) == 10
 
@@ -40,12 +40,12 @@ def test_sft_candidate_dataset_has_reviewed_chat_schema() -> None:
 
         review = row["review"]
         assert isinstance(review, dict)
-        assert review.get("status") == "accepted_candidate"
+        assert review.get("status") == "accepted_instruction"
         assert review.get("author") == "codex"
         assert isinstance(review.get("notes"), str) and review["notes"]
 
 
-def test_sft_candidates_do_not_reuse_eval_prompts_verbatim() -> None:
+def test_reviewed_instructions_do_not_reuse_eval_prompts_verbatim() -> None:
     dataset_prompts = {row["messages"][1]["content"] for row in load_jsonl(DATASET_PATH)}
     eval_prompts: set[str] = set()
     for eval_path in Path("evals").glob("*.jsonl"):
@@ -57,5 +57,5 @@ def test_sft_candidates_do_not_reuse_eval_prompts_verbatim() -> None:
     assert dataset_prompts.isdisjoint(eval_prompts)
 
 
-def test_sft_candidate_validator_accepts_current_dataset() -> None:
+def test_reviewed_instruction_validator_accepts_current_dataset() -> None:
     assert validate_file(DATASET_PATH, eval_dir=Path("evals")) == []

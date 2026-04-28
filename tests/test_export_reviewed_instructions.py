@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from llm.leverage.export_sft_dataset import export_dataset, export_rows
+from llm.leverage.export_reviewed_instructions import export_dataset, export_rows
 
 
 def write_jsonl(path: Path, rows: list[dict[str, object]]) -> None:
@@ -14,9 +14,9 @@ def write_jsonl(path: Path, rows: list[dict[str, object]]) -> None:
     )
 
 
-def candidate_row(**overrides: object) -> dict[str, object]:
+def reviewed_instruction_row(**overrides: object) -> dict[str, object]:
     row: dict[str, object] = {
-        "id": "sft_test_001",
+        "id": "instr_test_001",
         "source_prompt_id": "lt_seed_test",
         "category": "resource_judgment",
         "messages": [
@@ -25,7 +25,7 @@ def candidate_row(**overrides: object) -> dict[str, object]:
             {"role": "assistant", "content": "Use hosted inference before spending GPU time."},
         ],
         "review": {
-            "status": "accepted_candidate",
+            "status": "accepted_instruction",
             "author": "tester",
             "notes": "Good minimal row.",
         },
@@ -35,15 +35,15 @@ def candidate_row(**overrides: object) -> dict[str, object]:
 
 
 def test_export_rows_keeps_only_id_and_messages() -> None:
-    row = candidate_row()
+    row = reviewed_instruction_row()
 
     exported = export_rows([(1, row)], include_id=True)
 
-    assert exported == [{"id": "sft_test_001", "messages": row["messages"]}]
+    assert exported == [{"id": "instr_test_001", "messages": row["messages"]}]
 
 
 def test_export_rows_can_omit_ids() -> None:
-    row = candidate_row()
+    row = reviewed_instruction_row()
 
     exported = export_rows([(1, row)], include_id=False)
 
@@ -51,11 +51,11 @@ def test_export_rows_can_omit_ids() -> None:
 
 
 def test_export_dataset_writes_training_jsonl(tmp_path: Path) -> None:
-    input_path = tmp_path / "datasets" / "candidates.jsonl"
+    input_path = tmp_path / "datasets" / "reviewed_instructions.jsonl"
     output_path = tmp_path / "data" / "sft" / "train.jsonl"
     eval_dir = tmp_path / "evals"
     eval_dir.mkdir()
-    write_jsonl(input_path, [candidate_row()])
+    write_jsonl(input_path, [reviewed_instruction_row()])
 
     count = export_dataset(input_path, output_path, eval_dir=eval_dir, include_id=True, overwrite=False)
 
@@ -63,20 +63,20 @@ def test_export_dataset_writes_training_jsonl(tmp_path: Path) -> None:
     assert output_path.read_text(encoding="utf-8").splitlines() == [
         json.dumps(
             {
-                "id": "sft_test_001",
-                "messages": candidate_row()["messages"],
+                "id": "instr_test_001",
+                "messages": reviewed_instruction_row()["messages"],
             },
             ensure_ascii=False,
         )
     ]
 
 
-def test_export_dataset_rejects_invalid_candidates(tmp_path: Path) -> None:
-    input_path = tmp_path / "datasets" / "candidates.jsonl"
+def test_export_dataset_rejects_invalid_reviewed_instructions(tmp_path: Path) -> None:
+    input_path = tmp_path / "datasets" / "reviewed_instructions.jsonl"
     output_path = tmp_path / "data" / "sft" / "train.jsonl"
     eval_dir = tmp_path / "evals"
     eval_dir.mkdir()
-    write_jsonl(input_path, [candidate_row(review={"status": "raw", "author": "tester", "notes": "No."})])
+    write_jsonl(input_path, [reviewed_instruction_row(review={"status": "raw", "author": "tester", "notes": "No."})])
 
     with pytest.raises(ValueError, match="review.status"):
         export_dataset(input_path, output_path, eval_dir=eval_dir, include_id=True, overwrite=False)
@@ -85,11 +85,11 @@ def test_export_dataset_rejects_invalid_candidates(tmp_path: Path) -> None:
 
 
 def test_export_dataset_refuses_to_overwrite_by_default(tmp_path: Path) -> None:
-    input_path = tmp_path / "datasets" / "candidates.jsonl"
+    input_path = tmp_path / "datasets" / "reviewed_instructions.jsonl"
     output_path = tmp_path / "data" / "sft" / "train.jsonl"
     eval_dir = tmp_path / "evals"
     eval_dir.mkdir()
-    write_jsonl(input_path, [candidate_row()])
+    write_jsonl(input_path, [reviewed_instruction_row()])
     output_path.parent.mkdir(parents=True)
     output_path.write_text("existing\n", encoding="utf-8")
 

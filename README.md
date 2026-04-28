@@ -233,6 +233,20 @@ environment-specific content, preserve provenance with `source_prompt_id`, and
 only then add an accepted row to the reviewed dataset. Exported files under
 `data/sft/` are derived training inputs; they are not the source of truth.
 
+Before model judging or promotion, run the structural filter over raw
+instruction outputs:
+
+```bash
+uv run python -m llm.leverage.filter_instruction_outputs \
+  --input experiments/leverage/instruction_outputs/qwen3_5_flash_openrouter.jsonl \
+  --output experiments/leverage/instruction_outputs/qwen3_5_flash_openrouter_filter.csv \
+  --candidates-output experiments/leverage/instruction_outputs/qwen3_5_flash_openrouter_candidates.jsonl
+```
+
+This filter performs only scalable hygiene checks such as schema, source prompt,
+empty output, secret markers, and obvious length issues. It does not replace a
+model judge and does not promote rows into `datasets/`.
+
 The first weight-changing leverage experiment is specified in
 `configs/leverage_sft_smoke.toml` and `docs/leverage_sft_smoke.md`. It is a
 small LoRA/SFT wiring smoke over the reviewed instruction data, not a quality

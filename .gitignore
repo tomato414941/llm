@@ -41,6 +41,7 @@ experiments/leverage/qwen3_0_6b_summary.csv
 experiments/leverage/*runpod*.jsonl
 experiments/leverage/*runpod*.csv
 experiments/leverage/instruction_outputs/*.jsonl
+experiments/leverage/instruction_outputs/*.csv
 *.pt
 *.pth
 *.ckpt

@@ -198,6 +198,12 @@ This path is inference and evaluation only. It is the right next step for
 measuring model behavior cheaply; it is not a fine-tuning or weight-changing
 workflow.
 
+For training-data drafting, fix the generation inputs before collecting model
+outputs. The committed seed inputs live in
+`prompts/leverage_training_seed_v0.jsonl`. They are not eval tasks and they are
+not training data yet. Treat generated answers as experiment artifacts until
+they have been reviewed and promoted deliberately.
+
 For a RunPod self-hosted spike, start an OpenAI-compatible model server, point
 `OPENAI_BASE_URL` at that server, run the same collector command, then score the
 saved predictions with `llm.leverage.evaluate`. The first spike should be

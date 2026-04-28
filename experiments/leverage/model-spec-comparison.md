@@ -135,8 +135,8 @@ Initial read:
 
 - The structured layer did reduce free-form wording variance, but the exact
   canonical values are still too strict for several cases.
-- Claude often returned fenced JSON despite `Return JSON only`, which the
-  current parser rejects.
+- Claude often returned fenced JSON despite `Return JSON only`; this remains a
+  structured eval failure by policy because the response is Markdown, not JSON.
 - GPT-5.4 and Claude gave semantically good `lms_cost_json_001` answers, but
   used natural-language control names instead of canonical labels such as
   `dry_run`, `cost_cap`, and `cleanup_plan`.
@@ -151,5 +151,5 @@ Decision:
 
 The structured layer is useful, but the next improvement should be task design,
 not another judge layer. Structured prompts should include canonical allowed
-values closer to the field they apply to, and the evaluator may need a small
-JSON extraction step for fenced JSON if providers keep wrapping valid JSON.
+values closer to the field they apply to. Fenced JSON should remain a failed
+structured eval; any production repair path should be separate from scoring.

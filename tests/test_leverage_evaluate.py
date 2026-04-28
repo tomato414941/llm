@@ -111,6 +111,22 @@ def test_score_response_json_fields_checks_required_and_array_values() -> None:
     assert evaluate.score_response(scoring, "not json")[1] is False
 
 
+def test_score_response_json_fields_rejects_fenced_json() -> None:
+    scoring = {
+        "type": "json_fields",
+        "required": {"operation_type": "judging"},
+    }
+
+    score, passed, reason = evaluate.score_response(
+        scoring,
+        '```json\n{"operation_type":"judging"}\n```',
+    )
+
+    assert score == 0.0
+    assert passed is False
+    assert "not valid JSON" in reason
+
+
 @pytest.mark.parametrize(
     "task",
     [

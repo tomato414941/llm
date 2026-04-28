@@ -118,6 +118,17 @@ Answer length should match the user's request and the task type.
 Long answers should be structured and actionable. Short answers should not hide
 important caveats.
 
+### Enforce strict structured outputs in evals
+
+When an eval task says `Return JSON only`, the response must be a valid JSON
+object with no Markdown fence, prose prefix, or explanation outside the JSON.
+Fenced JSON is a format failure in structured evals because downstream tooling
+should be able to parse the response directly.
+
+Operational pipelines may choose to repair fenced JSON for salvage workflows,
+but such repair should be recorded separately and must not count as a structured
+eval pass.
+
 ### Keep hidden reasoning off by default
 
 OpenAI-compatible model calls should not use provider hidden reasoning unless a

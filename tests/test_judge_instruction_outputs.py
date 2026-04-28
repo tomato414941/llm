@@ -93,6 +93,21 @@ def test_judgment_record_uses_generator_and_judge_fields() -> None:
     assert record["scores"]["safety"] == 2
 
 
+def test_failed_judgment_record_preserves_raw_response() -> None:
+    record = judge.failed_judgment_record(
+        raw_row(),
+        judge_model="judge/api-model",
+        judge_label="judge_label",
+        judge_response="{bad json",
+        error=ValueError("bad response"),
+    )
+
+    assert record["answer_id"] == "lt_seed_test:generator_a"
+    assert record["decision"] == "parse_error"
+    assert record["scores"]["correctness"] == 0
+    assert record["raw_judge_response"] == "{bad json"
+
+
 def test_judge_rows_honors_limit() -> None:
     calls: list[dict[str, object]] = []
 
@@ -116,6 +131,74 @@ def test_judge_rows_honors_limit() -> None:
     assert len(calls) == 1
 
 
+def test_judge_rows_resume_skips_existing_answer_ids() -> None:
+    calls: list[dict[str, object]] = []
+    existing = judge.judgment_record(
+        raw_row(source_prompt_id="a"),
+        judge_model="judge/api-model",
+        judge_label="judge_label",
+        judge_response=judge_json(),
+    )
+
+    def client(payload):
+        calls.append(payload)
+        return judge_json("needs_edit")
+
+    records = judge.judge_rows(
+        [(1, raw_row(source_prompt_id="a")), (2, raw_row(source_prompt_id="b"))],
+        client=client,
+        judge_model="judge/model",
+        judge_label="judge_label",
+        max_tokens=256,
+        temperature=0.0,
+        reasoning_effort="none",
+        exclude_reasoning=True,
+        limit=None,
+        existing_records=[existing],
+    )
+
+    assert len(records) == 2
+    assert len(calls) == 1
+    assert records[0]["answer_id"] == "a:generator_a"
+    assert records[1]["answer_id"] == "b:generator_a"
+    assert records[1]["decision"] == "needs_edit"
+
+
+def test_judge_rows_records_parse_errors_and_continues() -> None:
+    responses = iter(["not json", judge_json("accept")])
+
+    records = judge.judge_rows(
+        [(1, raw_row(source_prompt_id="a")), (2, raw_row(source_prompt_id="b"))],
+        client=lambda _payload: next(responses),
+        judge_model="judge/model",
+        judge_label="judge_label",
+        max_tokens=256,
+        temperature=0.0,
+        reasoning_effort="none",
+        exclude_reasoning=True,
+        limit=None,
+    )
+
+    assert [record["decision"] for record in records] == ["parse_error", "accept"]
+
+
+def test_load_existing_records_rejects_duplicate_answer_ids(tmp_path: Path) -> None:
+    path = tmp_path / "judgments.jsonl"
+    row = judge.judgment_record(
+        raw_row(),
+        judge_model="judge/api-model",
+        judge_label="judge_label",
+        judge_response=judge_json(),
+    )
+    path.write_text(
+        "\n".join(json.dumps(item) for item in [row, row]) + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="duplicate answer_id"):
+        judge.load_existing_records(path)
+
+
 def test_write_outputs(tmp_path: Path) -> None:
     records = [
         judge.judgment_record(
@@ -133,3 +216,46 @@ def test_write_outputs(tmp_path: Path) -> None:
 
     assert json.loads(jsonl_path.read_text(encoding="utf-8"))["decision"] == "accept"
     assert "instruction_following" in csv_path.read_text(encoding="utf-8").splitlines()[0]
+
+
+def test_summary_rows_counts_decisions_and_scores() -> None:
+    records = [
+        judge.judgment_record(
+            raw_row(source_prompt_id="a"),
+            judge_model="judge/api-model",
+            judge_label="judge_label",
+            judge_response=judge_json("accept"),
+        ),
+        judge.failed_judgment_record(
+            raw_row(source_prompt_id="b"),
+            judge_model="judge/api-model",
+            judge_label="judge_label",
+            judge_response="not json",
+            error=ValueError("bad response"),
+        ),
+    ]
+
+    rows = judge.summary_rows(records)
+
+    assert {"scope": "overall", "name": "total", "value": 2, "rate": "1.000"} in rows
+    assert {"scope": "decision", "name": "accept", "value": 1, "rate": "0.500"} in rows
+    assert {"scope": "decision", "name": "parse_error", "value": 1, "rate": "0.500"} in rows
+    assert {"scope": "avg_score", "name": "correctness", "value": "1.000", "rate": ""} in rows
+
+
+def test_write_summary_csv(tmp_path: Path) -> None:
+    records = [
+        judge.judgment_record(
+            raw_row(),
+            judge_model="judge/api-model",
+            judge_label="judge_label",
+            judge_response=judge_json(),
+        )
+    ]
+    summary_path = tmp_path / "summary.csv"
+
+    judge.write_summary_csv(summary_path, records, overwrite=False)
+
+    lines = summary_path.read_text(encoding="utf-8").splitlines()
+    assert lines[0] == "scope,name,value,rate"
+    assert "decision,accept,1,1.000" in lines

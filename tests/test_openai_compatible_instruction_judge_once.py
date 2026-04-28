@@ -34,6 +34,7 @@ def args(tmp_path: Path) -> Namespace:
         input=Path("experiments/leverage/instruction-outputs/candidates.jsonl"),
         output=Path("experiments/leverage/instruction-outputs/judgments.jsonl"),
         csv_output=Path("experiments/leverage/instruction-outputs/judgments.csv"),
+        summary_output=Path("experiments/leverage/instruction-outputs/judgments-summary.csv"),
         judge_model="judge/model",
         judge_label="judge_label",
         max_tokens=512,
@@ -42,6 +43,7 @@ def args(tmp_path: Path) -> Namespace:
         exclude_reasoning=True,
         timeout_seconds=60.0,
         limit=2,
+        resume=False,
         repo_root=tmp_path,
         dry_run=True,
     )
@@ -56,6 +58,10 @@ def test_parse_args_defaults_to_openrouter_judge(monkeypatch: pytest.MonkeyPatch
     assert parsed.secret_path == Path.home() / ".secrets" / "openrouter"
     assert parsed.input == Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-candidates.jsonl")
     assert parsed.output == Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-judgments.jsonl")
+    assert parsed.summary_output == Path(
+        "experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-judgments-summary.csv"
+    )
+    assert parsed.resume is False
 
 
 def test_judge_command_targets_judge_module(tmp_path: Path) -> None:
@@ -63,9 +69,24 @@ def test_judge_command_targets_judge_module(tmp_path: Path) -> None:
 
     assert "llm.leverage.judge_instruction_outputs" in command
     assert command[command.index("--judge-model") + 1] == "judge/model"
+    assert command[command.index("--summary-output") + 1] == (
+        "experiments/leverage/instruction-outputs/judgments-summary.csv"
+    )
     assert command[command.index("--reasoning-effort") + 1] == "none"
     assert "--exclude-reasoning" in command
     assert command[command.index("--limit") + 1] == "2"
+    assert "--overwrite" in command
+    assert "--resume" not in command
+
+
+def test_judge_command_can_resume_without_overwrite(tmp_path: Path) -> None:
+    run_args = args(tmp_path)
+    run_args.resume = True
+
+    command = judge_command(run_args)
+
+    assert "--resume" in command
+    assert "--overwrite" not in command
 
 
 def test_judge_env_keeps_api_key_out_of_process_arguments(tmp_path: Path) -> None:

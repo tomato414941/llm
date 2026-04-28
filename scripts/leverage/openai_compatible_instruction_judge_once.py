@@ -13,6 +13,7 @@ DEFAULT_SECRET_PATH = Path.home() / ".secrets" / "openrouter"
 DEFAULT_INPUT = Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-candidates.jsonl")
 DEFAULT_OUTPUT = Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-judgments.jsonl")
 DEFAULT_CSV_OUTPUT = Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-judgments.csv")
+DEFAULT_SUMMARY_OUTPUT = Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-judgments-summary.csv")
 
 
 def load_api_key(path: Path) -> str:
@@ -51,6 +52,8 @@ def judge_command(args: argparse.Namespace) -> list[str]:
         str(args.output),
         "--csv-output",
         str(args.csv_output),
+        "--summary-output",
+        str(args.summary_output),
         "--judge-model",
         args.judge_model,
         "--judge-label",
@@ -63,8 +66,11 @@ def judge_command(args: argparse.Namespace) -> list[str]:
         args.reasoning_effort,
         "--timeout-seconds",
         str(args.timeout_seconds),
-        "--overwrite",
     ]
+    if args.resume:
+        command.append("--resume")
+    else:
+        command.append("--overwrite")
     if args.exclude_reasoning:
         command.append("--exclude-reasoning")
     else:
@@ -117,6 +123,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--csv-output", type=Path, default=DEFAULT_CSV_OUTPUT)
+    parser.add_argument("--summary-output", type=Path, default=DEFAULT_SUMMARY_OUTPUT)
     parser.add_argument("--judge-model", default=DEFAULT_JUDGE_MODEL)
     parser.add_argument("--judge-label", default=DEFAULT_JUDGE_LABEL)
     parser.add_argument("--max-tokens", type=int, default=512)
@@ -129,6 +136,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--exclude-reasoning", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--timeout-seconds", type=float, default=60.0)
     parser.add_argument("--limit", type=int)
+    parser.add_argument("--resume", action="store_true")
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()

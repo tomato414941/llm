@@ -152,6 +152,32 @@ def judgment_record(
     }
 
 
+def failed_judgment_record(
+    row: dict[str, Any],
+    *,
+    judge_model: str,
+    judge_label: str,
+    judge_response: str,
+    error: Exception,
+) -> dict[str, Any]:
+    return {
+        "source_prompt_id": row.get("source_prompt_id", ""),
+        "answer_id": answer_id(row),
+        "generator_model": generator_model_label(row),
+        "judge_model": judge_label,
+        "judge_api_model": judge_model,
+        "scores": {
+            "correctness": 0,
+            "instruction_following": 0,
+            "conciseness": 0,
+            "safety": 0,
+        },
+        "decision": "parse_error",
+        "reason": f"Judge response could not be parsed: {error}",
+        "raw_judge_response": judge_response,
+    }
+
+
 def judge_rows(
     rows: list[tuple[int, dict[str, Any]]],
     *,
@@ -163,10 +189,16 @@ def judge_rows(
     reasoning_effort: str,
     exclude_reasoning: bool,
     limit: int | None,
+    existing_records: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
-    records: list[dict[str, Any]] = []
+    records: list[dict[str, Any]] = list(existing_records or [])
+    completed_answer_ids = {
+        row["answer_id"] for row in records if isinstance(row.get("answer_id"), str) and row["answer_id"]
+    }
     selected_rows = rows[:limit] if limit is not None else rows
     for _line_number, row in selected_rows:
+        if answer_id(row) in completed_answer_ids:
+            continue
         response = client(
             build_payload(
                 row,
@@ -177,9 +209,33 @@ def judge_rows(
                 exclude_reasoning=exclude_reasoning,
             )
         )
-        records.append(
-            judgment_record(row, judge_model=judge_model, judge_label=judge_label, judge_response=response)
-        )
+        try:
+            record = judgment_record(row, judge_model=judge_model, judge_label=judge_label, judge_response=response)
+        except (json.JSONDecodeError, ValueError) as exc:
+            record = failed_judgment_record(
+                row,
+                judge_model=judge_model,
+                judge_label=judge_label,
+                judge_response=response,
+                error=exc,
+            )
+        records.append(record)
+    return records
+
+
+def load_existing_records(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    records: list[dict[str, Any]] = []
+    seen_answer_ids: set[str] = set()
+    for line_number, row in load_jsonl(path):
+        answer_id_value = row.get("answer_id")
+        if not isinstance(answer_id_value, str) or not answer_id_value:
+            raise ValueError(f"{path}:{line_number}: missing answer_id for resume")
+        if answer_id_value in seen_answer_ids:
+            raise ValueError(f"{path}:{line_number}: duplicate answer_id for resume")
+        seen_answer_ids.add(answer_id_value)
+        records.append(row)
     return records
 
 
@@ -231,6 +287,53 @@ def write_csv(path: Path, rows: list[dict[str, Any]], *, overwrite: bool) -> Non
             )
 
 
+def summary_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    summary: list[dict[str, Any]] = []
+    total = len(rows)
+    summary.append({"scope": "overall", "name": "total", "value": total, "rate": "1.000" if total else "0.000"})
+
+    decision_counts: dict[str, int] = {}
+    generator_counts: dict[str, int] = {}
+    score_totals = {
+        "correctness": 0,
+        "instruction_following": 0,
+        "conciseness": 0,
+        "safety": 0,
+    }
+    for row in rows:
+        decision = row.get("decision")
+        if isinstance(decision, str):
+            decision_counts[decision] = decision_counts.get(decision, 0) + 1
+        generator_model = row.get("generator_model")
+        if isinstance(generator_model, str):
+            generator_counts[generator_model] = generator_counts.get(generator_model, 0) + 1
+        scores = row.get("scores")
+        if isinstance(scores, dict):
+            for name in score_totals:
+                value = scores.get(name)
+                if isinstance(value, int):
+                    score_totals[name] += value
+
+    for scope, counts in (("decision", decision_counts), ("generator_model", generator_counts)):
+        for name, count in sorted(counts.items()):
+            rate = count / total if total else 0.0
+            summary.append({"scope": scope, "name": name, "value": count, "rate": f"{rate:.3f}"})
+    for name, total_score in score_totals.items():
+        average = total_score / total if total else 0.0
+        summary.append({"scope": "avg_score", "name": name, "value": f"{average:.3f}", "rate": ""})
+    return summary
+
+
+def write_summary_csv(path: Path, rows: list[dict[str, Any]], *, overwrite: bool) -> None:
+    if path.exists() and not overwrite:
+        raise FileExistsError(f"output already exists: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as output_file:
+        writer = csv.DictWriter(output_file, fieldnames=["scope", "name", "value", "rate"])
+        writer.writeheader()
+        writer.writerows(summary_rows(rows))
+
+
 def environment_value(name: str) -> str:
     value = os.environ.get(name)
     if not value:
@@ -243,6 +346,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--csv-output", type=Path)
+    parser.add_argument("--summary-output", type=Path)
     parser.add_argument("--judge-model", default=DEFAULT_JUDGE_MODEL)
     parser.add_argument("--judge-label", default=DEFAULT_JUDGE_LABEL)
     parser.add_argument("--max-tokens", type=int, default=512)
@@ -255,6 +359,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--exclude-reasoning", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--timeout-seconds", type=float, default=60.0)
     parser.add_argument("--limit", type=int)
+    parser.add_argument("--resume", action="store_true")
     parser.add_argument("--overwrite", action="store_true")
     return parser.parse_args()
 
@@ -276,6 +381,7 @@ def main() -> int:
     args = parse_args()
     validate_args(args)
     rows = load_jsonl(args.input)
+    existing_records = load_existing_records(args.output) if args.resume and not args.overwrite else None
     base_url = environment_value("OPENAI_BASE_URL")
     api_key = environment_value("OPENAI_API_KEY")
     client = chat_completions_client(base_url, api_key, args.timeout_seconds)
@@ -289,10 +395,13 @@ def main() -> int:
         reasoning_effort=args.reasoning_effort,
         exclude_reasoning=args.exclude_reasoning,
         limit=args.limit,
+        existing_records=existing_records,
     )
     write_jsonl(args.output, judgments, overwrite=args.overwrite)
     if args.csv_output is not None:
         write_csv(args.csv_output, judgments, overwrite=args.overwrite)
+    if args.summary_output is not None:
+        write_summary_csv(args.summary_output, judgments, overwrite=args.overwrite)
     print(f"judged {len(judgments)} rows to {args.output}")
     return 0
 

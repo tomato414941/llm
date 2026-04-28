@@ -450,8 +450,8 @@ def test_cli_writes_csv_scores(tmp_path: Path) -> None:
 
 
 def test_real_leverage_smoke_eval_contract() -> None:
-    tasks_path = Path("evals/leverage-smoke.jsonl")
-    predictions_path = Path("experiments/leverage/predictions.example.jsonl")
+    tasks_path = Path("tracks/leverage/evals/leverage-smoke.jsonl")
+    predictions_path = Path("tracks/leverage/runs/predictions.example.jsonl")
 
     tasks = evaluate.load_tasks(tasks_path)
     predictions = evaluate.load_predictions(predictions_path, set(tasks))
@@ -485,8 +485,8 @@ def test_real_leverage_smoke_eval_contract() -> None:
 
 
 def test_real_project_judgment_eval_contract() -> None:
-    tasks_path = Path("evals/project-judgment-v0.jsonl")
-    predictions_path = Path("experiments/leverage/project-judgment-v0.example.jsonl")
+    tasks_path = Path("tracks/leverage/evals/project-judgment-v0.jsonl")
+    predictions_path = Path("tracks/leverage/runs/project-judgment-v0.example.jsonl")
 
     tasks = evaluate.load_tasks(tasks_path)
     predictions = evaluate.load_predictions(predictions_path, set(tasks))
@@ -508,8 +508,8 @@ def test_real_project_judgment_eval_contract() -> None:
 
 
 def test_real_leverage_model_spec_eval_contract() -> None:
-    tasks_path = Path("evals/leverage-model-spec.jsonl")
-    predictions_path = Path("experiments/leverage/leverage-model-spec.example.jsonl")
+    tasks_path = Path("tracks/leverage/evals/leverage-model-spec.jsonl")
+    predictions_path = Path("tracks/leverage/runs/leverage-model-spec.example.jsonl")
 
     tasks = evaluate.load_tasks(tasks_path)
     predictions = evaluate.load_predictions(predictions_path, set(tasks))
@@ -536,12 +536,12 @@ def test_real_leverage_model_spec_eval_contract() -> None:
 def test_real_two_layer_eval_contract() -> None:
     tasks = evaluate.load_task_suites(
         [
-            Path("evals/leverage-smoke.jsonl"),
-            Path("evals/project-judgment-v0.jsonl"),
+            Path("tracks/leverage/evals/leverage-smoke.jsonl"),
+            Path("tracks/leverage/evals/project-judgment-v0.jsonl"),
         ]
     )
     predictions = evaluate.load_predictions(
-        Path("experiments/leverage/two-layer.example.jsonl"),
+        Path("tracks/leverage/runs/two-layer.example.jsonl"),
         set(tasks),
     )
     results = evaluate.evaluate_predictions(tasks, predictions)

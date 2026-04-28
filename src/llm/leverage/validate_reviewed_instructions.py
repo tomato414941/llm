@@ -141,7 +141,7 @@ def validate_file(path: Path, *, eval_dir: Path) -> list[str]:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("path", type=Path)
-    parser.add_argument("--eval-dir", type=Path, default=Path("evals"))
+    parser.add_argument("--eval-dir", type=Path, default=Path("tracks/leverage/evals"))
     return parser.parse_args()
 
 

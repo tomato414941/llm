@@ -47,14 +47,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--input",
         type=Path,
-        default=Path("datasets/reviewed-instructions/leverage-v0.jsonl"),
+        default=Path("tracks/leverage/datasets/reviewed-instructions/leverage-v0.jsonl"),
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("data/sft/leverage_v0.train.jsonl"),
+        default=Path("tracks/leverage/sft/leverage_v0.train.jsonl"),
     )
-    parser.add_argument("--eval-dir", type=Path, default=Path("evals"))
+    parser.add_argument("--eval-dir", type=Path, default=Path("tracks/leverage/evals"))
     parser.add_argument("--include-id", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--overwrite", action="store_true")
     return parser.parse_args()

@@ -150,7 +150,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--summary", type=Path)
-    parser.add_argument("--output", type=Path, default=Path("experiments/summaries/scaling.csv"))
+    parser.add_argument("--output", type=Path, default=Path("tracks/from-scratch/runs/summaries/scaling.csv"))
     parser.add_argument("--note", default="")
     args = parser.parse_args()
 

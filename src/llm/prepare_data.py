@@ -18,7 +18,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--tokenizer", type=Path, required=True)
-    parser.add_argument("--output", type=Path, default=Path("data/processed/tokens.pt"))
+    parser.add_argument("--output", type=Path, default=Path("tracks/from-scratch/data/processed/tokens.pt"))
     parser.add_argument("--manifest", type=Path)
     args = parser.parse_args()
 

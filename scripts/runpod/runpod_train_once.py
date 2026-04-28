@@ -19,7 +19,7 @@ DEFAULT_SECRET_PATH = Path.home() / ".secrets" / "runpod"
 DEFAULT_SSH_KEY = Path.home() / ".runpod" / "ssh" / "RunPod-Key-Go"
 DEFAULT_SSH_PUBLIC_KEY = Path.home() / ".runpod" / "ssh" / "RunPod-Key-Go.pub"
 DEFAULT_REMOTE_DIR = "/workspace/llm"
-SYNC_DIRS = ("src", "tests", "configs", "eval_prompts")
+SYNC_DIRS = ("src", "tests", "tracks/from-scratch/configs", "tracks/from-scratch/evals")
 SYNC_FILES = ("pyproject.toml", "uv.lock", "README.md", "AGENTS.md", "LICENSE")
 
 
@@ -359,8 +359,8 @@ def rsync_from_remote_command(args: argparse.Namespace, connection: PodConnectio
         "-az",
         "-e",
         rsync_ssh(args, connection),
-        f"{connection.user}@{connection.host}:{args.remote_dir}/checkpoints",
-        f"{connection.user}@{connection.host}:{args.remote_dir}/experiments",
+        f"{connection.user}@{connection.host}:{args.remote_dir}/tracks/from-scratch/checkpoints",
+        f"{connection.user}@{connection.host}:{args.remote_dir}/tracks/from-scratch/runs",
         f"{args.repo_root}/",
     ]
 
@@ -454,7 +454,7 @@ def remote_scaling_command(config: Path, outputs: OutputPaths) -> str:
         "uv run python -u -m llm.scaling "
         f"--checkpoint {q(outputs.checkpoint)} "
         f"--summary {q(outputs.summary)} "
-        "--output experiments/summaries/scaling.csv"
+        "--output tracks/from-scratch/runs/summaries/scaling.csv"
     )
 
 

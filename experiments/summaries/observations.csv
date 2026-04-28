@@ -1,3 +1,0 @@
-output_path,checkpoint_path,tokens_path,checkpoint_step,validation_loss,validation_perplexity,run_id,prompt_id,prompt,seed,samples,max_new_tokens,temperature,top_k
-experiments/observations/pico-gpt2-tinyshakespeare.md,checkpoints/pico-gpt2-tinyshakespeare.pt,data/processed/tinyshakespeare_bpe_500.pt,2999,3.342092275619507,28.278230705586186,pico_gpt2_tinyshakespeare,king_open,KING:,1337,3,300,1.0,20
-experiments/observations/pico-gpt2-tinyshakespeare.md,checkpoints/pico-gpt2-tinyshakespeare.pt,data/processed/tinyshakespeare_bpe_500.pt,2999,3.342092275619507,28.278230705586186,pico_gpt2_tinyshakespeare,scene_open,SCENE,1337,3,300,1.0,20

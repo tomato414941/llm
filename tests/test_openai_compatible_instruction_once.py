@@ -27,10 +27,10 @@ def args(tmp_path: Path) -> Namespace:
         base_url="https://openrouter.ai/api/v1",
         api_key=None,
         secret_path=tmp_path / "openrouter",
-        seeds=Path("prompts/leverage-training-seed-v0.jsonl"),
+        seeds=Path("tracks/leverage/prompts/leverage-training-seed-v0.jsonl"),
         model="qwen/qwen3.5-flash-02-23",
         model_label="qwen3-5-flash-openrouter",
-        output=Path("experiments/leverage/instruction-outputs/qwen.jsonl"),
+        output=Path("tracks/leverage/runs/instruction-outputs/qwen.jsonl"),
         max_tokens=16384,
         temperature=0.2,
         thinking_mode="none",
@@ -44,8 +44,9 @@ def args(tmp_path: Path) -> Namespace:
 
 
 def write_repo_shape(tmp_path: Path) -> None:
-    (tmp_path / "prompts").mkdir()
-    (tmp_path / "prompts" / "leverage-training-seed-v0.jsonl").write_text("{}", encoding="utf-8")
+    prompt_dir = tmp_path / "tracks" / "leverage" / "prompts"
+    prompt_dir.mkdir(parents=True)
+    (prompt_dir / "leverage-training-seed-v0.jsonl").write_text("{}", encoding="utf-8")
 
 
 def test_parse_args_defaults_to_openrouter_instruction_collection(
@@ -59,8 +60,8 @@ def test_parse_args_defaults_to_openrouter_instruction_collection(
     assert parsed.model == "qwen/qwen3.5-flash-02-23"
     assert parsed.model_label == "qwen3-5-flash-openrouter"
     assert parsed.secret_path == Path.home() / ".secrets" / "openrouter"
-    assert parsed.seeds == Path("prompts/leverage-training-seed-v0.jsonl")
-    assert parsed.output == Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter.jsonl")
+    assert parsed.seeds == Path("tracks/leverage/prompts/leverage-training-seed-v0.jsonl")
+    assert parsed.output == Path("tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter.jsonl")
     assert parsed.max_tokens == 16384
     assert parsed.reasoning_effort == "none"
     assert parsed.exclude_reasoning is True
@@ -73,9 +74,9 @@ def test_collect_command_targets_instruction_collector(tmp_path: Path) -> None:
     command = collect_command(run_args)
 
     assert "llm.leverage.collect_instructions" in command
-    assert command[command.index("--seeds") + 1] == "prompts/leverage-training-seed-v0.jsonl"
+    assert command[command.index("--seeds") + 1] == "tracks/leverage/prompts/leverage-training-seed-v0.jsonl"
     assert command[command.index("--model") + 1] == "qwen/qwen3.5-flash-02-23"
-    assert command[command.index("--output") + 1] == "experiments/leverage/instruction-outputs/qwen.jsonl"
+    assert command[command.index("--output") + 1] == "tracks/leverage/runs/instruction-outputs/qwen.jsonl"
     assert command[command.index("--reasoning-effort") + 1] == "none"
     assert "--exclude-reasoning" in command
     assert "--overwrite" in command

@@ -30,12 +30,12 @@ def args(tmp_path: Path) -> Namespace:
         base_url="https://openrouter.ai/api/v1",
         api_key=None,
         secret_path=tmp_path / "llm-openrouter",
-        tasks=[Path("evals/leverage-smoke.jsonl"), Path("evals/project-judgment-v0.jsonl")],
+        tasks=[Path("tracks/leverage/evals/leverage-smoke.jsonl"), Path("tracks/leverage/evals/project-judgment-v0.jsonl")],
         model="qwen/qwen3.5-flash-02-23",
         model_label="qwen3-5-flash-openrouter",
-        output=Path("experiments/leverage/qwen.jsonl"),
-        scores_output=Path("experiments/leverage/qwen-scores.csv"),
-        summary_output=Path("experiments/leverage/qwen-summary.csv"),
+        output=Path("tracks/leverage/runs/qwen.jsonl"),
+        scores_output=Path("tracks/leverage/runs/qwen-scores.csv"),
+        summary_output=Path("tracks/leverage/runs/qwen-summary.csv"),
         max_tokens=512,
         temperature=0.0,
         thinking_mode="none",
@@ -48,9 +48,10 @@ def args(tmp_path: Path) -> Namespace:
 
 
 def write_repo_shape(tmp_path: Path) -> None:
-    (tmp_path / "evals").mkdir()
-    (tmp_path / "evals" / "leverage-smoke.jsonl").write_text("{}", encoding="utf-8")
-    (tmp_path / "evals" / "project-judgment-v0.jsonl").write_text("{}", encoding="utf-8")
+    eval_dir = tmp_path / "tracks" / "leverage" / "evals"
+    eval_dir.mkdir(parents=True)
+    (eval_dir / "leverage-smoke.jsonl").write_text("{}", encoding="utf-8")
+    (eval_dir / "project-judgment-v0.jsonl").write_text("{}", encoding="utf-8")
 
 
 def test_parse_args_defaults_to_openrouter_qwen(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -63,8 +64,8 @@ def test_parse_args_defaults_to_openrouter_qwen(monkeypatch: pytest.MonkeyPatch)
     assert parsed.model_label == "qwen3-5-flash-openrouter"
     assert parsed.secret_path == Path.home() / ".secrets" / "openrouter"
     assert parsed.tasks == [
-        Path("evals/leverage-smoke.jsonl"),
-        Path("evals/project-judgment-v0.jsonl"),
+        Path("tracks/leverage/evals/leverage-smoke.jsonl"),
+        Path("tracks/leverage/evals/project-judgment-v0.jsonl"),
     ]
     assert parsed.thinking_mode == "none"
     assert parsed.reasoning_effort == "none"
@@ -121,8 +122,8 @@ def test_evaluate_command_scores_saved_predictions(tmp_path: Path) -> None:
     command = evaluate_command(args(tmp_path))
 
     assert "llm.leverage.evaluate" in command
-    assert command[command.index("--predictions") + 1] == "experiments/leverage/qwen.jsonl"
-    assert command[command.index("--summary-output") + 1] == "experiments/leverage/qwen-summary.csv"
+    assert command[command.index("--predictions") + 1] == "tracks/leverage/runs/qwen.jsonl"
+    assert command[command.index("--summary-output") + 1] == "tracks/leverage/runs/qwen-summary.csv"
 
 
 def test_dry_run_does_not_require_secret_file(tmp_path: Path) -> None:

@@ -1,0 +1,39 @@
+[run]
+run_id = "tinyshakespeare_bpe_500_medium"
+
+[data]
+tokens = "tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt"
+manifest = "tracks/from-scratch/data/manifest.example.toml"
+
+[model]
+block_size = 64
+embedding_dim = 64
+num_heads = 4
+num_layers = 4
+dropout = 0.0
+
+[train]
+max_iters = 1000
+eval_interval = 100
+eval_iters = 20
+batch_size = 32
+learning_rate = 0.001
+seed = 1337
+
+[evaluation]
+prompt_file = "tracks/from-scratch/evals/tinyshakespeare.jsonl"
+eval_iters = 20
+batch_size = 32
+
+[outputs]
+checkpoint = "tracks/from-scratch/checkpoints/tinyshakespeare-bpe-500-medium.pt"
+metrics = "tracks/from-scratch/runs/metricstinyshakespeare-bpe-500-medium.csv"
+observation = "tracks/from-scratch/runs/observations/tinyshakespeare-bpe-500-medium.md"
+summary = "tracks/from-scratch/runs/summaries/observations.csv"
+
+[generation]
+generate_tokens = 200
+temperature = 1.0
+top_k = 20
+seed = 1337
+samples = 3

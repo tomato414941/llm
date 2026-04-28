@@ -45,10 +45,10 @@ DEFAULT_VLLM_INSTALL = (
     "vllm-0.20.0%2Bcu129-cp38-abi3-manylinux_2_31_x86_64.whl "
     "--torch-backend=cu129"
 )
-DEFAULT_OUTPUT = Path("experiments/leverage/qwen3-14b-fp8-runpod.jsonl")
-DEFAULT_SCORES = Path("experiments/leverage/qwen3-14b-fp8-scores.csv")
-DEFAULT_SUMMARY = Path("experiments/leverage/qwen3-14b-fp8-summary.csv")
-SYNC_DIRS = ("src", "tests", "evals")
+DEFAULT_OUTPUT = Path("tracks/leverage/runs/qwen3-14b-fp8-runpod.jsonl")
+DEFAULT_SCORES = Path("tracks/leverage/runs/qwen3-14b-fp8-scores.csv")
+DEFAULT_SUMMARY = Path("tracks/leverage/runs/qwen3-14b-fp8-summary.csv")
+SYNC_DIRS = ("src", "tests", "tracks/leverage/evals")
 SYNC_FILES = ("pyproject.toml", "uv.lock", "README.md", "AGENTS.md", "LICENSE")
 
 
@@ -77,8 +77,8 @@ def rsync_from_remote_command(args: argparse.Namespace, connection: PodConnectio
         "-az",
         "-e",
         rsync_ssh(args, connection),
-        f"{connection.user}@{connection.host}:{args.remote_dir}/experiments/leverage",
-        f"{args.repo_root}/experiments/",
+        f"{connection.user}@{connection.host}:{args.remote_dir}/tracks/leverage/runs",
+        f"{args.repo_root}/tracks/leverage/",
     ]
 
 
@@ -177,7 +177,7 @@ def preflight(args: argparse.Namespace) -> None:
     for task_path in args.tasks:
         if not (args.repo_root / task_path).exists():
             raise FileNotFoundError(f"task file does not exist: {task_path}")
-    for source in ("src", "evals", "pyproject.toml", "uv.lock"):
+    for source in ("src", "tracks/leverage/evals", "pyproject.toml", "uv.lock"):
         if not (args.repo_root / source).exists():
             raise FileNotFoundError(f"required source does not exist: {source}")
     if args.max_cost > 5:
@@ -203,7 +203,7 @@ def parse_args() -> argparse.Namespace:
         "--tasks",
         type=Path,
         action="append",
-        default=[Path("evals/leverage-smoke.jsonl"), Path("evals/project-judgment-v0.jsonl")],
+        default=[Path("tracks/leverage/evals/leverage-smoke.jsonl"), Path("tracks/leverage/evals/project-judgment-v0.jsonl")],
     )
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--model-label", default=DEFAULT_MODEL_LABEL)

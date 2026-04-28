@@ -31,10 +31,10 @@ def args(tmp_path: Path) -> Namespace:
         base_url="https://openrouter.ai/api/v1",
         api_key=None,
         secret_path=tmp_path / "openrouter",
-        input=Path("experiments/leverage/instruction-outputs/candidates.jsonl"),
-        output=Path("experiments/leverage/instruction-outputs/judgments.jsonl"),
-        csv_output=Path("experiments/leverage/instruction-outputs/judgments.csv"),
-        summary_output=Path("experiments/leverage/instruction-outputs/judgments-summary.csv"),
+        input=Path("tracks/leverage/runs/instruction-outputs/candidates.jsonl"),
+        output=Path("tracks/leverage/runs/instruction-outputs/judgments.jsonl"),
+        csv_output=Path("tracks/leverage/runs/instruction-outputs/judgments.csv"),
+        summary_output=Path("tracks/leverage/runs/instruction-outputs/judgments-summary.csv"),
         judge_model="judge/model",
         judge_label="judge_label",
         max_tokens=512,
@@ -56,10 +56,10 @@ def test_parse_args_defaults_to_openrouter_judge(monkeypatch: pytest.MonkeyPatch
 
     assert parsed.base_url == "https://openrouter.ai/api/v1"
     assert parsed.secret_path == Path.home() / ".secrets" / "openrouter"
-    assert parsed.input == Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-candidates.jsonl")
-    assert parsed.output == Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-judgments.jsonl")
+    assert parsed.input == Path("tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-candidates.jsonl")
+    assert parsed.output == Path("tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-judgments.jsonl")
     assert parsed.summary_output == Path(
-        "experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-judgments-summary.csv"
+        "tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-judgments-summary.csv"
     )
     assert parsed.resume is False
 
@@ -70,7 +70,7 @@ def test_judge_command_targets_judge_module(tmp_path: Path) -> None:
     assert "llm.leverage.judge_instruction_outputs" in command
     assert command[command.index("--judge-model") + 1] == "judge/model"
     assert command[command.index("--summary-output") + 1] == (
-        "experiments/leverage/instruction-outputs/judgments-summary.csv"
+        "tracks/leverage/runs/instruction-outputs/judgments-summary.csv"
     )
     assert command[command.index("--reasoning-effort") + 1] == "none"
     assert "--exclude-reasoning" in command

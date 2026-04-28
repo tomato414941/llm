@@ -95,9 +95,9 @@ uv run python scripts/runpod/runpod_openai_api_once.py \
   --wait-seconds 240 \
   --api-wait-seconds 900 \
   --max-runtime-minutes 25 \
-  --output experiments/leverage/qwen3_5_4b_runpod.jsonl \
-  --scores-output experiments/leverage/qwen3_5_4b_scores.csv \
-  --summary-output experiments/leverage/qwen3_5_4b_summary.csv
+  --output tracks/leverage/runs/qwen3_5_4b_runpod.jsonl \
+  --scores-output tracks/leverage/runs/qwen3_5_4b_scores.csv \
+  --summary-output tracks/leverage/runs/qwen3_5_4b_summary.csv
 ```
 
 Stop immediately if port `8000/http` does not appear or `/v1/models` does not

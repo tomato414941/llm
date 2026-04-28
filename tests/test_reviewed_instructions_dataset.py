@@ -4,7 +4,7 @@ from typing import Any
 
 from llm.leverage.validate_reviewed_instructions import validate_file
 
-DATASET_PATH = Path("datasets/reviewed-instructions/leverage-v0.jsonl")
+DATASET_PATH = Path("tracks/leverage/datasets/reviewed-instructions/leverage-v0.jsonl")
 REQUIRED_ROW_FIELDS = {"id", "source_prompt_id", "category", "messages", "review"}
 REQUIRED_ROLES = ["system", "user", "assistant"]
 
@@ -48,7 +48,7 @@ def test_reviewed_instruction_dataset_has_reviewed_chat_schema() -> None:
 def test_reviewed_instructions_do_not_reuse_eval_prompts_verbatim() -> None:
     dataset_prompts = {row["messages"][1]["content"] for row in load_jsonl(DATASET_PATH)}
     eval_prompts: set[str] = set()
-    for eval_path in Path("evals").glob("*.jsonl"):
+    for eval_path in Path("tracks/leverage/evals").glob("*.jsonl"):
         for row in load_jsonl(eval_path):
             prompt = row.get("prompt")
             if isinstance(prompt, str):
@@ -58,4 +58,4 @@ def test_reviewed_instructions_do_not_reuse_eval_prompts_verbatim() -> None:
 
 
 def test_reviewed_instruction_validator_accepts_current_dataset() -> None:
-    assert validate_file(DATASET_PATH, eval_dir=Path("evals")) == []
+    assert validate_file(DATASET_PATH, eval_dir=Path("tracks/leverage/evals")) == []

@@ -108,7 +108,7 @@ def test_config_defaults_reads_train_config(tmp_path) -> None:
 run_id = "smoke"
 
 [data]
-tokens = "data/processed/tokens.pt"
+tokens = "tracks/from-scratch/data/processed/tokens.pt"
 
 [train]
 max_iters = 2
@@ -121,7 +121,7 @@ seed = 7
 block_size = 8
 
 [outputs]
-checkpoint = "checkpoints/smoke.pt"
+checkpoint = "tracks/from-scratch/checkpoints/smoke.pt"
 """,
         encoding="utf-8",
     )
@@ -129,14 +129,14 @@ checkpoint = "checkpoints/smoke.pt"
     defaults = compact_defaults(config_defaults(load_toml(path)))
 
     assert defaults["run_id"] == "smoke"
-    assert defaults["tokens"] == "data/processed/tokens.pt"
+    assert defaults["tokens"] == "tracks/from-scratch/data/processed/tokens.pt"
     assert defaults["max_iters"] == 2
     assert defaults["warmup_iters"] == 1
     assert defaults["lr_decay_iters"] == 2
     assert defaults["min_learning_rate"] == 0.0001
     assert defaults["seed"] == 7
     assert defaults["block_size"] == 8
-    assert defaults["checkpoint"] == "checkpoints/smoke.pt"
+    assert defaults["checkpoint"] == "tracks/from-scratch/checkpoints/smoke.pt"
 
 
 def test_parse_args_reads_lr_schedule_from_config(tmp_path, monkeypatch) -> None:

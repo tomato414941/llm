@@ -25,14 +25,14 @@ uv sync --extra dev
 
 ## Current Workflow
 
-Put local text data under `data/raw/`. Data files are intentionally ignored by git.
+Put local text data under `tracks/from-scratch/data/raw/`. Data files are intentionally ignored by git.
 
 Train a BPE tokenizer:
 
 ```bash
 uv run python -m llm.tokenize \
-  --input data/raw/tinyshakespeare.txt \
-  --output data/processed/bpe_tokenizer.json \
+  --input tracks/from-scratch/data/raw/tinyshakespeare.txt \
+  --output tracks/from-scratch/data/processed/bpe_tokenizer.json \
   --vocab-size 500
 ```
 
@@ -40,18 +40,18 @@ Prepare reusable token tensors:
 
 ```bash
 uv run python -m llm.prepare_data \
-  --input data/raw/tinyshakespeare.txt \
-  --tokenizer data/processed/bpe_tokenizer.json \
-  --output data/processed/tinyshakespeare_bpe_500.pt
+  --input tracks/from-scratch/data/raw/tinyshakespeare.txt \
+  --tokenizer tracks/from-scratch/data/processed/bpe_tokenizer.json \
+  --output tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt
 ```
 
 Train the current model:
 
 ```bash
 uv run python -m llm.train \
-  --tokens data/processed/tinyshakespeare_bpe_500.pt \
-  --checkpoint checkpoints/mini-gpt.pt \
-  --metrics-output experiments/runs/tinyshakespeare-bpe-500.csv
+  --tokens tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt \
+  --checkpoint tracks/from-scratch/checkpoints/mini-gpt.pt \
+  --metrics-output tracks/from-scratch/runs/metricstinyshakespeare-bpe-500.csv
 ```
 
 `--metrics-output` is optional. When set, eval steps are appended as CSV rows with
@@ -62,22 +62,22 @@ values, which is useful for smoke runs:
 
 ```bash
 uv run python -m llm.train \
-  --config configs/tinyshakespeare-bpe-500-small.toml
+  --config tracks/from-scratch/configs/tinyshakespeare-bpe-500-small.toml
 ```
 
 Resume a training run from a checkpoint that includes optimizer and RNG state:
 
 ```bash
 uv run python -m llm.train \
-  --config configs/tinyshakespeare-bpe-500-small.toml \
-  --resume checkpoints/tinyshakespeare-bpe-500-small.pt
+  --config tracks/from-scratch/configs/tinyshakespeare-bpe-500-small.toml \
+  --resume tracks/from-scratch/checkpoints/tinyshakespeare-bpe-500-small.pt
 ```
 
 Generate from a checkpoint:
 
 ```bash
 uv run python -m llm.generate \
-  --checkpoint checkpoints/mini-gpt.pt \
+  --checkpoint tracks/from-scratch/checkpoints/mini-gpt.pt \
   --prompt "KING:" \
   --max-new-tokens 200 \
   --seed 1337 \
@@ -88,8 +88,8 @@ Evaluate a checkpoint on the validation split:
 
 ```bash
 uv run python -m llm.evaluate \
-  --checkpoint checkpoints/mini-gpt.pt \
-  --tokens data/processed/tinyshakespeare_bpe_500.pt
+  --checkpoint tracks/from-scratch/checkpoints/mini-gpt.pt \
+  --tokens tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt
 ```
 
 A useful observation loop is to evaluate the checkpoint first, then generate a
@@ -99,11 +99,11 @@ Write a checkpoint observation report:
 
 ```bash
 uv run python -m llm.observe \
-  --checkpoint checkpoints/first-observation.pt \
-  --tokens data/processed/tinyshakespeare_bpe_500.pt \
+  --checkpoint tracks/from-scratch/checkpoints/first-observation.pt \
+  --tokens tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt \
   --prompt "KING:" \
-  --output experiments/observations/first-observation.md \
-  --summary-output experiments/summaries/observations.csv \
+  --output tracks/from-scratch/runs/observations/first-observation.md \
+  --summary-output tracks/from-scratch/runs/summaries/observations.csv \
   --eval-iters 5 \
   --batch-size 32 \
   --max-new-tokens 200 \
@@ -117,11 +117,11 @@ Run the same observation flow across a fixed JSONL prompt set:
 
 ```bash
 uv run python -m llm.observe \
-  --checkpoint checkpoints/first-observation.pt \
-  --tokens data/processed/tinyshakespeare_bpe_500.pt \
-  --prompt-file eval_prompts/tinyshakespeare.jsonl \
-  --output experiments/observations/first-observation.md \
-  --summary-output experiments/summaries/observations.csv
+  --checkpoint tracks/from-scratch/checkpoints/first-observation.pt \
+  --tokens tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt \
+  --prompt-file tracks/from-scratch/evals/tinyshakespeare.jsonl \
+  --output tracks/from-scratch/runs/observations/first-observation.md \
+  --summary-output tracks/from-scratch/runs/summaries/observations.csv
 ```
 
 For leverage experiments, use the no-dependency JSONL evaluator only after model
@@ -132,20 +132,20 @@ APIs, download weights, or fetch datasets.
 
 The committed eval layers are:
 
-- `evals/leverage-smoke.jsonl`: small smoke checks for evaluator wiring and
+- `tracks/leverage/evals/leverage-smoke.jsonl`: small smoke checks for evaluator wiring and
   prediction format.
-- `evals/project-judgment-v0.jsonl`: project-specific judgment checks for the
+- `tracks/leverage/evals/project-judgment-v0.jsonl`: project-specific judgment checks for the
   leverage track once saved predictions exist.
-- `evals/leverage-model-spec.jsonl`: scenario checks derived from
-  `docs/leverage-model-spec.md`.
+- `tracks/leverage/evals/leverage-model-spec.jsonl`: scenario checks derived from
+  `tracks/leverage/model-spec.md`.
 
 Run both layers against saved predictions by passing `--tasks` more than once:
 
 ```bash
 uv run python -m llm.leverage.evaluate \
-  --tasks evals/leverage-smoke.jsonl \
-  --tasks evals/project-judgment-v0.jsonl \
-  --predictions experiments/leverage/two-layer.example.jsonl \
+  --tasks tracks/leverage/evals/leverage-smoke.jsonl \
+  --tasks tracks/leverage/evals/project-judgment-v0.jsonl \
+  --predictions tracks/leverage/runs/two-layer.example.jsonl \
   --output /tmp/leverage_scores.csv \
   --summary-output /tmp/leverage_summary.csv
 ```
@@ -162,11 +162,11 @@ export OPENAI_BASE_URL="https://<provider>/v1"
 export OPENAI_API_KEY="..."
 
 uv run python -m llm.leverage.collect_openai \
-  --tasks evals/leverage-smoke.jsonl \
-  --tasks evals/project-judgment-v0.jsonl \
+  --tasks tracks/leverage/evals/leverage-smoke.jsonl \
+  --tasks tracks/leverage/evals/project-judgment-v0.jsonl \
   --model <provider-model-id> \
   --model-label <local_label> \
-  --output experiments/leverage/<local_label>.jsonl
+  --output tracks/leverage/runs/<local_label>.jsonl
 ```
 
 The collector only calls the configured API endpoint and writes saved
@@ -184,16 +184,16 @@ uv run python scripts/leverage/openai_compatible_eval_once.py --dry-run
 Run the same command without `--dry-run` only when the selected model and cost
 are intentional. The default is `qwen/qwen3.5-flash-02-23` through
 `https://openrouter.ai/api/v1`; it writes predictions and evaluator CSVs under
-`experiments/leverage/`. Lower-cost or stronger Qwen comparisons can be selected
+`tracks/leverage/runs/`. Lower-cost or stronger Qwen comparisons can be selected
 without changing code:
 
 ```bash
 uv run python scripts/leverage/openai_compatible_eval_once.py \
   --model qwen/qwen3.5-9b \
   --model-label qwen3-5-9b-openrouter \
-  --output experiments/leverage/qwen3-5-9b-openrouter.jsonl \
-  --scores-output experiments/leverage/qwen3-5-9b-openrouter-scores.csv \
-  --summary-output experiments/leverage/qwen3-5-9b-openrouter-summary.csv
+  --output tracks/leverage/runs/qwen3-5-9b-openrouter.jsonl \
+  --scores-output tracks/leverage/runs/qwen3-5-9b-openrouter-scores.csv \
+  --summary-output tracks/leverage/runs/qwen3-5-9b-openrouter-summary.csv
 ```
 
 This path is inference and evaluation only. It is the right next step for
@@ -202,7 +202,7 @@ workflow.
 
 For training-data drafting, fix the generation inputs before collecting model
 outputs. The committed seed inputs live in
-`prompts/leverage-training-seed-v0.jsonl`. They are not eval tasks and they are
+`tracks/leverage/prompts/leverage-training-seed-v0.jsonl`. They are not eval tasks and they are
 not training data yet. Treat generated answers as experiment artifacts until
 they have been reviewed and promoted deliberately.
 
@@ -213,7 +213,7 @@ teacher generation -> structural filter -> model judge -> student training -> he
 ```
 
 The target behavior for this loop is defined in
-`docs/leverage-model-spec.md`. Use that spec as the reference for generation
+`tracks/leverage/model-spec.md`. Use that spec as the reference for generation
 prompts, judge rubrics, reviewed-instruction promotion, and held-out eval
 coverage.
 
@@ -224,33 +224,33 @@ the loop and testing SFT export, not a final dataset.
 The leverage data lifecycle is:
 
 ```text
-prompts/
+tracks/leverage/prompts/
   fixed generation inputs for teacher models
 
-experiments/leverage/
+tracks/leverage/runs/
   run artifacts for leverage experiments
 
-experiments/leverage/instruction-outputs/
+tracks/leverage/runs/instruction-outputs/
   raw teacher-model answers, filtered candidates, judgments, and summaries;
   local run artifacts, not committed dataset source
 
-datasets/reviewed-instructions/
+tracks/leverage/datasets/reviewed-instructions/
   manually promoted instruction/answer source data after review
 
-data/sft/
+tracks/leverage/sft/
   generated training JSONL exports; ignored by git
 ```
 
-Keep `evals/` separate from this flow. Eval files are held-out scoring tasks,
+Keep `tracks/leverage/evals/` separate from this flow. Eval files are held-out scoring tasks,
 not training-data generation inputs. Do not copy held-out eval prompts into
 instruction generation seeds or reviewed instruction rows.
 
-Promotion into `datasets/reviewed-instructions/` is manual but should be sparse:
+Promotion into `tracks/leverage/datasets/reviewed-instructions/` is manual but should be sparse:
 use it for bootstrap examples, spot checks, or deliberately accepted rows. A
 reviewer should read the raw answer, verify correctness and usefulness, remove
 any private or environment-specific content, preserve provenance with
 `source_prompt_id`, and only then add an accepted row to the reviewed dataset.
-Exported files under `data/sft/` are derived training inputs; they are not the
+Exported files under `tracks/leverage/sft/` are derived training inputs; they are not the
 source of truth.
 
 Before model judging or promotion, run the structural filter over raw
@@ -258,16 +258,16 @@ instruction outputs:
 
 ```bash
 uv run python -m llm.leverage.filter_instruction_outputs \
-  --input experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter.jsonl \
-  --output experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-filter.csv \
-  --candidates-output experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-candidates.jsonl \
-  --summary-output experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-filter-summary.csv
+  --input tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter.jsonl \
+  --output tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-filter.csv \
+  --candidates-output tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-candidates.jsonl \
+  --summary-output tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-filter-summary.csv
 ```
 
 This filter performs only structural hygiene checks such as schema, source
 prompt, empty output, secret markers, and obvious length issues. It is not a
 quality scorer, does not replace a model judge, and does not promote rows into
-`datasets/`.
+`tracks/leverage/datasets/`.
 
 Run a model judge over filtered candidates with an explicit small limit first:
 
@@ -278,10 +278,10 @@ uv run python scripts/leverage/openai_compatible_instruction_judge_once.py \
 
 Judge outputs use separate `generator_model` and `judge_model` fields so the
 same schema can later support generator-by-judge evaluation matrices. The judge
-step is an automated scorer, not automatic promotion into `datasets/`.
+step is an automated scorer, not automatic promotion into `tracks/leverage/datasets/`.
 
 The first weight-changing leverage experiment is specified in
-`configs/leverage-sft-smoke.toml` and `docs/leverage-sft-smoke.md`. It is a
+`tracks/leverage/configs/leverage-sft-smoke.toml` and `tracks/leverage/docs/sft-smoke.md`. It is a
 small LoRA/SFT wiring smoke over the reviewed instruction data, not a quality
 claim.
 
@@ -351,9 +351,9 @@ uv run python scripts/runpod/runpod_openai_api_once.py \
   --wait-seconds 180 \
   --api-wait-seconds 600 \
   --max-runtime-minutes 20 \
-  --output experiments/leverage/qwen3-5-4b-runpod.jsonl \
-  --scores-output experiments/leverage/qwen3-5-4b-scores.csv \
-  --summary-output experiments/leverage/qwen3-5-4b-summary.csv
+  --output tracks/leverage/runs/qwen3-5-4b-runpod.jsonl \
+  --scores-output tracks/leverage/runs/qwen3-5-4b-scores.csv \
+  --summary-output tracks/leverage/runs/qwen3-5-4b-summary.csv
 ```
 
 If HTTP ports never appear, stop treating it as a model-quality problem. First
@@ -383,9 +383,9 @@ uv run python scripts/runpod/runpod_qwen_eval_once.py \
   --wait-seconds 240 \
   --ssh-wait-seconds 180 \
   --max-runtime-minutes 30 \
-  --output experiments/leverage/qwen3-5-4b-runpod.jsonl \
-  --scores-output experiments/leverage/qwen3-5-4b-scores.csv \
-  --summary-output experiments/leverage/qwen3-5-4b-summary.csv
+  --output tracks/leverage/runs/qwen3-5-4b-runpod.jsonl \
+  --scores-output tracks/leverage/runs/qwen3-5-4b-scores.csv \
+  --summary-output tracks/leverage/runs/qwen3-5-4b-summary.csv
 ```
 
 The script is not Qwen-specific. Override `--model`, `--model-label`, `--image`,
@@ -400,16 +400,16 @@ Or use the run config for the same observation settings:
 
 ```bash
 uv run python -m llm.observe \
-  --config configs/tinyshakespeare-bpe-500-small.toml
+  --config tracks/from-scratch/configs/tinyshakespeare-bpe-500-small.toml
 ```
 
 Append or update a model-size comparison row:
 
 ```bash
 uv run python -m llm.scaling \
-  --checkpoint checkpoints/tinyshakespeare-bpe-500-small.pt \
-  --summary experiments/summaries/observations.csv \
-  --output experiments/summaries/scaling.csv
+  --checkpoint tracks/from-scratch/checkpoints/tinyshakespeare-bpe-500-small.pt \
+  --summary tracks/from-scratch/runs/summaries/observations.csv \
+  --output tracks/from-scratch/runs/summaries/scaling.csv
 ```
 
 ## Project Shape

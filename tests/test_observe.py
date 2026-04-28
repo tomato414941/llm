@@ -64,15 +64,15 @@ def test_observe_config_defaults_reads_config(tmp_path) -> None:
     path.write_text(
         """
 [data]
-tokens = "data/processed/tokens.pt"
+tokens = "tracks/from-scratch/data/processed/tokens.pt"
 
 [outputs]
-checkpoint = "checkpoints/model.pt"
-observation = "experiments/observations/run.md"
-summary = "experiments/summaries/observations.csv"
+checkpoint = "tracks/from-scratch/checkpoints/model.pt"
+observation = "tracks/from-scratch/runs/observations/run.md"
+summary = "tracks/from-scratch/runs/summaries/observations.csv"
 
 [evaluation]
-prompt_file = "eval_prompts/example.jsonl"
+prompt_file = "tracks/from-scratch/evals/example.jsonl"
 eval_iters = 2
 batch_size = 4
 
@@ -88,11 +88,11 @@ samples = 3
 
     defaults = compact_defaults(observe_config_defaults(load_toml(path)))
 
-    assert defaults["tokens"] == "data/processed/tokens.pt"
-    assert defaults["checkpoint"] == "checkpoints/model.pt"
-    assert defaults["output"] == "experiments/observations/run.md"
-    assert defaults["summary_output"] == "experiments/summaries/observations.csv"
-    assert defaults["prompt_file"] == "eval_prompts/example.jsonl"
+    assert defaults["tokens"] == "tracks/from-scratch/data/processed/tokens.pt"
+    assert defaults["checkpoint"] == "tracks/from-scratch/checkpoints/model.pt"
+    assert defaults["output"] == "tracks/from-scratch/runs/observations/run.md"
+    assert defaults["summary_output"] == "tracks/from-scratch/runs/summaries/observations.csv"
+    assert defaults["prompt_file"] == "tracks/from-scratch/evals/example.jsonl"
     assert defaults["eval_iters"] == 2
     assert defaults["max_new_tokens"] == 5
     assert defaults["samples"] == 3

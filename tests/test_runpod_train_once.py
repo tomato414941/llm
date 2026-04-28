@@ -37,13 +37,13 @@ def write_config(path: Path) -> None:
     path.write_text(
         """
 [data]
-tokens = "data/processed/tokens.pt"
+tokens = "tracks/from-scratch/data/processed/tokens.pt"
 
 [outputs]
-checkpoint = "checkpoints/run.pt"
-metrics = "experiments/runs/run.csv"
-observation = "experiments/observations/run.md"
-summary = "experiments/summaries/observations.csv"
+checkpoint = "tracks/from-scratch/checkpoints/run.pt"
+metrics = "tracks/from-scratch/runs/metrics/run.csv"
+observation = "tracks/from-scratch/runs/observations/run.md"
+summary = "tracks/from-scratch/runs/summaries/observations.csv"
 """,
         encoding="utf-8",
     )
@@ -100,22 +100,22 @@ class RecordingRunner:
 
 
 def test_output_paths_reads_train_observe_and_scaling_paths(tmp_path) -> None:
-    config = tmp_path / "configs" / "run.toml"
-    config.parent.mkdir()
+    config = tmp_path / "tracks" / "from-scratch" / "configs" / "run.toml"
+    config.parent.mkdir(parents=True)
     write_config(config)
 
     outputs = output_paths(config)
 
-    assert outputs.checkpoint == "checkpoints/run.pt"
-    assert outputs.metrics == "experiments/runs/run.csv"
-    assert outputs.observation == "experiments/observations/run.md"
-    assert outputs.summary == "experiments/summaries/observations.csv"
-    assert outputs.tokens == "data/processed/tokens.pt"
+    assert outputs.checkpoint == "tracks/from-scratch/checkpoints/run.pt"
+    assert outputs.metrics == "tracks/from-scratch/runs/metrics/run.csv"
+    assert outputs.observation == "tracks/from-scratch/runs/observations/run.md"
+    assert outputs.summary == "tracks/from-scratch/runs/summaries/observations.csv"
+    assert outputs.tokens == "tracks/from-scratch/data/processed/tokens.pt"
 
 
 def test_runpodctl_create_command_uses_cost_ceiling_and_gpu(tmp_path) -> None:
-    config = tmp_path / "configs" / "run.toml"
-    config.parent.mkdir()
+    config = tmp_path / "tracks" / "from-scratch" / "configs" / "run.toml"
+    config.parent.mkdir(parents=True)
     write_config(config)
     (tmp_path / "runpod.pub").write_text("ssh-ed25519 test-key", encoding="utf-8")
 
@@ -130,24 +130,24 @@ def test_runpodctl_create_command_uses_cost_ceiling_and_gpu(tmp_path) -> None:
 
 
 def test_remote_commands_use_config_outputs(tmp_path) -> None:
-    config = tmp_path / "configs" / "run.toml"
-    config.parent.mkdir()
+    config = tmp_path / "tracks" / "from-scratch" / "configs" / "run.toml"
+    config.parent.mkdir(parents=True)
     write_config(config)
     outputs = output_paths(config)
 
-    train = remote_train_command(Path("configs/run.toml"), "--max-iters 20")
-    observe = remote_observe_command(Path("configs/run.toml"), "--eval-iters 1")
-    scaling = remote_scaling_command(Path("configs/run.toml"), outputs)
+    train = remote_train_command(Path("tracks/from-scratch/configs/run.toml"), "--max-iters 20")
+    observe = remote_observe_command(Path("tracks/from-scratch/configs/run.toml"), "--eval-iters 1")
+    scaling = remote_scaling_command(Path("tracks/from-scratch/configs/run.toml"), outputs)
 
-    assert "llm.train --config configs/run.toml --max-iters 20 --device cuda" in train
-    assert "llm.observe --config configs/run.toml --eval-iters 1 --device cuda" in observe
-    assert "--checkpoint checkpoints/run.pt" in scaling
-    assert "--summary experiments/summaries/observations.csv" in scaling
+    assert "llm.train --config tracks/from-scratch/configs/run.toml --max-iters 20 --device cuda" in train
+    assert "llm.observe --config tracks/from-scratch/configs/run.toml --eval-iters 1 --device cuda" in observe
+    assert "--checkpoint tracks/from-scratch/checkpoints/run.pt" in scaling
+    assert "--summary tracks/from-scratch/runs/summaries/observations.csv" in scaling
 
 
 def test_remote_commands_keep_explicit_device() -> None:
-    train = remote_train_command(Path("configs/run.toml"), "--device cpu --max-iters 20")
-    observe = remote_observe_command(Path("configs/run.toml"), "--device=cpu --eval-iters 1")
+    train = remote_train_command(Path("tracks/from-scratch/configs/run.toml"), "--device cpu --max-iters 20")
+    observe = remote_observe_command(Path("tracks/from-scratch/configs/run.toml"), "--device=cpu --eval-iters 1")
 
     assert train.count("--device") == 1
     assert "--device cpu" in train
@@ -162,75 +162,75 @@ def test_remote_cuda_preflight_fails_without_cuda() -> None:
 
 
 def test_rsync_to_remote_uses_allowlist_and_explicit_token_file(tmp_path) -> None:
-    config = tmp_path / "configs" / "run.toml"
-    config.parent.mkdir()
+    config = tmp_path / "tracks" / "from-scratch" / "configs" / "run.toml"
+    config.parent.mkdir(parents=True)
     write_config(config)
     for path in (
         tmp_path / "src",
         tmp_path / "tests",
-        tmp_path / "configs",
-        tmp_path / "eval_prompts",
-        tmp_path / "data" / "processed",
+        tmp_path / "tracks" / "from-scratch" / "configs",
+        tmp_path / "tracks" / "from-scratch" / "evals",
+        tmp_path / "tracks" / "from-scratch" / "data" / "processed",
     ):
         path.mkdir(parents=True, exist_ok=True)
     for file_name in ("pyproject.toml", "uv.lock", "README.md", "AGENTS.md", "LICENSE"):
         (tmp_path / file_name).write_text("", encoding="utf-8")
-    (tmp_path / "data" / "processed" / "tokens.pt").write_text("", encoding="utf-8")
+    (tmp_path / "tracks" / "from-scratch" / "data" / "processed" / "tokens.pt").write_text("", encoding="utf-8")
 
     command = rsync_to_remote_command(args(tmp_path, config), PodConnection("host", 2222))
 
     assert "--relative" in command
     assert "src" in command
-    assert "data/processed/tokens.pt" in command
+    assert "tracks/from-scratch/data/processed/tokens.pt" in command
     assert str(tmp_path / ".venv") not in command
     assert str(tmp_path / "checkpoints") not in command
 
 
 def test_rsync_to_remote_includes_resume_checkpoint(tmp_path) -> None:
-    config = tmp_path / "configs" / "run.toml"
-    config.parent.mkdir()
+    config = tmp_path / "tracks" / "from-scratch" / "configs" / "run.toml"
+    config.parent.mkdir(parents=True)
     write_config(config)
     for path in (
         tmp_path / "src",
         tmp_path / "tests",
-        tmp_path / "configs",
-        tmp_path / "eval_prompts",
-        tmp_path / "data" / "processed",
-        tmp_path / "checkpoints",
+        tmp_path / "tracks" / "from-scratch" / "configs",
+        tmp_path / "tracks" / "from-scratch" / "evals",
+        tmp_path / "tracks" / "from-scratch" / "data" / "processed",
+        tmp_path / "tracks" / "from-scratch" / "checkpoints",
     ):
         path.mkdir(parents=True, exist_ok=True)
     for file_name in ("pyproject.toml", "uv.lock", "README.md", "AGENTS.md", "LICENSE"):
         (tmp_path / file_name).write_text("", encoding="utf-8")
-    (tmp_path / "data" / "processed" / "tokens.pt").write_text("", encoding="utf-8")
-    (tmp_path / "checkpoints" / "run.pt").write_text("", encoding="utf-8")
+    (tmp_path / "tracks" / "from-scratch" / "data" / "processed" / "tokens.pt").write_text("", encoding="utf-8")
+    (tmp_path / "tracks" / "from-scratch" / "checkpoints" / "run.pt").write_text("", encoding="utf-8")
     run_args = args(tmp_path, config)
-    run_args.train_extra_args = "--resume checkpoints/run.pt"
+    run_args.train_extra_args = "--resume tracks/from-scratch/checkpoints/run.pt"
 
     command = rsync_to_remote_command(run_args, PodConnection("host", 2222))
 
-    assert "checkpoints/run.pt" in command
+    assert "tracks/from-scratch/checkpoints/run.pt" in command
 
 
 def test_resume_paths_reads_space_and_equals_forms() -> None:
-    assert resume_paths("--resume checkpoints/run.pt --max-iters 30") == ["checkpoints/run.pt"]
-    assert resume_paths("--resume=checkpoints/run.pt") == ["checkpoints/run.pt"]
+    assert resume_paths("--resume tracks/from-scratch/checkpoints/run.pt --max-iters 30") == ["tracks/from-scratch/checkpoints/run.pt"]
+    assert resume_paths("--resume=tracks/from-scratch/checkpoints/run.pt") == ["tracks/from-scratch/checkpoints/run.pt"]
 
 
 def test_rsync_from_remote_fetches_checkpoint_and_experiments(tmp_path) -> None:
-    config = tmp_path / "configs" / "run.toml"
-    config.parent.mkdir()
+    config = tmp_path / "tracks" / "from-scratch" / "configs" / "run.toml"
+    config.parent.mkdir(parents=True)
     write_config(config)
 
     command = rsync_from_remote_command(args(tmp_path, config), PodConnection("host", 2222))
 
-    assert "root@host:/workspace/llm/checkpoints" in command
-    assert "root@host:/workspace/llm/experiments" in command
+    assert "root@host:/workspace/llm/tracks/from-scratch/checkpoints" in command
+    assert "root@host:/workspace/llm/tracks/from-scratch/runs" in command
     assert command[-1] == f"{tmp_path}/"
 
 
 def test_cleanup_policy_removes_on_success_and_failure(tmp_path) -> None:
-    config = tmp_path / "configs" / "run.toml"
-    config.parent.mkdir()
+    config = tmp_path / "tracks" / "from-scratch" / "configs" / "run.toml"
+    config.parent.mkdir(parents=True)
     write_config(config)
     runner = RecordingRunner()
 
@@ -244,8 +244,8 @@ def test_cleanup_policy_removes_on_success_and_failure(tmp_path) -> None:
 
 
 def test_cleanup_policy_keeps_failure_when_requested(tmp_path) -> None:
-    config = tmp_path / "configs" / "run.toml"
-    config.parent.mkdir()
+    config = tmp_path / "tracks" / "from-scratch" / "configs" / "run.toml"
+    config.parent.mkdir(parents=True)
     write_config(config)
     run_args = args(tmp_path, config)
     run_args.keep_pod_on_failure = True
@@ -307,8 +307,8 @@ def test_pod_connection_ignores_private_http_mapping() -> None:
 
 
 def test_ssh_base_uses_non_hanging_options(tmp_path) -> None:
-    config = tmp_path / "configs" / "run.toml"
-    config.parent.mkdir()
+    config = tmp_path / "tracks" / "from-scratch" / "configs" / "run.toml"
+    config.parent.mkdir(parents=True)
     write_config(config)
 
     command = ssh_base(args(tmp_path, config), PodConnection("host", 2222))
@@ -330,8 +330,8 @@ def test_run_with_deadline_passes_timeout(tmp_path, monkeypatch) -> None:
 
 
 def test_preflight_rejects_missing_tokens_before_pod_creation(tmp_path) -> None:
-    config = tmp_path / "configs" / "run.toml"
-    config.parent.mkdir()
+    config = tmp_path / "tracks" / "from-scratch" / "configs" / "run.toml"
+    config.parent.mkdir(parents=True)
     write_config(config)
     for path in (tmp_path / "src",):
         path.mkdir(parents=True)

@@ -11,7 +11,7 @@ from llm.leverage.evaluate import Task, load_task_suites
 DEFAULT_MODEL = "Qwen/Qwen3.5-35B-A3B"
 DEFAULT_MODEL_LABEL = "qwen3_5_35b_a3b"
 DEFAULT_SYSTEM_PROMPT = "Return only the requested answer. Do not include hidden reasoning."
-DEFAULT_USER_AGENT = "llm-runpod-eval/1.0"
+DEFAULT_USER_AGENT = "llm-openai-compatible-eval/1.0"
 
 
 ChatClient = Callable[[dict[str, Any]], str]

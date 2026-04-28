@@ -1,0 +1,121 @@
+from argparse import Namespace
+import importlib.util
+from pathlib import Path
+import sys
+
+import pytest
+
+
+MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "leverage" / "openai_compatible_eval_once.py"
+SPEC = importlib.util.spec_from_file_location("openai_compatible_eval_once", MODULE_PATH)
+assert SPEC is not None
+openai_compatible_eval_once = importlib.util.module_from_spec(SPEC)
+assert SPEC.loader is not None
+SPEC.loader.exec_module(openai_compatible_eval_once)
+
+api_key_for_run = openai_compatible_eval_once.api_key_for_run
+collect_command = openai_compatible_eval_once.collect_command
+evaluate_command = openai_compatible_eval_once.evaluate_command
+normalize_args = openai_compatible_eval_once.normalize_args
+parse_args = openai_compatible_eval_once.parse_args
+preflight = openai_compatible_eval_once.preflight
+redact_command = openai_compatible_eval_once.redact_command
+
+
+def args(tmp_path: Path) -> Namespace:
+    return Namespace(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=None,
+        secret_path=tmp_path / "llm-openrouter",
+        tasks=[Path("evals/leverage_smoke.jsonl"), Path("evals/project_judgment_v0.jsonl")],
+        model="qwen/qwen3.5-flash-02-23",
+        model_label="qwen3_5_flash_openrouter",
+        output=Path("experiments/leverage/qwen.jsonl"),
+        scores_output=Path("experiments/leverage/qwen_scores.csv"),
+        summary_output=Path("experiments/leverage/qwen_summary.csv"),
+        max_tokens=512,
+        temperature=0.0,
+        thinking_mode="none",
+        timeout_seconds=60.0,
+        repo_root=tmp_path,
+        dry_run=True,
+    )
+
+
+def write_repo_shape(tmp_path: Path) -> None:
+    (tmp_path / "evals").mkdir()
+    (tmp_path / "evals" / "leverage_smoke.jsonl").write_text("{}", encoding="utf-8")
+    (tmp_path / "evals" / "project_judgment_v0.jsonl").write_text("{}", encoding="utf-8")
+
+
+def test_parse_args_defaults_to_openrouter_qwen(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(sys, "argv", ["openai_compatible_eval_once.py"])
+
+    parsed = normalize_args(parse_args())
+
+    assert parsed.base_url == "https://openrouter.ai/api/v1"
+    assert parsed.model == "qwen/qwen3.5-flash-02-23"
+    assert parsed.model_label == "qwen3_5_flash_openrouter"
+    assert parsed.secret_path == Path.home() / ".secrets" / "llm-openrouter"
+    assert parsed.tasks == [
+        Path("evals/leverage_smoke.jsonl"),
+        Path("evals/project_judgment_v0.jsonl"),
+    ]
+    assert parsed.thinking_mode == "none"
+
+
+def test_collect_command_targets_openai_compatible_api(tmp_path: Path) -> None:
+    run_args = args(tmp_path)
+
+    command = collect_command(run_args, "secret-key")
+
+    assert command[:4] == [
+        "env",
+        "OPENAI_BASE_URL=https://openrouter.ai/api/v1",
+        "OPENAI_API_KEY=secret-key",
+        "uv",
+    ]
+    assert "llm.leverage.collect_openai" in command
+    assert command[command.index("--model") + 1] == "qwen/qwen3.5-flash-02-23"
+    assert command[command.index("--model-label") + 1] == "qwen3_5_flash_openrouter"
+    assert command[command.index("--thinking-mode") + 1] == "none"
+
+
+def test_evaluate_command_scores_saved_predictions(tmp_path: Path) -> None:
+    command = evaluate_command(args(tmp_path))
+
+    assert "llm.leverage.evaluate" in command
+    assert command[command.index("--predictions") + 1] == "experiments/leverage/qwen.jsonl"
+    assert command[command.index("--summary-output") + 1] == "experiments/leverage/qwen_summary.csv"
+
+
+def test_dry_run_does_not_require_secret_file(tmp_path: Path) -> None:
+    run_args = args(tmp_path)
+    run_args.dry_run = True
+
+    assert api_key_for_run(run_args) == "dry-run-api-key"
+
+
+def test_non_dry_run_reads_secret_file(tmp_path: Path) -> None:
+    run_args = args(tmp_path)
+    run_args.dry_run = False
+    run_args.secret_path.write_text("secret-key\n", encoding="utf-8")
+
+    assert api_key_for_run(run_args) == "secret-key"
+
+
+def test_redact_command_hides_api_key() -> None:
+    command = ["env", "OPENAI_API_KEY=secret-key", "uv"]
+
+    assert redact_command(command, ["secret-key"]) == "env OPENAI_API_KEY=[REDACTED] uv"
+
+
+def test_preflight_requires_committed_task_files(tmp_path: Path) -> None:
+    run_args = args(tmp_path)
+
+    with pytest.raises(FileNotFoundError, match="leverage_smoke"):
+        preflight(run_args)
+
+    write_repo_shape(tmp_path)
+
+    preflight(run_args)

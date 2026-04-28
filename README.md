@@ -170,6 +170,34 @@ uv run python -m llm.leverage.collect_openai \
 The collector only calls the configured API endpoint and writes saved
 predictions. It does not use RunPod, download weights, or fine-tune models.
 
+The current practical path should start with an external OpenAI-compatible
+provider instead of a self-hosted RunPod pod. For OpenRouter, store the API key
+outside the repository at `~/.secrets/llm-openrouter`, then dry-run the complete
+collection and scoring command before making a paid request:
+
+```bash
+uv run python scripts/leverage/openai_compatible_eval_once.py --dry-run
+```
+
+Run the same command without `--dry-run` only when the selected model and cost
+are intentional. The default is `qwen/qwen3.5-flash-02-23` through
+`https://openrouter.ai/api/v1`; it writes predictions and evaluator CSVs under
+`experiments/leverage/`. Lower-cost or stronger Qwen comparisons can be selected
+without changing code:
+
+```bash
+uv run python scripts/leverage/openai_compatible_eval_once.py \
+  --model qwen/qwen3.5-9b \
+  --model-label qwen3_5_9b_openrouter \
+  --output experiments/leverage/qwen3_5_9b_openrouter.jsonl \
+  --scores-output experiments/leverage/qwen3_5_9b_openrouter_scores.csv \
+  --summary-output experiments/leverage/qwen3_5_9b_openrouter_summary.csv
+```
+
+This path is inference and evaluation only. It is the right next step for
+measuring model behavior cheaply; it is not a fine-tuning or weight-changing
+workflow.
+
 For a RunPod self-hosted spike, start an OpenAI-compatible model server, point
 `OPENAI_BASE_URL` at that server, run the same collector command, then score the
 saved predictions with `llm.leverage.evaluate`. The first spike should be

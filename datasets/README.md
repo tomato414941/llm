@@ -19,3 +19,13 @@ Each row contains:
 
 These rows are candidates, not proof of model improvement. They should only be
 used for training after a held-out evaluation target is selected.
+
+Validate candidate files before adding or training on them:
+
+```bash
+uv run python -m llm.leverage.validate_sft_candidates \
+  datasets/sft_candidates/leverage_sft_v0.jsonl
+```
+
+See `datasets/sft_candidates/review_rules.md` for the review boundary between
+raw generated outputs and accepted SFT candidates.

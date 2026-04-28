@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from llm.leverage.validate_sft_candidates import validate_file
 
 DATASET_PATH = Path("datasets/sft_candidates/leverage_sft_v0.jsonl")
 REQUIRED_ROW_FIELDS = {"id", "source_prompt_id", "category", "messages", "review"}
@@ -54,3 +55,7 @@ def test_sft_candidates_do_not_reuse_eval_prompts_verbatim() -> None:
                 eval_prompts.add(prompt)
 
     assert dataset_prompts.isdisjoint(eval_prompts)
+
+
+def test_sft_candidate_validator_accepts_current_dataset() -> None:
+    assert validate_file(DATASET_PATH, eval_dir=Path("evals")) == []

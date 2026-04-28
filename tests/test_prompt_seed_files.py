@@ -48,6 +48,7 @@ def test_training_seed_prompts_cover_current_decision_areas() -> None:
     rows = load_jsonl(Path("prompts/leverage-training-seed-v0.jsonl"))
     categories = {row["category"] for row in rows}
 
+    assert len(rows) >= 50
     assert {
         "resource_judgment",
         "data_pipeline",
@@ -55,4 +56,8 @@ def test_training_seed_prompts_cover_current_decision_areas() -> None:
         "training_strategy",
         "from_scratch_track",
         "operations",
+        "model_spec_behavior",
+        "sft_data_quality",
+        "judge_design",
+        "runpod_recovery",
     } <= categories

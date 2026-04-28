@@ -43,7 +43,7 @@ Promotion from raw outputs is explicit and row-by-row, but it should stay sparse
 Validate reviewed instruction files before adding or exporting them:
 
 ```bash
-uv run python -m llm.leverage.validate_reviewed-instructions \
+uv run python -m llm.leverage.validate_reviewed_instructions \
   datasets/reviewed-instructions/leverage-v0.jsonl
 ```
 
@@ -53,7 +53,7 @@ between raw generated outputs and accepted reviewed instructions.
 Export a training JSONL file after validation:
 
 ```bash
-uv run python -m llm.leverage.export_reviewed-instructions --overwrite
+uv run python -m llm.leverage.export_reviewed_instructions --overwrite
 ```
 
 The default output is `data/sft/leverage_v0.train.jsonl`. Files under

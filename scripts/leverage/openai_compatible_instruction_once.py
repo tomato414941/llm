@@ -62,8 +62,11 @@ def collect_command(args: argparse.Namespace) -> list[str]:
         args.reasoning_effort,
         "--timeout-seconds",
         str(args.timeout_seconds),
-        "--overwrite",
     ]
+    if args.resume:
+        command.append("--resume")
+    else:
+        command.append("--overwrite")
     if args.exclude_reasoning:
         command.append("--exclude-reasoning")
     else:
@@ -125,6 +128,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--exclude-reasoning", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--timeout-seconds", type=float, default=60.0)
+    parser.add_argument("--resume", action="store_true")
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()

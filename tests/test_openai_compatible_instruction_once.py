@@ -37,6 +37,7 @@ def args(tmp_path: Path) -> Namespace:
         reasoning_effort="none",
         exclude_reasoning=True,
         timeout_seconds=60.0,
+        resume=False,
         repo_root=tmp_path,
         dry_run=True,
     )
@@ -62,6 +63,7 @@ def test_parse_args_defaults_to_openrouter_instruction_collection(
     assert parsed.output == Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter.jsonl")
     assert parsed.reasoning_effort == "none"
     assert parsed.exclude_reasoning is True
+    assert parsed.resume is False
 
 
 def test_collect_command_targets_instruction_collector(tmp_path: Path) -> None:
@@ -75,6 +77,18 @@ def test_collect_command_targets_instruction_collector(tmp_path: Path) -> None:
     assert command[command.index("--output") + 1] == "experiments/leverage/instruction-outputs/qwen.jsonl"
     assert command[command.index("--reasoning-effort") + 1] == "none"
     assert "--exclude-reasoning" in command
+    assert "--overwrite" in command
+    assert "--resume" not in command
+
+
+def test_collect_command_can_resume_without_overwrite(tmp_path: Path) -> None:
+    run_args = args(tmp_path)
+    run_args.resume = True
+
+    command = collect_command(run_args)
+
+    assert "--resume" in command
+    assert "--overwrite" not in command
 
 
 def test_collect_env_keeps_api_key_out_of_process_arguments(tmp_path: Path) -> None:

@@ -139,5 +139,66 @@ def test_collect_outputs_writes_raw_review_schema(tmp_path: Path) -> None:
 def test_real_training_seed_file_loads() -> None:
     seeds = collect_instructions.load_seeds(Path("prompts/leverage-training-seed-v0.jsonl"))
 
-    assert len(seeds) == 12
+    assert len(seeds) == 50
     assert "lt_seed_001" in seeds
+
+
+def test_collect_outputs_resume_skips_existing_seed_rows(tmp_path: Path) -> None:
+    output = tmp_path / "instruction_outputs.jsonl"
+    existing = {
+        "source_prompt_id": "lt_seed_001",
+        "category": "resource_judgment",
+        "purpose": "Existing row.",
+        "model": "provider_model",
+        "messages": [
+            {"role": "system", "content": "Answer as a project lead."},
+            {"role": "user", "content": "First prompt"},
+            {"role": "assistant", "content": "Existing answer."},
+        ],
+        "raw_response": "Existing answer.",
+        "output_format": "short_answer",
+        "constraints": ["mention cost"],
+        "review": {"status": "raw"},
+    }
+    write_jsonl(output, [existing])
+    seeds = {
+        "lt_seed_001": collect_instructions.InstructionSeed(
+            id="lt_seed_001",
+            category="resource_judgment",
+            purpose="Existing row.",
+            system_prompt="Answer as a project lead.",
+            prompt="First prompt",
+            output_format="short_answer",
+            constraints=["mention cost"],
+        ),
+        "lt_seed_002": collect_instructions.InstructionSeed(
+            id="lt_seed_002",
+            category="resource_judgment",
+            purpose="New row.",
+            system_prompt="Answer as a project lead.",
+            prompt="Second prompt",
+            output_format="short_answer",
+            constraints=["mention cost"],
+        ),
+    }
+
+    collect_instructions.collect_outputs(
+        seeds,
+        client=lambda payload: f"Generated for {payload['messages'][1]['content']}",
+        output_path=output,
+        api_model="provider/model",
+        model_label="provider_model",
+        max_tokens=256,
+        temperature=0.1,
+        thinking_mode="none",
+        thinking_param="chat_template_kwargs",
+        reasoning_effort="none",
+        exclude_reasoning=True,
+        overwrite=False,
+        resume=True,
+    )
+
+    rows = read_jsonl(output)
+    assert [row["source_prompt_id"] for row in rows] == ["lt_seed_001", "lt_seed_002"]
+    assert rows[0]["raw_response"] == "Existing answer."
+    assert rows[1]["raw_response"] == "Generated for Second prompt"

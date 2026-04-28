@@ -231,7 +231,8 @@ experiments/leverage/
   run artifacts for leverage experiments
 
 experiments/leverage/instruction-outputs/
-  raw teacher-model answers generated from prompts; not committed dataset source
+  raw teacher-model answers, filtered candidates, judgments, and summaries;
+  local run artifacts, not committed dataset source
 
 datasets/reviewed-instructions/
   manually promoted instruction/answer source data after review
@@ -259,7 +260,8 @@ instruction outputs:
 uv run python -m llm.leverage.filter_instruction_outputs \
   --input experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter.jsonl \
   --output experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-filter.csv \
-  --candidates-output experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-candidates.jsonl
+  --candidates-output experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-candidates.jsonl \
+  --summary-output experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-filter-summary.csv
 ```
 
 This filter performs only structural hygiene checks such as schema, source

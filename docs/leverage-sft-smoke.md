@@ -32,10 +32,10 @@ examples.
 ## Before Training
 
 ```bash
-uv run python -m llm.leverage.validate_reviewed-instructions \
+uv run python -m llm.leverage.validate_reviewed_instructions \
   datasets/reviewed-instructions/leverage-v0.jsonl
 
-uv run python -m llm.leverage.export_reviewed-instructions --overwrite
+uv run python -m llm.leverage.export_reviewed_instructions --overwrite
 ```
 
 Do not launch a paid GPU job until the reviewed instructions validate and the

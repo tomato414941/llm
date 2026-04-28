@@ -41,3 +41,14 @@ prompts/leverage-training-seed-v0.jsonl
 Only the review step may promote raw generated answers into
 `datasets/reviewed-instructions/`. Keep `source_prompt_id` stable so promoted
 rows can be traced back to the prompt that produced them.
+
+## Batch Generation
+
+For larger batches, keep generated outputs local under
+`experiments/leverage/instruction-outputs/`. If an API run stops partway
+through, rerun the instruction collection wrapper with `--resume` so completed
+`source_prompt_id` rows are skipped instead of overwritten.
+
+Run the structural filter with `--summary-output` after generation to record
+candidate count, reject reasons, and category distribution before any review or
+promotion step.

@@ -5,8 +5,10 @@ from llm.leverage.collect_instructions import InstructionSeed
 from llm.leverage.filter_instruction_outputs import (
     filter_row,
     filter_rows,
+    summary_rows,
     write_candidate_jsonl,
     write_csv,
+    write_summary_csv,
 )
 
 
@@ -151,3 +153,35 @@ def test_write_csv_and_candidate_jsonl(tmp_path: Path) -> None:
     assert "unknown_source_prompt_id" in csv_lines[2]
     candidates = [json.loads(line) for line in candidates_path.read_text(encoding="utf-8").splitlines()]
     assert candidates == [clean]
+
+
+def test_summary_rows_counts_decisions_categories_and_issues() -> None:
+    clean = raw_row()
+    bad = raw_row(source_prompt_id="unknown")
+    results = filter_rows(
+        [(1, clean), (2, bad)],
+        seeds={"lt_seed_test": seed()},
+        max_response_chars=200,
+    )
+
+    rows = summary_rows(results)
+
+    assert {"scope": "overall", "name": "total", "count": 2, "rate": "1.000"} in rows
+    assert {"scope": "decision", "name": "needs_judge", "count": 1, "rate": "0.500"} in rows
+    assert {"scope": "decision", "name": "reject", "count": 1, "rate": "0.500"} in rows
+    assert {"scope": "issue", "name": "unknown_source_prompt_id", "count": 1, "rate": "0.500"} in rows
+
+
+def test_write_summary_csv(tmp_path: Path) -> None:
+    results = filter_rows(
+        [(1, raw_row())],
+        seeds={"lt_seed_test": seed()},
+        max_response_chars=200,
+    )
+    summary_path = tmp_path / "summary.csv"
+
+    write_summary_csv(summary_path, results)
+
+    lines = summary_path.read_text(encoding="utf-8").splitlines()
+    assert lines[0] == "scope,name,count,rate"
+    assert "decision,needs_judge,1,1.000" in lines

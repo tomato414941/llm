@@ -169,12 +169,46 @@ def write_candidate_jsonl(
                 output_file.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
+def summary_rows(results: list[tuple[int, dict[str, Any], FilterResult]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    total = len(results)
+    rows.append({"scope": "overall", "name": "total", "count": total, "rate": "1.000" if total else "0.000"})
+
+    decision_counts: dict[str, int] = {}
+    category_counts: dict[str, int] = {}
+    issue_counts: dict[str, int] = {}
+    for _line_number, _row, result in results:
+        decision_counts[result.decision] = decision_counts.get(result.decision, 0) + 1
+        category_counts[result.category] = category_counts.get(result.category, 0) + 1
+        for issue in result.issues:
+            issue_counts[issue] = issue_counts.get(issue, 0) + 1
+
+    for scope, counts in (
+        ("decision", decision_counts),
+        ("category", category_counts),
+        ("issue", issue_counts),
+    ):
+        for name, count in sorted(counts.items()):
+            rate = count / total if total else 0.0
+            rows.append({"scope": scope, "name": name, "count": count, "rate": f"{rate:.3f}"})
+    return rows
+
+
+def write_summary_csv(path: Path, results: list[tuple[int, dict[str, Any], FilterResult]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as output_file:
+        writer = csv.DictWriter(output_file, fieldnames=["scope", "name", "count", "rate"])
+        writer.writeheader()
+        writer.writerows(summary_rows(results))
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--seeds", type=Path, default=Path("prompts/leverage-training-seed-v0.jsonl"))
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--candidates-output", type=Path)
+    parser.add_argument("--summary-output", type=Path)
     parser.add_argument("--max-response-chars", type=int, default=DEFAULT_MAX_RESPONSE_CHARS)
     return parser.parse_args()
 
@@ -193,6 +227,8 @@ def main() -> int:
     write_csv(args.output, results)
     if args.candidates_output is not None:
         write_candidate_jsonl(args.candidates_output, results)
+    if args.summary_output is not None:
+        write_summary_csv(args.summary_output, results)
     print(f"filtered {len(results)} rows to {args.output}")
     return 0
 

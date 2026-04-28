@@ -131,12 +131,25 @@ def collect_outputs(
     reasoning_effort: str,
     exclude_reasoning: bool,
     overwrite: bool,
+    resume: bool = False,
 ) -> None:
-    if output_path.exists() and not overwrite:
+    if output_path.exists() and not overwrite and not resume:
         raise FileExistsError(f"output already exists: {output_path}")
+    completed_seed_ids: set[str] = set()
+    if output_path.exists() and resume and not overwrite:
+        for line_number, row in load_jsonl(output_path):
+            source_prompt_id = row.get("source_prompt_id")
+            if not isinstance(source_prompt_id, str) or not source_prompt_id:
+                raise ValueError(f"{output_path}:{line_number}: missing source_prompt_id for resume")
+            if source_prompt_id in completed_seed_ids:
+                raise ValueError(f"{output_path}:{line_number}: duplicate source_prompt_id for resume")
+            completed_seed_ids.add(source_prompt_id)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", encoding="utf-8") as output_file:
+    mode = "a" if resume and output_path.exists() and not overwrite else "w"
+    with output_path.open(mode, encoding="utf-8") as output_file:
         for seed in seeds.values():
+            if seed.id in completed_seed_ids:
+                continue
             payload = build_payload(
                 seed,
                 model=api_model,
@@ -200,6 +213,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--exclude-reasoning", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--timeout-seconds", type=float, default=60.0)
+    parser.add_argument("--resume", action="store_true")
     parser.add_argument("--overwrite", action="store_true")
     return parser.parse_args()
 
@@ -235,6 +249,7 @@ def main() -> None:
         reasoning_effort=args.reasoning_effort,
         exclude_reasoning=args.exclude_reasoning,
         overwrite=args.overwrite,
+        resume=args.resume,
     )
 
 

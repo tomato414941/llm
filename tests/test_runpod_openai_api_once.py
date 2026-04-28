@@ -32,14 +32,14 @@ wait_for_models = runpod_openai_api_once.wait_for_models
 
 def args(tmp_path: Path) -> Namespace:
     return Namespace(
-        tasks=[Path("evals/leverage_smoke.jsonl"), Path("evals/project_judgment_v0.jsonl")],
+        tasks=[Path("evals/leverage-smoke.jsonl"), Path("evals/project-judgment-v0.jsonl")],
         model="Qwen/Qwen3-14B-FP8",
         served_model_name="Qwen/Qwen3-14B-FP8",
         model_label="qwen3_14b_fp8",
         image="vllm/vllm-openai:test",
         output=Path("experiments/leverage/qwen.jsonl"),
-        scores_output=Path("experiments/leverage/qwen_scores.csv"),
-        summary_output=Path("experiments/leverage/qwen_summary.csv"),
+        scores_output=Path("experiments/leverage/qwen-scores.csv"),
+        summary_output=Path("experiments/leverage/qwen-summary.csv"),
         gpu_type="NVIDIA GeForce RTX 4090",
         gpu_count=1,
         max_cost=2.0,
@@ -79,8 +79,8 @@ def args(tmp_path: Path) -> Namespace:
 
 def write_repo_shape(tmp_path: Path) -> None:
     (tmp_path / "evals").mkdir()
-    (tmp_path / "evals" / "leverage_smoke.jsonl").write_text("{}", encoding="utf-8")
-    (tmp_path / "evals" / "project_judgment_v0.jsonl").write_text("{}", encoding="utf-8")
+    (tmp_path / "evals" / "leverage-smoke.jsonl").write_text("{}", encoding="utf-8")
+    (tmp_path / "evals" / "project-judgment-v0.jsonl").write_text("{}", encoding="utf-8")
 
 
 class RecordingRunner:
@@ -111,8 +111,8 @@ def test_parse_args_defaults_to_qwen_on_vllm_latest(monkeypatch: pytest.MonkeyPa
     assert parsed.model_label == "qwen3_14b_fp8"
     assert parsed.image == "vllm/vllm-openai:latest"
     assert parsed.tasks == [
-        Path("evals/leverage_smoke.jsonl"),
-        Path("evals/project_judgment_v0.jsonl"),
+        Path("evals/leverage-smoke.jsonl"),
+        Path("evals/project-judgment-v0.jsonl"),
     ]
     assert parsed.server_port == 8000
     assert parsed.wait_seconds == 180
@@ -284,7 +284,7 @@ def test_local_evaluate_command_scores_saved_predictions(tmp_path: Path) -> None
 
     assert "llm.leverage.evaluate" in command
     assert command[command.index("--predictions") + 1] == "experiments/leverage/qwen.jsonl"
-    assert command[command.index("--summary-output") + 1] == "experiments/leverage/qwen_summary.csv"
+    assert command[command.index("--summary-output") + 1] == "experiments/leverage/qwen-summary.csv"
 
 
 def test_wait_for_models_sends_authorization_header(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -374,7 +374,7 @@ def test_preflight_rejects_cost_over_allowed_limit(tmp_path: Path) -> None:
 
 def test_preflight_rejects_missing_task_file(tmp_path: Path) -> None:
     write_repo_shape(tmp_path)
-    (tmp_path / "evals" / "project_judgment_v0.jsonl").unlink()
+    (tmp_path / "evals" / "project-judgment-v0.jsonl").unlink()
 
     with pytest.raises(FileNotFoundError, match="task file"):
         preflight(args(tmp_path))

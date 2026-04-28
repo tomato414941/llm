@@ -1,5 +1,5 @@
 [run]
-run_id = "pico_gpt2_tinyshakespeare"
+run_id = "tinyshakespeare_bpe_500_medium"
 
 [data]
 tokens = "data/processed/tinyshakespeare_bpe_500.pt"
@@ -10,17 +10,14 @@ block_size = 64
 embedding_dim = 64
 num_heads = 4
 num_layers = 4
-dropout = 0.1
+dropout = 0.0
 
 [train]
-max_iters = 3000
-eval_interval = 300
+max_iters = 1000
+eval_interval = 100
 eval_iters = 20
 batch_size = 32
 learning_rate = 0.001
-min_learning_rate = 0.0001
-warmup_iters = 100
-lr_decay_iters = 3000
 seed = 1337
 
 [evaluation]
@@ -29,13 +26,13 @@ eval_iters = 20
 batch_size = 32
 
 [outputs]
-checkpoint = "checkpoints/pico_gpt2_tinyshakespeare.pt"
-metrics = "experiments/runs/pico_gpt2_tinyshakespeare.csv"
-observation = "experiments/observations/pico_gpt2_tinyshakespeare.md"
+checkpoint = "checkpoints/tinyshakespeare-bpe-500-medium.pt"
+metrics = "experiments/runs/tinyshakespeare-bpe-500-medium.csv"
+observation = "experiments/observations/tinyshakespeare-bpe-500-medium.md"
 summary = "experiments/summaries/observations.csv"
 
 [generation]
-generate_tokens = 300
+generate_tokens = 200
 temperature = 1.0
 top_k = 20
 seed = 1337

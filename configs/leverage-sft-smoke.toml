@@ -10,11 +10,11 @@ fallback_student = "Qwen/Qwen3-0.6B"
 selection_reason = "Small Qwen-family student for a low-cost first weight-changing experiment."
 
 [data]
-reviewed_instructions = "datasets/reviewed_instructions/leverage_v0.jsonl"
+reviewed-instructions = "datasets/reviewed-instructions/leverage-v0.jsonl"
 train_export = "data/sft/leverage_v0.train.jsonl"
 eval_tasks = [
-  "evals/leverage_smoke.jsonl",
-  "evals/project_judgment_v0.jsonl",
+  "evals/leverage-smoke.jsonl",
+  "evals/project-judgment-v0.jsonl",
 ]
 
 [method]
@@ -33,11 +33,11 @@ max_cost_usd = 1.00
 cleanup_required = true
 
 [outputs]
-root = "outputs/leverage_sft_smoke"
-adapter_dir = "outputs/leverage_sft_smoke/adapter"
-logs = "outputs/leverage_sft_smoke/logs"
-metrics = "experiments/leverage_sft/leverage_sft_smoke_metrics.csv"
-notes = "experiments/leverage_sft/leverage_sft_smoke.md"
+root = "outputs/leverage-sft-smoke"
+adapter_dir = "outputs/leverage-sft-smoke/adapter"
+logs = "outputs/leverage-sft-smoke/logs"
+metrics = "experiments/leverage-sft/leverage-sft-smoke-metrics.csv"
+notes = "experiments/leverage-sft/leverage-sft-smoke.md"
 
 [success]
 criteria = [

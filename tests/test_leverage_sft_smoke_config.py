@@ -2,7 +2,7 @@ from pathlib import Path
 import tomllib
 
 
-CONFIG_PATH = Path("configs/leverage_sft_smoke.toml")
+CONFIG_PATH = Path("configs/leverage-sft-smoke.toml")
 
 
 def load_config() -> dict[str, object]:
@@ -14,7 +14,7 @@ def test_leverage_sft_smoke_config_references_existing_inputs() -> None:
     data = config["data"]
     assert isinstance(data, dict)
 
-    assert Path(data["reviewed_instructions"]).exists()
+    assert Path(data["reviewed-instructions"]).exists()
     for task in data["eval_tasks"]:
         assert Path(task).exists()
 
@@ -41,7 +41,7 @@ def test_leverage_sft_smoke_config_keeps_paid_run_bounded() -> None:
 
 
 def test_leverage_sft_smoke_doc_exists() -> None:
-    doc = Path("docs/leverage_sft_smoke.md")
+    doc = Path("docs/leverage-sft-smoke.md")
 
     assert doc.exists()
     text = doc.read_text(encoding="utf-8")

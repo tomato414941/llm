@@ -45,9 +45,9 @@ DEFAULT_VLLM_INSTALL = (
     "vllm-0.20.0%2Bcu129-cp38-abi3-manylinux_2_31_x86_64.whl "
     "--torch-backend=cu129"
 )
-DEFAULT_OUTPUT = Path("experiments/leverage/qwen3_14b_fp8_runpod.jsonl")
-DEFAULT_SCORES = Path("experiments/leverage/qwen3_14b_fp8_scores.csv")
-DEFAULT_SUMMARY = Path("experiments/leverage/qwen3_14b_fp8_summary.csv")
+DEFAULT_OUTPUT = Path("experiments/leverage/qwen3-14b-fp8-runpod.jsonl")
+DEFAULT_SCORES = Path("experiments/leverage/qwen3-14b-fp8-scores.csv")
+DEFAULT_SUMMARY = Path("experiments/leverage/qwen3-14b-fp8-summary.csv")
 SYNC_DIRS = ("src", "tests", "evals")
 SYNC_FILES = ("pyproject.toml", "uv.lock", "README.md", "AGENTS.md", "LICENSE")
 
@@ -203,7 +203,7 @@ def parse_args() -> argparse.Namespace:
         "--tasks",
         type=Path,
         action="append",
-        default=[Path("evals/leverage_smoke.jsonl"), Path("evals/project_judgment_v0.jsonl")],
+        default=[Path("evals/leverage-smoke.jsonl"), Path("evals/project-judgment-v0.jsonl")],
     )
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--model-label", default=DEFAULT_MODEL_LABEL)

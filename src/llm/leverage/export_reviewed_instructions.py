@@ -47,7 +47,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--input",
         type=Path,
-        default=Path("datasets/reviewed_instructions/leverage_v0.jsonl"),
+        default=Path("datasets/reviewed-instructions/leverage-v0.jsonl"),
     )
     parser.add_argument(
         "--output",

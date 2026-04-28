@@ -3,12 +3,12 @@
 This directory stores committed input prompts for leverage-track data generation.
 These files are inputs, not model outputs.
 
-## `leverage_training_seed_v0.jsonl`
+## `leverage-training-seed-v0.jsonl`
 
 Seed prompts for generating candidate instruction-tuning examples with an
 OpenAI-compatible provider such as OpenRouter. Keep this file small and reviewed.
 Generated outputs should be written under
-`experiments/leverage/instruction_outputs/` first, then reviewed before any row
+`experiments/leverage/instruction-outputs/` first, then reviewed before any row
 is promoted into a committed dataset.
 
 Required fields:
@@ -32,12 +32,12 @@ contain model answers, review decisions, scores, or SFT-ready chat rows.
 The expected flow is:
 
 ```text
-prompts/leverage_training_seed_v0.jsonl
-  -> experiments/leverage/instruction_outputs/<run>.jsonl
-  -> datasets/reviewed_instructions/leverage_v0.jsonl
+prompts/leverage-training-seed-v0.jsonl
+  -> experiments/leverage/instruction-outputs/<run>.jsonl
+  -> datasets/reviewed-instructions/leverage-v0.jsonl
   -> data/sft/leverage_v0.train.jsonl
 ```
 
 Only the review step may promote raw generated answers into
-`datasets/reviewed_instructions/`. Keep `source_prompt_id` stable so promoted
+`datasets/reviewed-instructions/`. Keep `source_prompt_id` stable so promoted
 rows can be traced back to the prompt that produced them.

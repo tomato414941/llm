@@ -2,9 +2,9 @@
 
 ## Inputs
 
-- checkpoint: `checkpoints/baseline_1k.pt`
+- checkpoint: `checkpoints/baseline-1k.pt`
 - tokens: `data/processed/tinyshakespeare_bpe_500.pt`
-- output: `experiments/observations/baseline_1k.md`
+- output: `experiments/observations/baseline-1k.md`
 
 ## Checkpoint
 

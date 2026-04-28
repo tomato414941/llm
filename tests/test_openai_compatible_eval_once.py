@@ -30,12 +30,12 @@ def args(tmp_path: Path) -> Namespace:
         base_url="https://openrouter.ai/api/v1",
         api_key=None,
         secret_path=tmp_path / "llm-openrouter",
-        tasks=[Path("evals/leverage_smoke.jsonl"), Path("evals/project_judgment_v0.jsonl")],
+        tasks=[Path("evals/leverage-smoke.jsonl"), Path("evals/project-judgment-v0.jsonl")],
         model="qwen/qwen3.5-flash-02-23",
-        model_label="qwen3_5_flash_openrouter",
+        model_label="qwen3-5-flash-openrouter",
         output=Path("experiments/leverage/qwen.jsonl"),
-        scores_output=Path("experiments/leverage/qwen_scores.csv"),
-        summary_output=Path("experiments/leverage/qwen_summary.csv"),
+        scores_output=Path("experiments/leverage/qwen-scores.csv"),
+        summary_output=Path("experiments/leverage/qwen-summary.csv"),
         max_tokens=512,
         temperature=0.0,
         thinking_mode="none",
@@ -47,8 +47,8 @@ def args(tmp_path: Path) -> Namespace:
 
 def write_repo_shape(tmp_path: Path) -> None:
     (tmp_path / "evals").mkdir()
-    (tmp_path / "evals" / "leverage_smoke.jsonl").write_text("{}", encoding="utf-8")
-    (tmp_path / "evals" / "project_judgment_v0.jsonl").write_text("{}", encoding="utf-8")
+    (tmp_path / "evals" / "leverage-smoke.jsonl").write_text("{}", encoding="utf-8")
+    (tmp_path / "evals" / "project-judgment-v0.jsonl").write_text("{}", encoding="utf-8")
 
 
 def test_parse_args_defaults_to_openrouter_qwen(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -58,11 +58,11 @@ def test_parse_args_defaults_to_openrouter_qwen(monkeypatch: pytest.MonkeyPatch)
 
     assert parsed.base_url == "https://openrouter.ai/api/v1"
     assert parsed.model == "qwen/qwen3.5-flash-02-23"
-    assert parsed.model_label == "qwen3_5_flash_openrouter"
+    assert parsed.model_label == "qwen3-5-flash-openrouter"
     assert parsed.secret_path == Path.home() / ".secrets" / "openrouter"
     assert parsed.tasks == [
-        Path("evals/leverage_smoke.jsonl"),
-        Path("evals/project_judgment_v0.jsonl"),
+        Path("evals/leverage-smoke.jsonl"),
+        Path("evals/project-judgment-v0.jsonl"),
     ]
     assert parsed.thinking_mode == "none"
 
@@ -80,7 +80,7 @@ def test_collect_command_targets_openai_compatible_api(tmp_path: Path) -> None:
     ]
     assert "llm.leverage.collect_openai" in command
     assert command[command.index("--model") + 1] == "qwen/qwen3.5-flash-02-23"
-    assert command[command.index("--model-label") + 1] == "qwen3_5_flash_openrouter"
+    assert command[command.index("--model-label") + 1] == "qwen3-5-flash-openrouter"
     assert command[command.index("--thinking-mode") + 1] == "none"
 
 
@@ -116,7 +116,7 @@ def test_evaluate_command_scores_saved_predictions(tmp_path: Path) -> None:
 
     assert "llm.leverage.evaluate" in command
     assert command[command.index("--predictions") + 1] == "experiments/leverage/qwen.jsonl"
-    assert command[command.index("--summary-output") + 1] == "experiments/leverage/qwen_summary.csv"
+    assert command[command.index("--summary-output") + 1] == "experiments/leverage/qwen-summary.csv"
 
 
 def test_dry_run_does_not_require_secret_file(tmp_path: Path) -> None:
@@ -166,7 +166,7 @@ def test_run_command_redacts_failed_command(monkeypatch: pytest.MonkeyPatch, tmp
 def test_preflight_requires_committed_task_files(tmp_path: Path) -> None:
     run_args = args(tmp_path)
 
-    with pytest.raises(FileNotFoundError, match="leverage_smoke"):
+    with pytest.raises(FileNotFoundError, match="leverage-smoke"):
         preflight(run_args)
 
     write_repo_shape(tmp_path)

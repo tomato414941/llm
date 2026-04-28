@@ -10,12 +10,12 @@ by a small student model in a bounded LoRA or SFT run.
 
 ## Inputs
 
-- Reviewed source data: `datasets/reviewed_instructions/leverage_v0.jsonl`
+- Reviewed source data: `datasets/reviewed-instructions/leverage-v0.jsonl`
 - Training export: `data/sft/leverage_v0.train.jsonl`
 - Held-out evals:
-  - `evals/leverage_smoke.jsonl`
-  - `evals/project_judgment_v0.jsonl`
-- Config: `configs/leverage_sft_smoke.toml`
+  - `evals/leverage-smoke.jsonl`
+  - `evals/project-judgment-v0.jsonl`
+- Config: `configs/leverage-sft-smoke.toml`
 
 ## Student Model
 
@@ -32,10 +32,10 @@ examples.
 ## Before Training
 
 ```bash
-uv run python -m llm.leverage.validate_reviewed_instructions \
-  datasets/reviewed_instructions/leverage_v0.jsonl
+uv run python -m llm.leverage.validate_reviewed-instructions \
+  datasets/reviewed-instructions/leverage-v0.jsonl
 
-uv run python -m llm.leverage.export_reviewed_instructions --overwrite
+uv run python -m llm.leverage.export_reviewed-instructions --overwrite
 ```
 
 Do not launch a paid GPU job until the reviewed instructions validate and the

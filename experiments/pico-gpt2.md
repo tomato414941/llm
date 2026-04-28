@@ -16,7 +16,7 @@ turning this repository into an experiment platform.
 
 ```bash
 uv run python -m llm.train \
-  --config configs/pico_gpt2_tinyshakespeare.toml
+  --config configs/pico-gpt2-tinyshakespeare.toml
 ```
 
 ## Observation

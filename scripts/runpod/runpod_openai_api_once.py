@@ -35,10 +35,10 @@ DEFAULT_IMAGE = "vllm/vllm-openai:latest"
 DEFAULT_MODEL = "Qwen/Qwen3-14B-FP8"
 DEFAULT_MODEL_LABEL = "qwen3_14b_fp8"
 DEFAULT_POD_NAME_PREFIX = "llm-openai-api-once"
-DEFAULT_TASKS = [Path("evals/leverage_smoke.jsonl"), Path("evals/project_judgment_v0.jsonl")]
-DEFAULT_OUTPUT = Path("experiments/leverage/qwen3_14b_fp8_runpod.jsonl")
-DEFAULT_SCORES = Path("experiments/leverage/qwen3_14b_fp8_scores.csv")
-DEFAULT_SUMMARY = Path("experiments/leverage/qwen3_14b_fp8_summary.csv")
+DEFAULT_TASKS = [Path("evals/leverage-smoke.jsonl"), Path("evals/project-judgment-v0.jsonl")]
+DEFAULT_OUTPUT = Path("experiments/leverage/qwen3-14b-fp8-runpod.jsonl")
+DEFAULT_SCORES = Path("experiments/leverage/qwen3-14b-fp8-scores.csv")
+DEFAULT_SUMMARY = Path("experiments/leverage/qwen3-14b-fp8-summary.csv")
 DEFAULT_API_KEY = "runpod-local"
 DEFAULT_USER_AGENT = "llm-runpod-eval/1.0"
 

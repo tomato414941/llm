@@ -77,9 +77,9 @@ Success criteria:
 No-dependency JSONL evaluator:
 
 - input is one or more task JSONL files plus a saved prediction JSONL file
-- `evals/leverage_smoke.jsonl` is the smoke layer for evaluator wiring and
+- `evals/leverage-smoke.jsonl` is the smoke layer for evaluator wiring and
   prediction format checks
-- `evals/project_judgment_v0.jsonl` is the project-judgment layer for more
+- `evals/project-judgment-v0.jsonl` is the project-judgment layer for more
   meaningful leverage-track comparisons
 - pass multiple layers with repeated `--tasks` arguments
 - output includes a local CSV scoring file and, when requested, a
@@ -147,7 +147,7 @@ After every RunPod job:
 
 The current from-scratch baseline is `pico_gpt2_tinyshakespeare`:
 
-- checkpoint: `checkpoints/pico_gpt2_tinyshakespeare.pt`
+- checkpoint: `checkpoints/pico-gpt2-tinyshakespeare.pt`
 - data: `data/processed/tinyshakespeare_bpe_500.pt`
 - parameters: 235,892
 - checkpoint step: 2,999

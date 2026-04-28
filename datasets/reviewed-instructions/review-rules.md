@@ -9,8 +9,8 @@ filtering and model judging for large batches, then use these rules for sparse
 promotion and spot checks.
 
 Raw generated answers remain experiment artifacts. The expected raw location is
-`experiments/leverage/instruction_outputs/`; the reviewed location is
-`datasets/reviewed_instructions/`.
+`experiments/leverage/instruction-outputs/`; the reviewed location is
+`datasets/reviewed-instructions/`.
 
 ## Required Checks
 
@@ -30,7 +30,7 @@ for a small SFT/LoRA experiment. Do not use it for rows that only passed the
 structural filter.
 
 Do not use this status for raw generated outputs. Raw outputs should remain
-under `experiments/leverage/instruction_outputs/` until reviewed.
+under `experiments/leverage/instruction-outputs/` until reviewed.
 
 ## Promotion Boundary
 

@@ -92,8 +92,8 @@ Good behavior:
 
 - use held-out evals only for scoring saved predictions
 - keep generation seeds under `prompts/`
-- keep raw generated answers under `experiments/leverage/instruction_outputs/`
-- promote only accepted rows into `datasets/reviewed_instructions/`
+- keep raw generated answers under `experiments/leverage/instruction-outputs/`
+- promote only accepted rows into `datasets/reviewed-instructions/`
 
 ### Prefer scalable loops over hand curation
 

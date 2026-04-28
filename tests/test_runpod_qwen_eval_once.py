@@ -24,12 +24,12 @@ runpodctl_create_command = runpod_qwen_eval_once.runpodctl_create_command
 
 def args(tmp_path: Path) -> Namespace:
     return Namespace(
-        tasks=[Path("evals/leverage_smoke.jsonl"), Path("evals/project_judgment_v0.jsonl")],
+        tasks=[Path("evals/leverage-smoke.jsonl"), Path("evals/project-judgment-v0.jsonl")],
         model="Qwen/Qwen3-14B-FP8",
         model_label="qwen3_14b_fp8",
         output=Path("experiments/leverage/qwen.jsonl"),
-        scores_output=Path("experiments/leverage/qwen_scores.csv"),
-        summary_output=Path("experiments/leverage/qwen_summary.csv"),
+        scores_output=Path("experiments/leverage/qwen-scores.csv"),
+        summary_output=Path("experiments/leverage/qwen-summary.csv"),
         max_model_len=8192,
         max_tokens=512,
         temperature=0.0,
@@ -73,8 +73,8 @@ def write_repo_shape(tmp_path: Path) -> None:
         (tmp_path / directory).mkdir(parents=True, exist_ok=True)
     for file_name in ("pyproject.toml", "uv.lock", "README.md", "AGENTS.md", "LICENSE"):
         (tmp_path / file_name).write_text("", encoding="utf-8")
-    (tmp_path / "evals" / "leverage_smoke.jsonl").write_text("{}", encoding="utf-8")
-    (tmp_path / "evals" / "project_judgment_v0.jsonl").write_text("{}", encoding="utf-8")
+    (tmp_path / "evals" / "leverage-smoke.jsonl").write_text("{}", encoding="utf-8")
+    (tmp_path / "evals" / "project-judgment-v0.jsonl").write_text("{}", encoding="utf-8")
     (tmp_path / "runpod.pub").write_text("ssh-ed25519 public-key", encoding="utf-8")
 
 
@@ -145,8 +145,8 @@ def test_remote_collect_command_uses_openai_compatible_local_server(tmp_path: Pa
 
     assert "OPENAI_BASE_URL=http://127.0.0.1:8000/v1" in command
     assert "OPENAI_API_KEY=runpod-local" in command
-    assert "--tasks evals/leverage_smoke.jsonl" in command
-    assert "--tasks evals/project_judgment_v0.jsonl" in command
+    assert "--tasks evals/leverage-smoke.jsonl" in command
+    assert "--tasks evals/project-judgment-v0.jsonl" in command
     assert "--thinking-mode none" in command
     assert "--overwrite" in command
 
@@ -156,7 +156,7 @@ def test_remote_evaluate_command_scores_saved_predictions(tmp_path: Path) -> Non
 
     assert "llm.leverage.evaluate" in command
     assert "--predictions experiments/leverage/qwen.jsonl" in command
-    assert "--summary-output experiments/leverage/qwen_summary.csv" in command
+    assert "--summary-output experiments/leverage/qwen-summary.csv" in command
 
 
 def test_rsync_from_remote_fetches_leverage_outputs(tmp_path: Path) -> None:
@@ -177,7 +177,7 @@ def test_preflight_rejects_cost_above_first_spike_limit(tmp_path: Path) -> None:
 
 def test_preflight_rejects_missing_task_file(tmp_path: Path) -> None:
     write_repo_shape(tmp_path)
-    (tmp_path / "evals" / "project_judgment_v0.jsonl").unlink()
+    (tmp_path / "evals" / "project-judgment-v0.jsonl").unlink()
 
     with pytest.raises(FileNotFoundError, match="task file"):
         preflight(args(tmp_path))

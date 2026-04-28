@@ -8,12 +8,12 @@ import subprocess
 
 DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_MODEL = "qwen/qwen3.5-flash-02-23"
-DEFAULT_MODEL_LABEL = "qwen3_5_flash_openrouter"
+DEFAULT_MODEL_LABEL = "qwen3-5-flash-openrouter"
 DEFAULT_SECRET_PATH = Path.home() / ".secrets" / "openrouter"
-DEFAULT_TASKS = [Path("evals/leverage_smoke.jsonl"), Path("evals/project_judgment_v0.jsonl")]
-DEFAULT_OUTPUT = Path("experiments/leverage/qwen3_5_flash_openrouter.jsonl")
-DEFAULT_SCORES = Path("experiments/leverage/qwen3_5_flash_openrouter_scores.csv")
-DEFAULT_SUMMARY = Path("experiments/leverage/qwen3_5_flash_openrouter_summary.csv")
+DEFAULT_TASKS = [Path("evals/leverage-smoke.jsonl"), Path("evals/project-judgment-v0.jsonl")]
+DEFAULT_OUTPUT = Path("experiments/leverage/qwen3-5-flash-openrouter.jsonl")
+DEFAULT_SCORES = Path("experiments/leverage/qwen3-5-flash-openrouter-scores.csv")
+DEFAULT_SUMMARY = Path("experiments/leverage/qwen3-5-flash-openrouter-summary.csv")
 
 
 def load_api_key(path: Path) -> str:

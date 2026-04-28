@@ -31,9 +31,9 @@ def args(tmp_path: Path) -> Namespace:
         base_url="https://openrouter.ai/api/v1",
         api_key=None,
         secret_path=tmp_path / "openrouter",
-        input=Path("experiments/leverage/instruction_outputs/candidates.jsonl"),
-        output=Path("experiments/leverage/instruction_outputs/judgments.jsonl"),
-        csv_output=Path("experiments/leverage/instruction_outputs/judgments.csv"),
+        input=Path("experiments/leverage/instruction-outputs/candidates.jsonl"),
+        output=Path("experiments/leverage/instruction-outputs/judgments.jsonl"),
+        csv_output=Path("experiments/leverage/instruction-outputs/judgments.csv"),
         judge_model="judge/model",
         judge_label="judge_label",
         max_tokens=512,
@@ -54,8 +54,8 @@ def test_parse_args_defaults_to_openrouter_judge(monkeypatch: pytest.MonkeyPatch
 
     assert parsed.base_url == "https://openrouter.ai/api/v1"
     assert parsed.secret_path == Path.home() / ".secrets" / "openrouter"
-    assert parsed.input == Path("experiments/leverage/instruction_outputs/qwen3_5_flash_openrouter_candidates.jsonl")
-    assert parsed.output == Path("experiments/leverage/instruction_outputs/qwen3_5_flash_openrouter_judgments.jsonl")
+    assert parsed.input == Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-candidates.jsonl")
+    assert parsed.output == Path("experiments/leverage/instruction-outputs/qwen3-5-flash-openrouter-judgments.jsonl")
 
 
 def test_judge_command_targets_judge_module(tmp_path: Path) -> None:

@@ -2,14 +2,14 @@
 
 ## Inputs
 
-- checkpoint: `checkpoints/pico_gpt2_tinyshakespeare_short.pt`
+- checkpoint: `checkpoints/pico-gpt2-tinyshakespeare-short.pt`
 - tokens: `data/processed/tinyshakespeare_bpe_500.pt`
-- output: `experiments/observations/pico_gpt2_tinyshakespeare_short.md`
+- output: `experiments/observations/pico-gpt2-tinyshakespeare-short.md`
 
 ## Checkpoint
 
 - step: 19
-- metadata: `{'run_id': 'pico_gpt2_tinyshakespeare', 'config_path': 'configs/pico_gpt2_tinyshakespeare.toml', 'manifest_path': 'data/manifest.example.toml', 'max_iters': 20, 'batch_size': 8, 'learning_rate': 0.001, 'warmup_iters': 100, 'lr_decay_iters': 3000, 'min_learning_rate': 0.0001, 'seed': 1337, 'parameter_count': 235892, 'tokenizer': 'bpe', 'tokenizer_path': 'data/processed/tinyshakespeare_bpe_500.json', 'input': 'data/raw/tinyshakespeare.txt', 'byte_count': 1115394, 'token_count': 574057, 'vocab_size': 500, 'tokens': 'data/processed/tinyshakespeare_bpe_500.pt'}`
+- metadata: `{'run_id': 'pico_gpt2_tinyshakespeare', 'config_path': 'configs/pico-gpt2-tinyshakespeare.toml', 'manifest_path': 'data/manifest.example.toml', 'max_iters': 20, 'batch_size': 8, 'learning_rate': 0.001, 'warmup_iters': 100, 'lr_decay_iters': 3000, 'min_learning_rate': 0.0001, 'seed': 1337, 'parameter_count': 235892, 'tokenizer': 'bpe', 'tokenizer_path': 'data/processed/tinyshakespeare_bpe_500.json', 'input': 'data/raw/tinyshakespeare.txt', 'byte_count': 1115394, 'token_count': 574057, 'vocab_size': 500, 'tokens': 'data/processed/tinyshakespeare_bpe_500.pt'}`
 - run_id: `pico_gpt2_tinyshakespeare`
 
 ## Token Data
@@ -47,14 +47,14 @@ i, e
 
 ## Inputs
 
-- checkpoint: `checkpoints/pico_gpt2_tinyshakespeare_short.pt`
+- checkpoint: `checkpoints/pico-gpt2-tinyshakespeare-short.pt`
 - tokens: `data/processed/tinyshakespeare_bpe_500.pt`
-- output: `experiments/observations/pico_gpt2_tinyshakespeare_short.md`
+- output: `experiments/observations/pico-gpt2-tinyshakespeare-short.md`
 
 ## Checkpoint
 
 - step: 19
-- metadata: `{'run_id': 'pico_gpt2_tinyshakespeare', 'config_path': 'configs/pico_gpt2_tinyshakespeare.toml', 'manifest_path': 'data/manifest.example.toml', 'max_iters': 20, 'batch_size': 8, 'learning_rate': 0.001, 'warmup_iters': 100, 'lr_decay_iters': 3000, 'min_learning_rate': 0.0001, 'seed': 1337, 'parameter_count': 235892, 'tokenizer': 'bpe', 'tokenizer_path': 'data/processed/tinyshakespeare_bpe_500.json', 'input': 'data/raw/tinyshakespeare.txt', 'byte_count': 1115394, 'token_count': 574057, 'vocab_size': 500, 'tokens': 'data/processed/tinyshakespeare_bpe_500.pt'}`
+- metadata: `{'run_id': 'pico_gpt2_tinyshakespeare', 'config_path': 'configs/pico-gpt2-tinyshakespeare.toml', 'manifest_path': 'data/manifest.example.toml', 'max_iters': 20, 'batch_size': 8, 'learning_rate': 0.001, 'warmup_iters': 100, 'lr_decay_iters': 3000, 'min_learning_rate': 0.0001, 'seed': 1337, 'parameter_count': 235892, 'tokenizer': 'bpe', 'tokenizer_path': 'data/processed/tinyshakespeare_bpe_500.json', 'input': 'data/raw/tinyshakespeare.txt', 'byte_count': 1115394, 'token_count': 574057, 'vocab_size': 500, 'tokens': 'data/processed/tinyshakespeare_bpe_500.pt'}`
 - run_id: `pico_gpt2_tinyshakespeare`
 
 ## Token Data

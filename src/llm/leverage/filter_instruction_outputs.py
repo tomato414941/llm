@@ -173,7 +173,7 @@ def write_candidate_jsonl(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, required=True)
-    parser.add_argument("--seeds", type=Path, default=Path("prompts/leverage_training_seed_v0.jsonl"))
+    parser.add_argument("--seeds", type=Path, default=Path("prompts/leverage-training-seed-v0.jsonl"))
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--candidates-output", type=Path)
     parser.add_argument("--max-response-chars", type=int, default=DEFAULT_MAX_RESPONSE_CHARS)

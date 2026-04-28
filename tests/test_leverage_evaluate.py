@@ -410,7 +410,7 @@ def test_cli_writes_csv_scores(tmp_path: Path) -> None:
 
 
 def test_real_leverage_smoke_eval_contract() -> None:
-    tasks_path = Path("evals/leverage_smoke.jsonl")
+    tasks_path = Path("evals/leverage-smoke.jsonl")
     predictions_path = Path("experiments/leverage/predictions.example.jsonl")
 
     tasks = evaluate.load_tasks(tasks_path)
@@ -445,8 +445,8 @@ def test_real_leverage_smoke_eval_contract() -> None:
 
 
 def test_real_project_judgment_eval_contract() -> None:
-    tasks_path = Path("evals/project_judgment_v0.jsonl")
-    predictions_path = Path("experiments/leverage/project_judgment_v0.example.jsonl")
+    tasks_path = Path("evals/project-judgment-v0.jsonl")
+    predictions_path = Path("experiments/leverage/project-judgment-v0.example.jsonl")
 
     tasks = evaluate.load_tasks(tasks_path)
     predictions = evaluate.load_predictions(predictions_path, set(tasks))
@@ -463,24 +463,24 @@ def test_real_project_judgment_eval_contract() -> None:
     }
     assert len(predictions) == len(tasks)
     assert {prediction.model for prediction in predictions} == {"example-baseline"}
-    assert all(result.suite == "project_judgment_v0" for result in results)
+    assert all(result.suite == "project-judgment-v0" for result in results)
     assert all(result.passed for result in results)
 
 
 def test_real_two_layer_eval_contract() -> None:
     tasks = evaluate.load_task_suites(
         [
-            Path("evals/leverage_smoke.jsonl"),
-            Path("evals/project_judgment_v0.jsonl"),
+            Path("evals/leverage-smoke.jsonl"),
+            Path("evals/project-judgment-v0.jsonl"),
         ]
     )
     predictions = evaluate.load_predictions(
-        Path("experiments/leverage/two_layer.example.jsonl"),
+        Path("experiments/leverage/two-layer.example.jsonl"),
         set(tasks),
     )
     results = evaluate.evaluate_predictions(tasks, predictions)
 
     assert len(tasks) == 30
     assert len(predictions) == len(tasks)
-    assert {result.suite for result in results} == {"leverage_smoke", "project_judgment_v0"}
+    assert {result.suite for result in results} == {"leverage-smoke", "project-judgment-v0"}
     assert all(result.passed for result in results)

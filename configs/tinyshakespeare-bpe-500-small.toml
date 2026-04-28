@@ -1,20 +1,20 @@
 [run]
-run_id = "tinyshakespeare_bpe_500_medium"
+run_id = "tinyshakespeare_bpe_500_small"
 
 [data]
 tokens = "data/processed/tinyshakespeare_bpe_500.pt"
 manifest = "data/manifest.example.toml"
 
 [model]
-block_size = 64
-embedding_dim = 64
+block_size = 32
+embedding_dim = 32
 num_heads = 4
-num_layers = 4
+num_layers = 2
 dropout = 0.0
 
 [train]
-max_iters = 1000
-eval_interval = 100
+max_iters = 3000
+eval_interval = 300
 eval_iters = 20
 batch_size = 32
 learning_rate = 0.001
@@ -26,14 +26,14 @@ eval_iters = 20
 batch_size = 32
 
 [outputs]
-checkpoint = "checkpoints/tinyshakespeare_bpe_500_medium.pt"
-metrics = "experiments/runs/tinyshakespeare_bpe_500_medium.csv"
-observation = "experiments/observations/tinyshakespeare_bpe_500_medium.md"
+checkpoint = "checkpoints/tinyshakespeare-bpe-500-small.pt"
+metrics = "experiments/runs/tinyshakespeare-bpe-500-small.csv"
+observation = "experiments/observations/tinyshakespeare-bpe-500-small.md"
 summary = "experiments/summaries/observations.csv"
 
 [generation]
-generate_tokens = 200
+generate_tokens = 300
 temperature = 1.0
 top_k = 20
 seed = 1337
-samples = 3
+samples = 1

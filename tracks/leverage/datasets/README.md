@@ -9,7 +9,7 @@ Raw instruction-generation outputs belong under
 and treat them as datasets. Promote only selected rows manually into
 `tracks/leverage/datasets/reviewed-instructions/` after review.
 
-## `reviewed-instructions/leverage-v0.jsonl`
+## `reviewed-instructions/bootstrap.jsonl`
 
 Reviewed instruction/answer examples for the leverage track. This is the
 versioned source data that can later be exported into SFT training JSONL.
@@ -37,14 +37,14 @@ Promotion from raw outputs is explicit and row-by-row, but it should stay sparse
 2. Verify the answer against `tracks/leverage/datasets/reviewed-instructions/review-rules.md`.
 3. Rewrite or reject anything that is incorrect, generic, private, or detached
    from the source prompt.
-4. Add only accepted rows to `reviewed-instructions/leverage-v0.jsonl` with
+4. Add only accepted rows to `reviewed-instructions/bootstrap.jsonl` with
    stable provenance in `source_prompt_id` and `review`.
 
 Validate reviewed instruction files before adding or exporting them:
 
 ```bash
 uv run python -m llm.leverage.validate_reviewed_instructions \
-  tracks/leverage/datasets/reviewed-instructions/leverage-v0.jsonl
+  tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl
 ```
 
 See `tracks/leverage/datasets/reviewed-instructions/review-rules.md` for the review boundary
@@ -56,5 +56,5 @@ Export a training JSONL file after validation:
 uv run python -m llm.leverage.export_reviewed_instructions --overwrite
 ```
 
-The default output is `tracks/leverage/sft/leverage_v0.train.jsonl`. Files under
+The default output is `tracks/leverage/sft/bootstrap.train.jsonl`. Files under
 `tracks/leverage/sft/` are generated training inputs and are ignored by git.

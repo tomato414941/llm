@@ -73,6 +73,19 @@ def test_score_response_contains_all_passes_only_when_all_terms_are_present() ->
     assert evaluate.score_response(scoring, "red is a primary color.")[1] is False
 
 
+def test_score_response_contains_all_can_ignore_case() -> None:
+    scoring = {"type": "contains_all", "phrases": ["do not copy"], "case_sensitive": False}
+
+    assert evaluate.score_response(scoring, "Do not copy held-out eval prompts.")[1] is True
+
+
+def test_score_response_contains_all_rejects_non_boolean_case_sensitive() -> None:
+    scoring = {"type": "contains_all", "phrases": ["ok"], "case_sensitive": "false"}
+
+    with pytest.raises(ValueError, match="case_sensitive"):
+        evaluate.validate_scoring(scoring, "case-test")
+
+
 def test_score_response_exact_requires_exact_match() -> None:
     scoring = {"type": "exact", "expected": "4"}
 

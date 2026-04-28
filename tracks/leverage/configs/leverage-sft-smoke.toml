@@ -5,13 +5,12 @@ objective = "Verify that reviewed instructions can be exported and used for a bo
 status = "planned"
 
 [model]
-student = "Qwen/Qwen3.5-0.6B"
-fallback_student = "Qwen/Qwen3-0.6B"
+student = "Qwen/Qwen3-0.6B"
 selection_reason = "Small Qwen-family student for a low-cost first weight-changing experiment."
 
 [data]
-reviewed-instructions = "tracks/leverage/datasets/reviewed-instructions/leverage-v0.jsonl"
-train_export = "tracks/leverage/sft/leverage_v0.train.jsonl"
+reviewed-instructions = "tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl"
+train_export = "tracks/leverage/sft/bootstrap.train.jsonl"
 eval_tasks = [
   "tracks/leverage/evals/leverage-smoke.jsonl",
   "tracks/leverage/evals/project-judgment-v0.jsonl",
@@ -22,6 +21,7 @@ first_choice = "lora"
 fallback = "full_sft"
 max_train_examples = 10
 max_epochs = 3
+eval_max_new_tokens = 128
 max_runtime_minutes = 30
 notes = "This is a wiring smoke, not a quality-improvement run."
 
@@ -36,8 +36,8 @@ cleanup_required = true
 root = "outputs/leverage-sft-smoke"
 adapter_dir = "outputs/leverage-sft-smoke/adapter"
 logs = "outputs/leverage-sft-smoke/logs"
-metrics = "tracks/from-scratch/runs/leverage-sft/leverage-sft-smoke-metrics.csv"
-notes = "tracks/from-scratch/runs/leverage-sft/leverage-sft-smoke.md"
+metrics = "outputs/leverage-sft-smoke/metrics.csv"
+notes = "outputs/leverage-sft-smoke/notes.md"
 
 [success]
 criteria = [

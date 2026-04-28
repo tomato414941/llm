@@ -137,7 +137,12 @@ The committed eval layers are:
 - `tracks/leverage/evals/project-judgment-v0.jsonl`: project-specific judgment checks for the
   leverage track once saved predictions exist.
 - `tracks/leverage/evals/leverage-model-spec.jsonl`: scenario checks derived from
-  `tracks/leverage/model-spec.md`.
+  `tracks/leverage/model-spec.md`. This is a policy guard eval, not a capability
+  benchmark. Use it to catch experiment-hygiene failures such as cost-blind paid
+  runs, eval contamination, inference/training confusion, and unsafe promotion
+  decisions. Do not optimize a model or prompt only to pass these hand-written
+  tasks, and do not use this score alone as evidence that a student model
+  improved.
 
 Run both layers against saved predictions by passing `--tasks` more than once:
 

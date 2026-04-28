@@ -4,7 +4,7 @@ from typing import Any
 
 from llm.leverage.validate_reviewed_instructions import validate_file
 
-DATASET_PATH = Path("tracks/leverage/datasets/reviewed-instructions/leverage-v0.jsonl")
+DATASET_PATH = Path("tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl")
 REQUIRED_ROW_FIELDS = {"id", "source_prompt_id", "category", "messages", "review"}
 REQUIRED_ROLES = ["system", "user", "assistant"]
 

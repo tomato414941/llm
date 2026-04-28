@@ -34,8 +34,8 @@ The expected flow is:
 ```text
 tracks/leverage/prompts/leverage-training-seed-v0.jsonl
   -> tracks/leverage/runs/instruction-outputs/<run>.jsonl
-  -> tracks/leverage/datasets/reviewed-instructions/leverage-v0.jsonl
-  -> tracks/leverage/sft/leverage_v0.train.jsonl
+  -> tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl
+  -> tracks/leverage/sft/bootstrap.train.jsonl
 ```
 
 Only the review step may promote raw generated answers into

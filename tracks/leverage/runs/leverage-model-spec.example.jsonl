@@ -14,5 +14,5 @@
 {"task_id":"lms_train_json_001","model":"example-baseline","response":"{\"execution_type\":\"inference\",\"workflow_role\":\"data_generation\",\"changes_weights_now\":false,\"future_student_weight_update_step\":\"SFT_or_LoRA_training\"}"}
 {"task_id":"lms_judge_json_001","model":"example-baseline","response":"{\"operation_type\":\"judging\",\"changes_weights\":false}"}
 {"task_id":"lms_eval_json_001","model":"example-baseline","response":"{\"allowed\":false,\"issue\":\"eval_contamination\",\"required_action\":\"keep_held_out\"}"}
-{"task_id":"lms_data_json_001","model":"example-baseline","response":"{\"promotion_decision\":\"reject\",\"issues\":[\"incomplete_output\"]}"}
+{"task_id":"lms_data_json_001","model":"example-baseline","response":"{\"promotion_decision\":\"needs_edit\",\"issues\":[\"incomplete_output\"]}"}
 {"task_id":"lms_recovery_json_001","model":"example-baseline","response":"{\"first_checks\":[\"active_pods\",\"checkpoint_state\"]}"}

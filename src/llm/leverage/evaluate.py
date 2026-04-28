@@ -206,7 +206,13 @@ def score_response(scoring: dict[str, Any], response: str) -> tuple[float, bool,
     scoring_type = scoring.get("type")
     if scoring_type == "contains_all":
         phrases = contains_all_phrases(scoring)
-        missing = [phrase for phrase in phrases if phrase not in response]
+        case_sensitive = contains_all_case_sensitive(scoring)
+        search_response = response if case_sensitive else response.lower()
+        missing = [
+            phrase
+            for phrase in phrases
+            if (phrase if case_sensitive else phrase.lower()) not in search_response
+        ]
         if missing:
             return 0.0, False, f"missing required text: {', '.join(repr(item) for item in missing)}"
         return 1.0, True, "contains all required text"
@@ -264,6 +270,7 @@ def validate_scoring(scoring: dict[str, Any], task_id: str) -> None:
         raise ValueError(f"task {task_id!r} scoring field 'type' must be a string")
     if scoring_type == "contains_all":
         contains_all_phrases(scoring)
+        contains_all_case_sensitive(scoring)
     elif scoring_type == "exact":
         exact_expected(scoring)
     elif scoring_type == "regex":
@@ -279,6 +286,13 @@ def contains_all_phrases(scoring: dict[str, Any]) -> list[str]:
     if not isinstance(phrases, list) or not all(isinstance(item, str) for item in phrases):
         raise ValueError("contains_all scoring requires field 'phrases' as a list of strings")
     return phrases
+
+
+def contains_all_case_sensitive(scoring: dict[str, Any]) -> bool:
+    case_sensitive = scoring.get("case_sensitive", True)
+    if not isinstance(case_sensitive, bool):
+        raise ValueError("contains_all scoring field 'case_sensitive' must be a boolean")
+    return case_sensitive
 
 
 def exact_expected(scoring: dict[str, Any]) -> str:

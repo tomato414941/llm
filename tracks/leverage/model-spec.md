@@ -181,12 +181,38 @@ An `accept` decision means the answer is suitable for promotion consideration.
 It does not automatically add the row to a committed dataset.
 
 A `needs_edit` decision means the answer has useful content but should not be
-used as-is for SFT.
+used as-is for SFT. Use it for salvageable rows that are not directly
+promotable, such as answers that miss explicit constraints or are incomplete
+but otherwise correct enough to edit.
 
 A `reject` decision means the answer is incomplete, wrong, unsafe, or too
-misaligned to repair cheaply.
+misaligned to repair cheaply. Use it when the row should leave the promotion
+path, not merely when it fails direct promotion.
+
+When a task asks whether a row can be promoted directly as training-ready SFT
+data, `accept` means yes. Both `needs_edit` and `reject` mean no, but they are
+different operational decisions: `needs_edit` keeps a salvage path, while
+`reject` closes it.
 
 ## Evaluation Targets
+
+`tracks/leverage/evals/leverage-model-spec.jsonl` is a policy guard eval. It
+checks whether a model respects this project's experiment rules, data hygiene,
+and resource controls. It is not a broad capability benchmark and should not be
+treated as proof that a model has become more generally useful.
+
+Use this eval to catch failures that would corrupt the leverage loop:
+
+- confusing inference, judging, and weight-changing training
+- copying held-out eval prompts into training inputs
+- launching paid GPU work without dry runs, cost limits, and cleanup plans
+- promoting incomplete or constraint-missing outputs as training-ready data
+- letting raw model outputs override project rules
+
+To stay aligned with scalable learning rather than hand-built tricks, do not
+optimize prompts, data, or student weights only against these hand-written
+tasks. A claimed improvement needs either broader held-out tasks, judged sample
+quality, or a before/after comparison that was not used to shape the change.
 
 Held-out evals should include scenarios that test:
 

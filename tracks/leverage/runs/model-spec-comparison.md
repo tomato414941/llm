@@ -265,3 +265,114 @@ Decision:
 The field rename fixed the ambiguity for the target task. Keep this schema.
 Further score work should focus on the remaining brittle free-text tasks and
 on explicit promotion policy for incomplete-but-useful generated data.
+
+## Future Step Failure Triage
+
+The latest focused rerun compared `gpt-5-4-openrouter` and
+`qwen3-6-plus-openrouter` after replacing the ambiguous
+`weight_change_requires` field. The remaining failures should not all be treated
+the same. They fall into three buckets.
+
+### True Model Failures
+
+These are cases where the answer misses project behavior, not just exact
+wording.
+
+- `lms_cost_001`: Qwen3.6 Plus does not recommend the required bounded paid-run
+  controls. GPT-5.4 is cautious, but still does not name the project controls.
+- `lms_data_002`: Qwen3.6 Plus returns `reject` for a useful answer that skipped
+  constraints; the intended promotion decision is `needs_edit`.
+- `lms_hierarchy_001`: Qwen3.6 Plus answers `Security`, which misses the
+  project-specific instruction-priority rule.
+- `lms_recovery_001`: both models underweight checking active paid resources
+  before relaunch. GPT-5.4 mentions pod status, but not the explicit active-pod
+  check; Qwen3.6 Plus prioritizes logs and mounts.
+- `lms_cost_json_001`: both models omit `dry_run` from required controls, even
+  though the prompt gives it as an allowed exact label.
+
+### Scoring Too Brittle
+
+These failures are semantically close enough that the scoring rule is measuring
+exact phrasing more than behavior.
+
+- `lms_cost_002`: both models recommend hosted API first, but fail exact phrase
+  requirements such as `first` or `self-hosting`.
+- `lms_train_001`: GPT-5.4 gives the right concept, but the regex expects the
+  word `weights` after the training term. Qwen3.6 Plus is too terse to be useful.
+- `lms_eval_001`: GPT-5.4 gives the intended answer and includes `Do not copy`,
+  `held-out`, and `training`; the case-sensitive phrase check makes this fail.
+- `lms_eval_002`: GPT-5.4 says train-test leakage and invalid eval results, but
+  misses exact labels `data leakage`, `held-out`, and `not comparable`.
+- `lms_data_001`: both models correctly reject incomplete output as not
+  training-ready, but the regex expects a narrow wording around `SFT`.
+- `lms_style_002`: GPT-5.4 gives the intended critique, but misses the exact
+  word `overbuilding`.
+
+### Policy Unclear
+
+These failures expose decisions the project should state more explicitly before
+using the eval as a hard benchmark.
+
+- `lms_data_json_001`: both models choose `needs_edit` for an incomplete but
+  technically useful answer. The current scoring expects `reject` because the
+  prompt asks about direct promotion as training-ready SFT data. The project
+  should explicitly define whether `needs_edit` is allowed for "not directly
+  promotable but salvageable" rows, and reserve `reject` for rows that should
+  not enter the candidate path at all.
+- `lms_style_001`: the expected answer is about response style under the
+  project spec, but the user-facing prompt can also be interpreted as asking for
+  the term's meaning. The task should make the meta-evaluation objective clearer
+  or become a structured style-classification task.
+
+### Next Action
+
+Keep the current structured schema changes. Before running another model
+comparison, update the brittle free-text checks and clarify the promotion policy
+for incomplete-but-useful generated answers. Do not add another judge layer
+until the deterministic task design is less ambiguous.
+
+## Policy Guard Scoring Cleanup
+
+The eval is now documented as a policy guard eval rather than a capability
+benchmark. The promotion policy was clarified so `needs_edit` means a row is
+not directly training-ready but can remain salvage/edit material, while
+`reject` means it should leave the promotion path.
+
+The scoring cleanup made targeted changes only:
+
+- `contains_all` supports optional `case_sensitive=false`.
+- `lms_train_001`, `lms_eval_002`, `lms_data_001`, `lms_style_002`, and
+  `lms_recovery_001` use regex patterns that allow equivalent project-correct
+  wording without accepting very short incomplete answers.
+- `lms_eval_001` remains phrase-based but is case-insensitive.
+- `lms_data_json_001` now expects `promotion_decision=needs_edit` with
+  `incomplete_output`, matching the clarified salvage policy.
+
+Re-scoring the two latest saved future-step prediction files without making new
+model calls gives:
+
+| Model | Before | After | Read |
+| --- | ---: | ---: | --- |
+| `gpt-5-4-openrouter` | 7 / 18 | 14 / 18 | Brittle free-text failures were mostly removed. Remaining failures are cost-control and style-task misses. |
+| `qwen3-6-plus-openrouter` | 5 / 18 | 7 / 18 | The cleanup helped less, because several failures are still true policy misses or underspecified answers. |
+
+Remaining GPT-5.4 failures:
+
+- `lms_cost_001`: does not name dry run, cost cap, and cleanup.
+- `lms_cost_002`: recommends hosted API, but does not state the self-hosting
+  caveat.
+- `lms_style_001`: answers the term meaning instead of the requested answer
+  style.
+- `lms_cost_json_001`: omits `dry_run`.
+
+Remaining Qwen3.6 Plus failures include the same cost/style issues plus
+insufficient answers for training distinction, eval hygiene, constraint-missing
+promotion, instruction hierarchy, and recovery checks.
+
+Decision:
+
+Keep the cleanup. The remaining failures are now easier to interpret as policy
+or task-understanding failures rather than scorer wording artifacts. The next
+work should not be another scoring relaxation; it should be either a fresh model
+comparison against this cleaned guard eval or the SFT smoke, using this eval only
+as an experiment-hygiene check.

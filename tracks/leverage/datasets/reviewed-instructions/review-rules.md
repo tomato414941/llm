@@ -32,6 +32,20 @@ structural filter.
 Do not use this status for raw generated outputs. Raw outputs should remain
 under `tracks/leverage/runs/instruction-outputs/` until reviewed.
 
+Use judge decisions consistently before promotion:
+
+- `accept`: the row is suitable for promotion consideration after reviewer
+  read-through.
+- `needs_edit`: the row has useful content but is not directly training-ready.
+  Use this for salvageable rows, including incomplete answers or answers that
+  miss explicit constraints but can be repaired cheaply.
+- `reject`: the row should leave the promotion path because it is wrong, unsafe,
+  too incomplete, private, contaminated, or too expensive to repair.
+
+For direct-promotion questions, only `accept` means yes. `needs_edit` and
+`reject` both block immediate SFT use, but only `needs_edit` keeps the row as
+edit material.
+
 ## Promotion Boundary
 
 An accepted reviewed instruction is still not proof of value. It becomes useful only after:

@@ -96,3 +96,60 @@ judge of project-specific behavior without either:
 The next comparison should separate deterministic exact scoring from semantic
 judging, because the current 0/12 and 1/12 pass rates mix real failures with
 wording-sensitive failures.
+
+## Structured Tasks
+
+After adding six structured JSON tasks to `evals/leverage-model-spec.jsonl`,
+the suite has 18 tasks:
+
+- 12 free-text tasks
+- 6 structured JSON tasks
+
+The first structured comparison used the same OpenRouter settings:
+
+- `temperature=0.0`
+- `max_tokens=256`
+- `reasoning_effort=none`
+- `exclude_reasoning=true`
+
+| Model | All passed | Free-text passed | Structured passed |
+| --- | ---: | ---: | ---: |
+| `qwen3-5-flash-openrouter` | 1 / 18 | 0 / 12 | 1 / 6 |
+| `qwen3-6-flash-openrouter` | 4 / 18 | 3 / 12 | 1 / 6 |
+| `qwen3-6-plus-openrouter` | 2 / 18 | 1 / 12 | 1 / 6 |
+| `gpt-5-4-openrouter` | 4 / 18 | 3 / 12 | 1 / 6 |
+| `claude-sonnet-4-6-openrouter` | 2 / 18 | 2 / 12 | 0 / 6 |
+
+Structured task pass matrix:
+
+| Task | 3.5 Flash | 3.6 Flash | 3.6 Plus | GPT-5.4 | Sonnet 4.6 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `lms_cost_json_001` | 0 | 0 | 0 | 0 | 0 |
+| `lms_train_json_001` | 0 | 0 | 0 | 0 | 0 |
+| `lms_judge_json_001` | 1 | 1 | 1 | 1 | 0 |
+| `lms_eval_json_001` | 0 | 0 | 0 | 0 | 0 |
+| `lms_data_json_001` | 0 | 0 | 0 | 0 | 0 |
+| `lms_recovery_json_001` | 0 | 0 | 0 | 0 | 0 |
+
+Initial read:
+
+- The structured layer did reduce free-form wording variance, but the exact
+  canonical values are still too strict for several cases.
+- Claude often returned fenced JSON despite `Return JSON only`, which the
+  current parser rejects.
+- GPT-5.4 and Claude gave semantically good `lms_cost_json_001` answers, but
+  used natural-language control names instead of canonical labels such as
+  `dry_run`, `cost_cap`, and `cleanup_plan`.
+- Most models classified OpenRouter answer generation as `inference` or left
+  `weight_change_requires` empty, while the task expects the project-specific
+  `data_generation` and `SFT_or_LoRA_training` labels.
+- For incomplete generated answers, several models chose `needs_edit`; the
+  current task expects `reject`. This is a real design decision to revisit, not
+  just a model failure.
+
+Decision:
+
+The structured layer is useful, but the next improvement should be task design,
+not another judge layer. Structured prompts should include canonical allowed
+values closer to the field they apply to, and the evaluator may need a small
+JSON extraction step for fenced JSON if providers keep wrapping valid JSON.

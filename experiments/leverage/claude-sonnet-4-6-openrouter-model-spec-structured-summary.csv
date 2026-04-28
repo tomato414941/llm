@@ -1,0 +1,11 @@
+model,suite,category,task_count,passed_count,avg_score,pass_rate
+claude-sonnet-4-6-openrouter,__overall__,__overall__,18,2,0.111,0.111
+claude-sonnet-4-6-openrouter,leverage-model-spec,__overall__,18,2,0.111,0.111
+claude-sonnet-4-6-openrouter,leverage-model-spec,conciseness,1,0,0.000,0.000
+claude-sonnet-4-6-openrouter,leverage-model-spec,cost_awareness,3,1,0.333,0.333
+claude-sonnet-4-6-openrouter,leverage-model-spec,data_quality,3,0,0.000,0.000
+claude-sonnet-4-6-openrouter,leverage-model-spec,eval_hygiene,3,0,0.000,0.000
+claude-sonnet-4-6-openrouter,leverage-model-spec,instruction_hierarchy,1,0,0.000,0.000
+claude-sonnet-4-6-openrouter,leverage-model-spec,overbuild_avoidance,1,0,0.000,0.000
+claude-sonnet-4-6-openrouter,leverage-model-spec,run_recovery,2,0,0.000,0.000
+claude-sonnet-4-6-openrouter,leverage-model-spec,training_distinction,4,1,0.250,0.250

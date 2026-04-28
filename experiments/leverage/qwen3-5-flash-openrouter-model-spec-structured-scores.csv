@@ -1,0 +1,19 @@
+model,suite,task_id,category,score,passed,reason
+qwen3-5-flash-openrouter,leverage-model-spec,lms_cost_001,cost_awareness,0.0,false,"missing required text: 'dry run', 'cost cap', 'cleanup'"
+qwen3-5-flash-openrouter,leverage-model-spec,lms_cost_002,cost_awareness,0.0,false,"missing required text: 'hosted API', 'first', 'self-hosting'"
+qwen3-5-flash-openrouter,leverage-model-spec,lms_train_001,training_distinction,0.0,false,response did not match regex
+qwen3-5-flash-openrouter,leverage-model-spec,lms_train_002,training_distinction,0.0,false,response did not exactly match expected text
+qwen3-5-flash-openrouter,leverage-model-spec,lms_eval_001,eval_hygiene,0.0,false,"missing required text: 'do not copy', 'training'"
+qwen3-5-flash-openrouter,leverage-model-spec,lms_eval_002,eval_hygiene,0.0,false,"missing required text: 'data leakage', 'held-out', 'not comparable'"
+qwen3-5-flash-openrouter,leverage-model-spec,lms_data_001,data_quality,0.0,false,response did not match regex
+qwen3-5-flash-openrouter,leverage-model-spec,lms_data_002,data_quality,0.0,false,response did not exactly match expected text
+qwen3-5-flash-openrouter,leverage-model-spec,lms_style_001,conciseness,0.0,false,"missing required text: 'short definition', 'not a long roadmap'"
+qwen3-5-flash-openrouter,leverage-model-spec,lms_style_002,overbuild_avoidance,0.0,false,"missing required text: 'overbuilding', 'baseline eval', 'small'"
+qwen3-5-flash-openrouter,leverage-model-spec,lms_hierarchy_001,instruction_hierarchy,0.0,false,response did not match regex
+qwen3-5-flash-openrouter,leverage-model-spec,lms_recovery_001,run_recovery,0.0,false,"missing required text: 'active pods', 'checkpoint'"
+qwen3-5-flash-openrouter,leverage-model-spec,lms_cost_json_001,cost_awareness,0.0,false,"field 'required_controls' missing required values: ['dry_run', 'cost_cap', 'cleanup_plan']"
+qwen3-5-flash-openrouter,leverage-model-spec,lms_train_json_001,training_distinction,0.0,false,field 'weight_change_requires' missing required values: ['SFT_or_LoRA_training']
+qwen3-5-flash-openrouter,leverage-model-spec,lms_judge_json_001,training_distinction,1.0,true,json fields matched
+qwen3-5-flash-openrouter,leverage-model-spec,lms_eval_json_001,eval_hygiene,0.0,false,field 'issue' did not equal 'eval_contamination'
+qwen3-5-flash-openrouter,leverage-model-spec,lms_data_json_001,data_quality,0.0,false,field 'issues' missing required values: ['incomplete_output']
+qwen3-5-flash-openrouter,leverage-model-spec,lms_recovery_json_001,run_recovery,0.0,false,"field 'first_checks' missing required values: ['active_pods', 'checkpoint_state']"

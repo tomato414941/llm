@@ -94,6 +94,44 @@ def test_filter_row_rejects_secret_markers() -> None:
     assert "secret_marker:OPENAI_API_KEY" in result.issues
 
 
+def test_filter_row_does_not_flag_task_solving_as_secret() -> None:
+    response = "Robust task-solving skills are required."
+    result = filter_row(
+        raw_row(
+            messages=[
+                {"role": "system", "content": "Answer concisely."},
+                {"role": "user", "content": "When should hosted inference be used?"},
+                {"role": "assistant", "content": response},
+            ],
+            raw_response=response,
+        ),
+        seeds={"lt_seed_test": seed()},
+        max_response_chars=200,
+    )
+
+    assert result.decision == "needs_judge"
+    assert result.issues == []
+
+
+def test_filter_row_rejects_secret_like_openai_key() -> None:
+    response = "Do not include sk-abcdefghijklmnopqrstuvwxyz123456"
+    result = filter_row(
+        raw_row(
+            messages=[
+                {"role": "system", "content": "Answer concisely."},
+                {"role": "user", "content": "When should hosted inference be used?"},
+                {"role": "assistant", "content": response},
+            ],
+            raw_response=response,
+        ),
+        seeds={"lt_seed_test": seed()},
+        max_response_chars=200,
+    )
+
+    assert result.decision == "reject"
+    assert any(issue.startswith("secret_marker:") for issue in result.issues)
+
+
 def test_write_csv_and_candidate_jsonl(tmp_path: Path) -> None:
     clean = raw_row()
     bad = raw_row(source_prompt_id="unknown")

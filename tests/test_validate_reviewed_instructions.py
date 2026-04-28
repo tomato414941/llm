@@ -70,3 +70,47 @@ def test_validate_file_rejects_secret_markers(tmp_path: Path) -> None:
     errors = validate_file(dataset, eval_dir=eval_dir)
 
     assert any("secret marker" in error for error in errors)
+
+
+def test_validate_file_does_not_reject_task_solving_text(tmp_path: Path) -> None:
+    dataset = tmp_path / "reviewed_instructions.jsonl"
+    eval_dir = tmp_path / "evals"
+    eval_dir.mkdir()
+    write_jsonl(
+        dataset,
+        [
+            valid_row(
+                messages=[
+                    {"role": "system", "content": "Answer concisely."},
+                    {"role": "user", "content": "Explain evaluation."},
+                    {"role": "assistant", "content": "Measure task-solving behavior on held-out data."},
+                ]
+            )
+        ],
+    )
+
+    errors = validate_file(dataset, eval_dir=eval_dir)
+
+    assert errors == []
+
+
+def test_validate_file_rejects_secret_like_openai_key(tmp_path: Path) -> None:
+    dataset = tmp_path / "reviewed_instructions.jsonl"
+    eval_dir = tmp_path / "evals"
+    eval_dir.mkdir()
+    write_jsonl(
+        dataset,
+        [
+            valid_row(
+                messages=[
+                    {"role": "system", "content": "Answer concisely."},
+                    {"role": "user", "content": "Explain secret handling."},
+                    {"role": "assistant", "content": "Never commit sk-abcdefghijklmnopqrstuvwxyz123456."},
+                ]
+            )
+        ],
+    )
+
+    errors = validate_file(dataset, eval_dir=eval_dir)
+
+    assert any("secret marker" in error for error in errors)

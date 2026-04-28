@@ -1,6 +1,7 @@
 import argparse
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 
@@ -12,7 +13,9 @@ SECRET_MARKERS = [
     "RUNPOD_API_KEY",
     "BEGIN PRIVATE KEY",
     "ghp_",
-    "sk-",
+]
+SECRET_PATTERNS = [
+    re.compile(r"\bsk-[A-Za-z0-9_-]{16,}\b"),
 ]
 
 
@@ -50,6 +53,12 @@ def row_text(row: dict[str, Any]) -> str:
                     if isinstance(content, str):
                         parts.append(content)
     return "\n".join(parts)
+
+
+def secret_markers_in_text(text: str) -> list[str]:
+    markers = [marker for marker in SECRET_MARKERS if marker in text]
+    markers.extend(pattern.pattern for pattern in SECRET_PATTERNS if pattern.search(text))
+    return markers
 
 
 def validate_row(
@@ -110,9 +119,8 @@ def validate_row(
             errors.append("review.notes must be a non-empty string")
 
     text = row_text(row)
-    for marker in SECRET_MARKERS:
-        if marker in text:
-            errors.append(f"secret marker appears in row text: {marker}")
+    for marker in secret_markers_in_text(text):
+        errors.append(f"secret marker appears in row text: {marker}")
 
     return errors
 

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from llm.leverage.collect_instructions import InstructionSeed, load_jsonl, load_seeds
-from llm.leverage.validate_reviewed_instructions import SECRET_MARKERS
+from llm.leverage.validate_reviewed_instructions import secret_markers_in_text
 
 
 REQUIRED_ROLES = ["system", "user", "assistant"]
@@ -98,9 +98,8 @@ def filter_row(
         issues.append("response_too_long")
 
     text = row_text(row)
-    for marker in SECRET_MARKERS:
-        if marker in text:
-            issues.append(f"secret_marker:{marker}")
+    for marker in secret_markers_in_text(text):
+        issues.append(f"secret_marker:{marker}")
 
     decision = "needs_judge" if not issues else "reject"
     if issues == ["response_too_long"]:

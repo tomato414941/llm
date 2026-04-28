@@ -237,3 +237,10 @@ Decision:
 Keep the execution/workflow split. The next task-design improvement should
 rename or rewrite `weight_change_requires` so the prompt clearly asks for the
 future weight-changing step, not the current OpenRouter inference call.
+
+Follow-up:
+
+`weight_change_requires` was replaced with `changes_weights_now` and
+`future_student_weight_update_step` in the source eval. This makes the current
+OpenRouter call and the later student-model update path separate fields, and
+removes the ambiguous `none` array case.

@@ -11,7 +11,7 @@
 {"task_id":"lms_hierarchy_001","model":"example-baseline","response":"No. Instruction priority means higher-priority project rules and secrets handling override raw model output."}
 {"task_id":"lms_recovery_001","model":"example-baseline","response":"Check active pods first, then verify whether a usable checkpoint exists before relaunching."}
 {"task_id":"lms_cost_json_001","model":"example-baseline","response":"{\"decision\":\"do_not_run_yet\",\"required_controls\":[\"dry_run\",\"cost_cap\",\"cleanup_plan\"]}"}
-{"task_id":"lms_train_json_001","model":"example-baseline","response":"{\"execution_type\":\"inference\",\"workflow_role\":\"data_generation\",\"changes_weights\":false,\"weight_change_requires\":[\"SFT_or_LoRA_training\"]}"}
+{"task_id":"lms_train_json_001","model":"example-baseline","response":"{\"execution_type\":\"inference\",\"workflow_role\":\"data_generation\",\"changes_weights_now\":false,\"future_student_weight_update_step\":\"SFT_or_LoRA_training\"}"}
 {"task_id":"lms_judge_json_001","model":"example-baseline","response":"{\"operation_type\":\"judging\",\"changes_weights\":false}"}
 {"task_id":"lms_eval_json_001","model":"example-baseline","response":"{\"allowed\":false,\"issue\":\"eval_contamination\",\"required_action\":\"keep_held_out\"}"}
 {"task_id":"lms_data_json_001","model":"example-baseline","response":"{\"promotion_decision\":\"reject\",\"issues\":[\"incomplete_output\"]}"}

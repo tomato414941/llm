@@ -2,7 +2,12 @@
 
 Date: 2026-04-28
 
-Eval: `evals/leverage-model-spec-v0.jsonl`
+Eval source of truth: `evals/leverage-model-spec.jsonl`
+
+Note: these runs were produced before the eval file was renamed from
+`evals/leverage-model-spec-v0.jsonl`, so the saved CSV `suite` column still
+contains `leverage-model-spec-v0`. The task definitions are now maintained in
+the unversioned source-of-truth file.
 
 Settings:
 

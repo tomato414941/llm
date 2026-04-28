@@ -136,7 +136,7 @@ The committed eval layers are:
   prediction format.
 - `evals/project-judgment-v0.jsonl`: project-specific judgment checks for the
   leverage track once saved predictions exist.
-- `evals/leverage-model-spec-v0.jsonl`: scenario checks derived from
+- `evals/leverage-model-spec.jsonl`: scenario checks derived from
   `docs/leverage-model-spec.md`.
 
 Run both layers against saved predictions by passing `--tasks` more than once:

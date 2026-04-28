@@ -140,9 +140,11 @@ Initial read:
 - GPT-5.4 and Claude gave semantically good `lms_cost_json_001` answers, but
   used natural-language control names instead of canonical labels such as
   `dry_run`, `cost_cap`, and `cleanup_plan`.
-- Most models classified OpenRouter answer generation as `inference` or left
-  `weight_change_requires` empty, while the task expects the project-specific
-  `data_generation` and `SFT_or_LoRA_training` labels.
+- Most models classified OpenRouter answer generation only by its technical
+  execution mechanism as `inference`, while the task tried to force the
+  project workflow role into the same `operation_type` field. This has since
+  been fixed in the source eval by splitting `execution_type` from
+  `workflow_role`.
 - For incomplete generated answers, several models chose `needs_edit`; the
   current task expects `reject`. This is a real design decision to revisit, not
   just a model failure.
@@ -188,9 +190,9 @@ Initial read:
 - Claude Sonnet 4.6 still returns fenced JSON for every structured task, so it
   remains 0/6 under strict JSON-only policy despite several semantically correct
   answers.
-- All models still classify OpenRouter answer generation as `inference` or
-  omit `SFT_or_LoRA_training`, while the project-specific label expects
-  `data_generation` and the required downstream training mechanism.
+- The source eval now splits the former `operation_type` field into
+  `execution_type=inference` and `workflow_role=data_generation`, because the
+  old prompt mixed provider-level execution with project workflow role.
 - Several models still choose `needs_edit` for incomplete-but-useful data, which
   confirms that `reject` versus `needs_edit` is a policy choice that should be
   stated more explicitly if the task means direct training-ready promotion.

@@ -153,3 +153,44 @@ The structured layer is useful, but the next improvement should be task design,
 not another judge layer. Structured prompts should include canonical allowed
 values closer to the field they apply to. Fenced JSON should remain a failed
 structured eval; any production repair path should be separate from scoring.
+
+## Structured Labels Clarification
+
+After clarifying canonical allowed values in the six structured prompts, the
+same structured subset was rerun. The source eval file remained
+`evals/leverage-model-spec.jsonl`; the run input was a temporary filtered file
+containing only `response_format.type == "json_object"` tasks.
+
+| Model | Before | After |
+| --- | ---: | ---: |
+| `qwen3-5-flash-openrouter` | 1 / 6 | 3 / 6 |
+| `qwen3-6-flash-openrouter` | 1 / 6 | 2 / 6 |
+| `qwen3-6-plus-openrouter` | 1 / 6 | 3 / 6 |
+| `gpt-5-4-openrouter` | 1 / 6 | 4 / 6 |
+| `claude-sonnet-4-6-openrouter` | 0 / 6 | 0 / 6 |
+
+After clarification task matrix:
+
+| Task | 3.5 Flash | 3.6 Flash | 3.6 Plus | GPT-5.4 | Sonnet 4.6 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `lms_cost_json_001` | 0 | 0 | 0 | 1 | 0 |
+| `lms_train_json_001` | 0 | 0 | 0 | 0 | 0 |
+| `lms_judge_json_001` | 1 | 1 | 1 | 1 | 0 |
+| `lms_eval_json_001` | 1 | 1 | 1 | 1 | 0 |
+| `lms_data_json_001` | 1 | 0 | 0 | 0 | 0 |
+| `lms_recovery_json_001` | 0 | 0 | 1 | 1 | 0 |
+
+Initial read:
+
+- Clarifying allowed values helped materially for Qwen3.5 Flash, Qwen3.6 Plus,
+  and GPT-5.4.
+- GPT-5.4 is best on strict structured labels after clarification at 4/6.
+- Claude Sonnet 4.6 still returns fenced JSON for every structured task, so it
+  remains 0/6 under strict JSON-only policy despite several semantically correct
+  answers.
+- All models still classify OpenRouter answer generation as `inference` or
+  omit `SFT_or_LoRA_training`, while the project-specific label expects
+  `data_generation` and the required downstream training mechanism.
+- Several models still choose `needs_edit` for incomplete-but-useful data, which
+  confirms that `reject` versus `needs_edit` is a policy choice that should be
+  stated more explicitly if the task means direct training-ready promotion.

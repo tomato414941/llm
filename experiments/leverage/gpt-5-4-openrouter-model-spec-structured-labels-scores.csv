@@ -1,0 +1,7 @@
+model,suite,task_id,category,score,passed,reason
+gpt-5-4-openrouter,leverage-model-spec-structured-only,lms_cost_json_001,cost_awareness,1.0,true,json fields matched
+gpt-5-4-openrouter,leverage-model-spec-structured-only,lms_train_json_001,training_distinction,0.0,false,field 'operation_type' did not equal 'data_generation'
+gpt-5-4-openrouter,leverage-model-spec-structured-only,lms_judge_json_001,training_distinction,1.0,true,json fields matched
+gpt-5-4-openrouter,leverage-model-spec-structured-only,lms_eval_json_001,eval_hygiene,1.0,true,json fields matched
+gpt-5-4-openrouter,leverage-model-spec-structured-only,lms_data_json_001,data_quality,0.0,false,field 'promotion_decision' did not equal 'reject'
+gpt-5-4-openrouter,leverage-model-spec-structured-only,lms_recovery_json_001,run_recovery,1.0,true,json fields matched

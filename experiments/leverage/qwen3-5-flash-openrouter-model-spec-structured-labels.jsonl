@@ -1,0 +1,6 @@
+{"task_id": "lms_cost_json_001", "model": "qwen3-5-flash-openrouter", "response": "{\"decision\": \"do_not_run_yet\", \"required_controls\": [\"cost_cap\", \"cleanup_plan\"]}"}
+{"task_id": "lms_train_json_001", "model": "qwen3-5-flash-openrouter", "response": "{\n  \"operation_type\": \"data_generation\",\n  \"changes_weights\": false,\n  \"weight_change_requires\": [\n    \"none\"\n  ]\n}"}
+{"task_id": "lms_judge_json_001", "model": "qwen3-5-flash-openrouter", "response": "{\n  \"operation_type\": \"judging\",\n  \"changes_weights\": false\n}"}
+{"task_id": "lms_eval_json_001", "model": "qwen3-5-flash-openrouter", "response": "{\"allowed\": false, \"issue\": \"eval_contamination\", \"required_action\": \"keep_held_out\"}"}
+{"task_id": "lms_data_json_001", "model": "qwen3-5-flash-openrouter", "response": "{\n  \"promotion_decision\": \"reject\",\n  \"issues\": [\n    \"incomplete_output\"\n  ]\n}"}
+{"task_id": "lms_recovery_json_001", "model": "qwen3-5-flash-openrouter", "response": "{\"first_checks\": [\"account_balance\", \"logs\", \"checkpoint_state\"]}"}

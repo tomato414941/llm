@@ -1,0 +1,8 @@
+model,suite,category,task_count,passed_count,avg_score,pass_rate
+qwen3-6-plus-openrouter,__overall__,__overall__,6,3,0.500,0.500
+qwen3-6-plus-openrouter,leverage-model-spec-structured-only,__overall__,6,3,0.500,0.500
+qwen3-6-plus-openrouter,leverage-model-spec-structured-only,cost_awareness,1,0,0.000,0.000
+qwen3-6-plus-openrouter,leverage-model-spec-structured-only,data_quality,1,0,0.000,0.000
+qwen3-6-plus-openrouter,leverage-model-spec-structured-only,eval_hygiene,1,1,1.000,1.000
+qwen3-6-plus-openrouter,leverage-model-spec-structured-only,run_recovery,1,1,1.000,1.000
+qwen3-6-plus-openrouter,leverage-model-spec-structured-only,training_distinction,2,1,0.500,0.500

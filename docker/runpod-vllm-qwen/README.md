@@ -6,6 +6,20 @@ entrypoint so RunPod only needs to start the image and expose HTTP port `8000`.
 
 ## Build
 
+The preferred publish path is GitHub Actions:
+
+```bash
+gh workflow run publish-runpod-vllm-qwen.yml
+```
+
+It publishes:
+
+```text
+ghcr.io/<owner>/llm-runpod-vllm-qwen:cu129-qwen35
+```
+
+For local builds:
+
 ```bash
 docker build \
   -t llm-runpod-vllm-qwen:cu129-qwen35 \
@@ -67,7 +81,7 @@ uv run python scripts/runpod/runpod_openai_api_once.py \
   --model Qwen/Qwen3.5-4B \
   --served-model-name Qwen/Qwen3.5-4B \
   --model-label qwen3_5_4b \
-  --image <registry>/llm-runpod-vllm-qwen:cu129-qwen35 \
+  --image ghcr.io/<owner>/llm-runpod-vllm-qwen:cu129-qwen35 \
   --gpu-type "NVIDIA L40S" \
   --max-cost 0.8 \
   --max-allowed-cost 0.8 \

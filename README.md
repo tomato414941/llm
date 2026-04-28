@@ -209,6 +209,8 @@ The most cost-controlled path is to build and publish a fixed image before
 creating another paid pod. See `docker/runpod-vllm-qwen/README.md`. The image
 wraps a pinned vLLM base image with a stable entrypoint, a GPU smoke test, and
 Qwen3.5-4B defaults so RunPod startup does not spend time installing packages.
+Publish it with the `publish-runpod-vllm-qwen` GitHub Actions workflow, then
+use `ghcr.io/<owner>/llm-runpod-vllm-qwen:cu129-qwen35` in RunPod.
 
 The next Qwen3.5 compatibility check should prefer a prebuilt vLLM CUDA 12.9
 nightly image instead of installing vLLM inside the pod. Keep the first run

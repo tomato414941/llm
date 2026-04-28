@@ -467,6 +467,31 @@ def test_real_project_judgment_eval_contract() -> None:
     assert all(result.passed for result in results)
 
 
+def test_real_leverage_model_spec_eval_contract() -> None:
+    tasks_path = Path("evals/leverage-model-spec-v0.jsonl")
+    predictions_path = Path("experiments/leverage/leverage-model-spec-v0.example.jsonl")
+
+    tasks = evaluate.load_tasks(tasks_path)
+    predictions = evaluate.load_predictions(predictions_path, set(tasks))
+    results = evaluate.evaluate_predictions(tasks, predictions)
+
+    assert len(tasks) == 12
+    assert {task.category for task in tasks.values()} == {
+        "conciseness",
+        "cost_awareness",
+        "data_quality",
+        "eval_hygiene",
+        "instruction_hierarchy",
+        "overbuild_avoidance",
+        "run_recovery",
+        "training_distinction",
+    }
+    assert len(predictions) == len(tasks)
+    assert {prediction.model for prediction in predictions} == {"example-baseline"}
+    assert all(result.suite == "leverage-model-spec-v0" for result in results)
+    assert all(result.passed for result in results)
+
+
 def test_real_two_layer_eval_contract() -> None:
     tasks = evaluate.load_task_suites(
         [

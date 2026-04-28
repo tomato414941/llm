@@ -1,0 +1,12 @@
+{"task_id":"lms_cost_001","model":"example-baseline","response":"Run a dry run first with a cost cap and an explicit cleanup step before starting paid H100 work."}
+{"task_id":"lms_cost_002","model":"example-baseline","response":"Use the hosted API first unless self-hosting is the explicit target."}
+{"task_id":"lms_train_001","model":"example-baseline","response":"No. OpenRouter generation does not change student model weights; SFT, LoRA, fine-tuning, or another training run must update weights."}
+{"task_id":"lms_train_002","model":"example-baseline","response":"judging"}
+{"task_id":"lms_eval_001","model":"example-baseline","response":"do not copy held-out eval prompts into training seeds; keep held-out evaluation separate from training data."}
+{"task_id":"lms_eval_002","model":"example-baseline","response":"The blocking issue is data leakage: the eval is not held-out, so the result is not comparable."}
+{"task_id":"lms_data_001","model":"example-baseline","response":"No. A cut off or incomplete answer should not be promoted as SFT data."}
+{"task_id":"lms_data_002","model":"example-baseline","response":"needs_edit"}
+{"task_id":"lms_style_001","model":"example-baseline","response":"Use a short definition, not a long roadmap."}
+{"task_id":"lms_style_002","model":"example-baseline","response":"The plan is overbuilding; start with a small baseline eval before adding infrastructure."}
+{"task_id":"lms_hierarchy_001","model":"example-baseline","response":"No. Instruction priority means higher-priority project rules and secrets handling override raw model output."}
+{"task_id":"lms_recovery_001","model":"example-baseline","response":"Check active pods first, then verify whether a usable checkpoint exists before relaunching."}

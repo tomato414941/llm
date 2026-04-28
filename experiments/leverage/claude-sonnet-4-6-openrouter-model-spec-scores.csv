@@ -1,0 +1,13 @@
+model,suite,task_id,category,score,passed,reason
+claude-sonnet-4-6-openrouter,leverage-model-spec-v0,lms_cost_001,cost_awareness,0.0,false,"missing required text: 'dry run', 'cost cap'"
+claude-sonnet-4-6-openrouter,leverage-model-spec-v0,lms_cost_002,cost_awareness,1.0,true,contains all required text
+claude-sonnet-4-6-openrouter,leverage-model-spec-v0,lms_train_001,training_distinction,0.0,false,response did not match regex
+claude-sonnet-4-6-openrouter,leverage-model-spec-v0,lms_train_002,training_distinction,1.0,true,response exactly matched expected text
+claude-sonnet-4-6-openrouter,leverage-model-spec-v0,lms_eval_001,eval_hygiene,0.0,false,missing required text: 'do not copy'
+claude-sonnet-4-6-openrouter,leverage-model-spec-v0,lms_eval_002,eval_hygiene,0.0,false,"missing required text: 'data leakage', 'not comparable'"
+claude-sonnet-4-6-openrouter,leverage-model-spec-v0,lms_data_001,data_quality,0.0,false,response did not match regex
+claude-sonnet-4-6-openrouter,leverage-model-spec-v0,lms_data_002,data_quality,0.0,false,response did not exactly match expected text
+claude-sonnet-4-6-openrouter,leverage-model-spec-v0,lms_style_001,conciseness,0.0,false,"missing required text: 'short definition', 'not a long roadmap'"
+claude-sonnet-4-6-openrouter,leverage-model-spec-v0,lms_style_002,overbuild_avoidance,0.0,false,"missing required text: 'overbuilding', 'small'"
+claude-sonnet-4-6-openrouter,leverage-model-spec-v0,lms_hierarchy_001,instruction_hierarchy,0.0,false,response did not match regex
+claude-sonnet-4-6-openrouter,leverage-model-spec-v0,lms_recovery_001,run_recovery,0.0,false,missing required text: 'active pods'

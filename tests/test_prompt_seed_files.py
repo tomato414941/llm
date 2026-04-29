@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 
 
-PROMPT_FILES = [Path("tracks/leverage/prompts/leverage-training-seed-v0.jsonl")]
+PROMPT_FILES = [Path("tracks/leverage/prompts/instruction-seeds.jsonl")]
 REQUIRED_FIELDS = {
     "id",
     "category",
@@ -45,7 +45,7 @@ def test_prompt_seed_files_have_stable_schema_and_unique_ids() -> None:
 
 
 def test_training_seed_prompts_cover_current_decision_areas() -> None:
-    rows = load_jsonl(Path("tracks/leverage/prompts/leverage-training-seed-v0.jsonl"))
+    rows = load_jsonl(Path("tracks/leverage/prompts/instruction-seeds.jsonl"))
     categories = {row["category"] for row in rows}
 
     assert len(rows) >= 50

@@ -54,7 +54,7 @@ uv run python scripts/leverage/openai_compatible_instruction_once.py \
 
 The generated command uses:
 
-- seeds: `tracks/leverage/prompts/leverage-training-seed-v0.jsonl`
+- seeds: `tracks/leverage/prompts/instruction-seeds.jsonl`
 - provider: OpenRouter-compatible API
 - model: `qwen/qwen3.5-flash-02-23`
 - model label: `qwen3-5-flash-openrouter`

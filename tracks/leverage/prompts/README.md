@@ -3,7 +3,7 @@
 This directory stores committed input prompts for leverage-track data generation.
 These files are inputs, not model outputs.
 
-## `leverage-training-seed-v0.jsonl`
+## `instruction-seeds.jsonl`
 
 Seed prompts for generating candidate instruction-tuning examples with an
 OpenAI-compatible provider such as OpenRouter. Keep this file small and reviewed.
@@ -32,7 +32,7 @@ contain model answers, review decisions, scores, or SFT-ready chat rows.
 The expected flow is:
 
 ```text
-tracks/leverage/prompts/leverage-training-seed-v0.jsonl
+tracks/leverage/prompts/instruction-seeds.jsonl
   -> tracks/leverage/runs/instruction-outputs/<run>.jsonl
   -> tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl
   -> tracks/leverage/sft/bootstrap.train.jsonl

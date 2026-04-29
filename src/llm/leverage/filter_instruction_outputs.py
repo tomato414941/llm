@@ -205,7 +205,7 @@ def write_summary_csv(path: Path, results: list[tuple[int, dict[str, Any], Filte
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, required=True)
-    parser.add_argument("--seeds", type=Path, default=Path("tracks/leverage/prompts/leverage-training-seed-v0.jsonl"))
+    parser.add_argument("--seeds", type=Path, default=Path("tracks/leverage/prompts/instruction-seeds.jsonl"))
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--candidates-output", type=Path)
     parser.add_argument("--summary-output", type=Path)

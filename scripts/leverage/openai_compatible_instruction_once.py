@@ -10,7 +10,7 @@ DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_MODEL = "qwen/qwen3.6-plus"
 DEFAULT_MODEL_LABEL = "qwen3-6-plus-openrouter"
 DEFAULT_SECRET_PATH = Path.home() / ".secrets" / "openrouter"
-DEFAULT_SEEDS = Path("tracks/leverage/prompts/leverage-training-seed-v0.jsonl")
+DEFAULT_SEEDS = Path("tracks/leverage/prompts/instruction-seeds.jsonl")
 DEFAULT_OUTPUT = Path("tracks/leverage/runs/instruction-outputs/qwen3-6-plus-openrouter.jsonl")
 
 

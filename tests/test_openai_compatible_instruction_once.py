@@ -27,7 +27,7 @@ def args(tmp_path: Path) -> Namespace:
         base_url="https://openrouter.ai/api/v1",
         api_key=None,
         secret_path=tmp_path / "openrouter",
-        seeds=Path("tracks/leverage/prompts/leverage-training-seed-v0.jsonl"),
+        seeds=Path("tracks/leverage/prompts/instruction-seeds.jsonl"),
         seed_id=[],
         model="qwen/qwen3.6-plus",
         model_label="qwen3-6-plus-openrouter",
@@ -49,7 +49,7 @@ def args(tmp_path: Path) -> Namespace:
 def write_repo_shape(tmp_path: Path) -> None:
     prompt_dir = tmp_path / "tracks" / "leverage" / "prompts"
     prompt_dir.mkdir(parents=True)
-    (prompt_dir / "leverage-training-seed-v0.jsonl").write_text("{}", encoding="utf-8")
+    (prompt_dir / "instruction-seeds.jsonl").write_text("{}", encoding="utf-8")
 
 
 def test_parse_args_defaults_to_openrouter_instruction_collection(
@@ -63,7 +63,7 @@ def test_parse_args_defaults_to_openrouter_instruction_collection(
     assert parsed.model == "qwen/qwen3.6-plus"
     assert parsed.model_label == "qwen3-6-plus-openrouter"
     assert parsed.secret_path == Path.home() / ".secrets" / "openrouter"
-    assert parsed.seeds == Path("tracks/leverage/prompts/leverage-training-seed-v0.jsonl")
+    assert parsed.seeds == Path("tracks/leverage/prompts/instruction-seeds.jsonl")
     assert parsed.output == Path("tracks/leverage/runs/instruction-outputs/qwen3-6-plus-openrouter.jsonl")
     assert parsed.max_tokens == 16384
     assert parsed.reasoning_effort == "none"
@@ -77,7 +77,7 @@ def test_collect_command_targets_instruction_collector(tmp_path: Path) -> None:
     command = collect_command(run_args)
 
     assert "llm.leverage.collect_instructions" in command
-    assert command[command.index("--seeds") + 1] == "tracks/leverage/prompts/leverage-training-seed-v0.jsonl"
+    assert command[command.index("--seeds") + 1] == "tracks/leverage/prompts/instruction-seeds.jsonl"
     assert command[command.index("--model") + 1] == "qwen/qwen3.6-plus"
     assert command[command.index("--random-seed") + 1] == "0"
     assert command[command.index("--output") + 1] == "tracks/leverage/runs/instruction-outputs/qwen.jsonl"

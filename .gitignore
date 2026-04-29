@@ -43,6 +43,9 @@ tracks/leverage/runs/qwen3_0_6b_scores.csv
 tracks/leverage/runs/qwen3_0_6b_summary.csv
 tracks/leverage/runs/*runpod*.jsonl
 tracks/leverage/runs/*runpod*.csv
+tracks/leverage/runs/*-scores.csv
+tracks/leverage/runs/*-summary.csv
+tracks/leverage/runs/leverage-sft-smoke-diff.md
 tracks/leverage/runs/instruction-outputs/*.jsonl
 tracks/leverage/runs/instruction-outputs/*.csv
 tracks/leverage/runs/instruction-outputs/*judgment*.jsonl

@@ -1,8 +1,0 @@
-model,suite,capability,task_count,passed_count,avg_score,pass_rate
-qwen3_5_flash_openrouter,__overall__,__overall__,12,11,0.917,0.917
-qwen3_5_flash_openrouter,leverage_smoke,__overall__,12,11,0.917,0.917
-qwen3_5_flash_openrouter,leverage_smoke,coding,2,2,1.000,1.000
-qwen3_5_flash_openrouter,leverage_smoke,instruction_following,3,2,0.667,0.667
-qwen3_5_flash_openrouter,leverage_smoke,knowledge_qa,3,3,1.000,1.000
-qwen3_5_flash_openrouter,leverage_smoke,reasoning,2,2,1.000,1.000
-qwen3_5_flash_openrouter,leverage_smoke,summarization_transformation,2,2,1.000,1.000

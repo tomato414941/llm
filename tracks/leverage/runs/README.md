@@ -20,13 +20,6 @@ exports.
 
 These files are the current human-readable run notes.
 
-## Historical Project-Judgment Notes
-
-`project-judgment-eval-review.md` and
-`project-judgment-seed-generation-plan.md` are historical notes for a specific
-failure-analysis thread. They should not be read as the reviewed instruction
-dataset distribution plan.
-
 ## Examples
 
 - `predictions.example.jsonl`: minimal prediction-file shape for

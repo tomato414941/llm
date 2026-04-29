@@ -5,32 +5,39 @@ from pathlib import Path
 import pytest
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "runpod" / "runpod_train_once.py"
+COMMON_MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "runpod" / "runpod_common.py"
+COMMON_SPEC = importlib.util.spec_from_file_location("runpod_common", COMMON_MODULE_PATH)
+assert COMMON_SPEC is not None
+runpod_common = importlib.util.module_from_spec(COMMON_SPEC)
+assert COMMON_SPEC.loader is not None
+COMMON_SPEC.loader.exec_module(runpod_common)
+
 SPEC = importlib.util.spec_from_file_location("runpod_train_once", MODULE_PATH)
 assert SPEC is not None
 runpod_train_once = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
 SPEC.loader.exec_module(runpod_train_once)
 
-PodConnection = runpod_train_once.PodConnection
-Runner = runpod_train_once.Runner
-cleanup_pod = runpod_train_once.cleanup_pod
-ensure_before_deadline = runpod_train_once.ensure_before_deadline
+PodConnection = runpod_common.PodConnection
+Runner = runpod_common.Runner
+cleanup_pod = runpod_common.cleanup_pod
+ensure_before_deadline = runpod_common.ensure_before_deadline
 find_created_pod = runpod_train_once.find_created_pod
 output_paths = runpod_train_once.output_paths
-pod_connection = runpod_train_once.pod_connection
+pod_connection = runpod_common.pod_connection
 preflight = runpod_train_once.preflight
-redact = runpod_train_once.redact
+redact = runpod_common.redact
 remote_cuda_preflight_command = runpod_train_once.remote_cuda_preflight_command
 remote_scaling_command = runpod_train_once.remote_scaling_command
 remote_observe_command = runpod_train_once.remote_observe_command
 remote_train_command = runpod_train_once.remote_train_command
 resume_paths = runpod_train_once.resume_paths
-run_with_deadline = runpod_train_once.run_with_deadline
+run_with_deadline = runpod_common.run_with_deadline
 rsync_from_remote_command = runpod_train_once.rsync_from_remote_command
 rsync_to_remote_command = runpod_train_once.rsync_to_remote_command
-runpodctl_create_command = runpod_train_once.runpodctl_create_command
-ssh_base = runpod_train_once.ssh_base
-timestamped_name = runpod_train_once.timestamped_name
+runpodctl_create_command = runpod_common.runpodctl_create_command
+ssh_base = runpod_common.ssh_base
+timestamped_name = runpod_common.timestamped_name
 
 
 def write_config(path: Path) -> None:
@@ -96,7 +103,7 @@ class RecordingRunner:
     ):
         self.commands.append(command)
         self.timeouts.append(timeout)
-        return runpod_train_once.subprocess.CompletedProcess(command, 0, "", "")
+        return runpod_common.subprocess.CompletedProcess(command, 0, "", "")
 
 
 def test_output_paths_reads_train_observe_and_scaling_paths(tmp_path) -> None:
@@ -322,7 +329,7 @@ def test_ssh_base_uses_non_hanging_options(tmp_path) -> None:
 
 def test_run_with_deadline_passes_timeout(tmp_path, monkeypatch) -> None:
     runner = RecordingRunner()
-    monkeypatch.setattr(runpod_train_once.time, "monotonic", lambda: 100.0)
+    monkeypatch.setattr(runpod_common.time, "monotonic", lambda: 100.0)
 
     run_with_deadline(runner, ["echo", "ok"], deadline=130.0)
 

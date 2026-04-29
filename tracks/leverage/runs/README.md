@@ -27,14 +27,12 @@ These files are the current human-readable run notes.
 
 ## Historical Model-Spec Runs
 
-Files matching these patterns are historical comparison artifacts:
+`model-spec-comparison.md` is the committed source of truth for historical
+model-spec comparisons. Do not commit raw `*-model-spec*.jsonl`,
+`*-scores.csv`, or `*-summary.csv` files for that comparison family.
 
-- `*-model-spec*.jsonl`
-- `*-model-spec*-scores.csv`
-- `*-model-spec*-summary.csv`
-
-Keep them only when they explain a decision in `model-spec-comparison.md`.
-Otherwise prefer a short markdown note over adding more raw run files.
+Keep only small example files, such as `leverage-model-spec.example.jsonl`,
+when they document evaluator input or output shape.
 
 ## Instruction-Output Runs
 

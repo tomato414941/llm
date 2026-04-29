@@ -12,7 +12,7 @@ from urllib import error, request
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from runpod_train_once import (
+from runpod_common import (
     DEFAULT_RUNPODCTL,
     DEFAULT_SECRET_PATH,
     CommandError,

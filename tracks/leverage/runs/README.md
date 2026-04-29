@@ -12,12 +12,9 @@ exports.
   the reviewed dataset toward the next capability-seeking LoRA run.
 - `next-lora-data-targets.md`: minimum reviewed-data and eval scale before the
   next capability-seeking LoRA run.
-- `leverage-sft-smoke-runpod.md`: first weight-changing LoRA/SFT smoke run on
-  RunPod, including command, metrics, and cleanup confirmation.
-- `leverage-sft-smoke-runpod-59-failed.md`: 59-row SFT smoke attempt that
-  failed before training because the RunPod SSH port was never exposed.
-- `leverage-sft-smoke-failure-triage.md`: failure classification for the first
-  SFT smoke and the next concrete fix.
+- `leverage-sft-smoke-runpod-59-secure-success.md`: current RunPod Secure Cloud
+  LoRA/SFT smoke result, including command outcome, metrics, and cleanup
+  confirmation.
 - `model-spec-comparison.md`: current summary of `leverage-model-spec.jsonl`
   scoring changes and model comparison results.
 
@@ -82,8 +79,7 @@ For new committed notes, prefer:
 
 Examples:
 
-- `leverage-sft-smoke-runpod.md`
-- `leverage-sft-smoke-failure-triage.md`
+- `leverage-sft-smoke-runpod-59-secure-success.md`
 
 Avoid adding another family of raw `*-scores.csv` / `*-summary.csv` files unless
 the raw files are directly needed for a comparison note.

@@ -62,7 +62,8 @@ a pod:
 uv run python scripts/runpod/run_once.py \
   --dry-run \
   --name llm-leverage-sft-smoke \
-  --gpu-type 'NVIDIA GeForce RTX 3090' \
+  --secure-cloud \
+  --gpu-type 'NVIDIA A40' \
   --template-id runpod-torch-v280 \
   --mem 24 \
   --sync tracks/leverage/configs \
@@ -80,8 +81,8 @@ uv run python scripts/runpod/run_once.py \
 The dry run must show these steps in order:
 
 - local SFT smoke preflight
-- RunPod pod creation with `runpodctl pod create`, Community Cloud public IP,
-  and the configured runtime ceiling
+- RunPod Secure Cloud pod creation with `runpodctl pod create` and the
+  configured runtime ceiling
 - repo, reviewed data, SFT export, and eval task sync
 - CUDA smoke
 - training-package import smoke

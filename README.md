@@ -122,8 +122,8 @@ Reference docs:
 - `tracks/leverage/prompts/README.md`: generation seed prompts.
 - `tracks/leverage/docs/sft-smoke.md`: first LoRA/SFT smoke plan.
 - `tracks/leverage/runs/README.md`: which run records to read first.
-- `tracks/leverage/runs/leverage-sft-smoke-runpod.md`: first RunPod SFT smoke result.
-- `tracks/leverage/runs/leverage-sft-smoke-failure-triage.md`: failure classification.
+- `tracks/leverage/runs/leverage-sft-smoke-runpod-59-secure-success.md`: current
+  RunPod SFT smoke result.
 
 ## RunPod
 
@@ -136,8 +136,10 @@ collection, and cleanup:
 ```bash
 uv run python scripts/runpod/run_once.py --dry-run \
   --name llm-leverage-sft-smoke \
-  --gpu-type 'NVIDIA GeForce RTX 3090' \
+  --secure-cloud \
+  --gpu-type 'NVIDIA A40' \
   --template-id runpod-torch-v280 \
+  --mem 24 \
   --sync tracks/leverage/configs \
   --sync tracks/leverage/datasets \
   --sync tracks/leverage/evals \

@@ -20,12 +20,11 @@ The table uses the shared `capability_area` semantics defined in
 | capability_area | target rows | purpose |
 | --- | ---: | --- |
 | instruction_following | 80 | Basic instruction following, format control, concise answers, and user-intent handling. |
-| reasoning_comparison | 60 | Small reasoning tasks, tradeoff comparison, arithmetic, ordering, and consistency checks. |
+| reasoning | 80 | Small reasoning tasks, tradeoff comparison, arithmetic, ordering, and consistency checks. |
 | coding | 50 | Code-reading, small implementation judgment, tests, and repository workflow. |
-| tool_use_judgment | 40 | Deciding whether to use local tools, APIs, generation, evaluation, or training. |
-| evaluation_critique | 30 | Train/test separation, scoring contracts, baselines, and measurement limits. |
-| resource_cost_judgment | 20 | Bounded GPU/API use, cleanup, cost caps, and checkpoint thinking. |
-| project_specific_policy | 20 | Local leverage-track conventions that are useful but not the dataset center. |
+| knowledge_qa | 30 | Factual answers with appropriate specificity and uncertainty handling. |
+| summarization_transformation | 25 | Summarization, rewrite, extraction, normalization, and format transformation. |
+| tool_use | 35 | Deciding whether to use local tools, APIs, generation, evaluation, or training. |
 
 ## Rules
 
@@ -36,8 +35,8 @@ The table uses the shared `capability_area` semantics defined in
 - Use non-self judging before human review or manual promotion.
 - Exclude label-only, duplicate, malformed, and environment-specific rows from
   the training export.
-- Keep project-specific policy examples below the target allocation unless a
-  later committed plan changes the dataset goal.
+- Keep project-specific policy examples rare and classify them by the broader
+  capability they exercise.
 
 ## Current State
 
@@ -52,6 +51,6 @@ The project-judgment notes explain a local failure-analysis thread from the
 first LoRA smoke. They are historical run records and specific eval notes. They
 are not the distribution plan for the 300-row reviewed dataset.
 
-Use project-judgment failures as one source of seeds for the
-`project_specific_policy`, `evaluation_critique`, `resource_cost_judgment`, and
-`coding` slices only when they fit the target mix above.
+Use project-judgment failures as one source of seeds only when they fit the
+shared capability areas above. Project-specific policy, evaluation critique, and
+resource-cost concerns are operational topics, not top-level capability areas.

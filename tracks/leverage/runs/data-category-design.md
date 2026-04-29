@@ -5,7 +5,16 @@ Date: 2026-04-29
 ## Decision
 
 Use one shared top-level capability classification for seed prompts, reviewed
-instruction rows, and held-out eval tasks.
+instruction rows, and held-out eval tasks:
+
+```text
+instruction_following
+reasoning
+coding
+knowledge_qa
+summarization_transformation
+tool_use
+```
 
 Do not create separate top-level category systems for each layer. The point is
 to compare seed supply, reviewed-data coverage, and eval coverage by the same
@@ -32,6 +41,32 @@ meaning is `capability_area`: the primary ability being trained or evaluated.
 Existing files may keep the `category` field until a schema cleanup is worth the
 extra churn.
 
+## External Basis
+
+These areas are not a formal standard, but they are grounded in common public
+LLM evaluation groupings:
+
+- LiveBench uses broad categories including math, coding, reasoning, language,
+  instruction following, and data analysis.
+- MT-Bench / Chatbot Arena report category slices such as writing, reasoning,
+  math, coding, extraction, STEM, and humanities.
+- IFEval focuses on verifiable instruction following.
+- MTEB includes task types such as classification, retrieval, reranking,
+  clustering, STS, and summarization.
+- BFCL and τ-bench cover function calling, tool use, and tool-agent-user
+  interaction.
+- SWE-bench covers repository-level software engineering tasks.
+
+References:
+
+- HELM: https://arxiv.org/abs/2211.09110
+- BIG-bench: https://arxiv.org/abs/2206.04615
+- LiveBench: https://arxiv.org/abs/2406.19314
+- IFEval: https://arxiv.org/abs/2311.07911
+- Open LLM Leaderboard: https://huggingface.co/docs/leaderboards/open_llm_leaderboard/about
+- BFCL: https://gorilla.cs.berkeley.edu/blogs/8_berkeley_function_calling_leaderboard.html
+- SWE-bench: https://github.com/SWE-bench/SWE-bench
+
 ## Primary Axis
 
 The top-level axis is capability, not domain, format, lifecycle, difficulty,
@@ -45,9 +80,9 @@ If this row disappeared, which capability area's coverage would shrink most?
 
 Examples:
 
-- A RunPod cost calculation is `resource_cost_judgment`, not `runpod`.
+- A RunPod cost calculation is `reasoning`, not `runpod`.
 - A JSON-only answer task is `instruction_following`, not `json`.
-- A held-out scoring-contract critique is `evaluation_critique`, not `eval`.
+- A held-out scoring-contract critique is `reasoning`, not `eval`.
 - A repository test-selection task is `coding`, not `repo`.
 
 Other useful axes, such as output format, difficulty, domain, source model,
@@ -73,26 +108,24 @@ Tie breakers:
 1. Output shape, brevity, constraints, or "do not do X" -> `instruction_following`
 2. Direct factual answer or uncertainty handling -> `knowledge_qa`
 3. Rewrite, summarize, extract, normalize, or reformat text -> `summarization_transformation`
-4. Tradeoff, ranking, arithmetic, consistency, or decision explanation -> `reasoning_comparison`
+4. Tradeoff, ranking, arithmetic, consistency, or decision explanation -> `reasoning`
 5. Code, tests, repository workflow, or patch judgment -> `coding`
-6. Whether to use tools, APIs, generation, evaluation, or training -> `tool_use_judgment`
-7. Scoring, baselines, leakage, held-out data, or measurement validity -> `evaluation_critique`
-8. Cost, runtime, GPU/API budget, checkpoints, cleanup, or resource limits -> `resource_cost_judgment`
-9. Local leverage-track convention with no broader capability center -> `project_specific_policy`
+6. Whether to use tools, APIs, generation, evaluation, or training -> `tool_use`
+
+If a row is mainly about evaluation design, resource cost, or local project
+policy, still choose the underlying capability area. Track those operational
+concerns as separate metadata only if they become necessary.
 
 ## Shared Capability Areas
 
 | capability_area | definition |
 | --- | --- |
 | instruction_following | Follow explicit user constraints, output formats, brevity requirements, and refusal to over-answer. |
-| reasoning_comparison | Compare options, do small calculations, preserve ordering, and explain tradeoffs. |
+| reasoning | Compare options, do small calculations, preserve ordering, and explain tradeoffs. |
 | coding | Understand code or repository tasks, propose small changes, choose tests, and avoid unrelated edits. |
 | knowledge_qa | Answer factual questions with appropriate specificity and uncertainty. |
 | summarization_transformation | Summarize, rewrite, extract, normalize, or transform text without changing meaning. |
-| tool_use_judgment | Decide whether to use local tools, external APIs, generation, evaluation, or training. |
-| evaluation_critique | Identify measurement flaws, scoring contracts, baselines, leakage, and evaluation limits. |
-| resource_cost_judgment | Reason about bounded compute/API use, cost caps, runtime limits, checkpoints, and cleanup. |
-| project_specific_policy | Local leverage-track conventions that should remain a small slice, not the dataset center. |
+| tool_use | Decide whether to use local tools, external APIs, generation, evaluation, or training. |
 
 ## Rules
 

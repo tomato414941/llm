@@ -15,7 +15,8 @@ tracked triage record.
 
 The first LoRA smoke did not improve capability. More importantly, the eval
 failures show that the next blocker is not "train longer". The dominant issue
-is output formatting from the local generation path.
+is that the local generation path was not consistently extracting Qwen's final
+response according to the model's thinking/final-answer contract.
 
 Overall scores:
 
@@ -25,26 +26,26 @@ qwen3-0.6b-base,30,3,0.100
 qwen3-0.6b-lora-smoke,30,2,0.067
 ```
 
-The cleanup effect was verified by rescoring the existing saved predictions:
+The Qwen final-response parsing effect was verified against the existing saved
+predictions:
 
 ```bash
 uv run python -m llm.leverage.evaluate_sft_adapter \
-  --rescore-predictions outputs/leverage-sft-smoke/post-training-predictions.jsonl
+  --parse-predictions outputs/leverage-sft-smoke/post-training-predictions.jsonl
 ```
 
-If generated responses are post-processed to strip `<think>...</think>`, orphan
-`</think>` tags, and leading `assistant` / `user` role labels, the score changes
-to:
+If generated responses are parsed as Qwen final responses after the thinking
+block, the score changes to:
 
 ```csv
-model,passed_count_before,passed_count_after_strip,recovered_tasks
-qwen3-0.6b-base,3,4,qa_capital_france
+model,raw_passed_count,qwen_final_passed_count,recovered_tasks
+qwen3-0.6b-base,3,8,qa_capital_france; instruction_json; reasoning_order; coding_sql_count; instruction_lowercase
 qwen3-0.6b-lora-smoke,2,8,instruction_json; reasoning_order; coding_sql_count; qa_author; instruction_lowercase; pj_repo_001
 ```
 
 ## Classification
 
-### 1. Prompt / Decoding / Output Cleanup
+### 1. Qwen Output Contract Handling
 
 This is the top priority.
 
@@ -52,7 +53,7 @@ Symptoms:
 
 - Many responses include `<think>`, `</think>`, or leading role labels.
 - Several semantically correct answers fail exact or regex scoring only because
-  the response includes wrapper text.
+  the evaluator used the whole decoded text instead of Qwen's final response.
 - The adapter especially tends to emit `assistant` before the final answer.
 
 Examples:
@@ -66,9 +67,9 @@ Examples:
 
 Decision:
 
-Add a deterministic response-cleaning step in the local SFT adapter eval path
-before scoring. Also inspect whether `tokenizer.apply_chat_template` is causing
-role labels to be learned or continued in generation.
+Render Qwen prompts with `enable_thinking=False` when the tokenizer supports it,
+and parse generated text with `extract_qwen_final_response` before scoring. This
+is not model improvement; it is respecting the model output contract.
 
 ### 2. Eval Strictness
 
@@ -91,12 +92,14 @@ Examples:
 
 Decision:
 
-Do not loosen every eval yet. First normalize generation output. After that,
-review only tasks that still fail despite a clean final answer.
+Do not loosen every eval yet. First parse Qwen final responses correctly. After
+that, review only tasks that still fail despite a correctly extracted final
+answer.
 
 ### 3. Data / Capability Gap
 
-Project-judgment tasks are still mostly real failures after cleanup.
+Project-judgment tasks are still mostly real failures after Qwen final-response
+parsing.
 
 Symptoms:
 
@@ -114,16 +117,19 @@ Examples:
 
 Decision:
 
-After output cleanup is fixed, build the next reviewed dataset slice around
-project-judgment examples. Keep it small, but cover experiment controls,
-RunPod cost policy, track classification, repo hygiene, and eval design.
+After Qwen final-response parsing is fixed, build the next reviewed dataset
+slice around project-judgment examples. Keep it small, but cover experiment
+controls, RunPod cost policy, track classification, repo hygiene, and eval
+design.
 
 ## Next Action
 
-Output cleanup is now implemented inside `llm.leverage.evaluate_sft_adapter`.
-Before spending on another RunPod run, use `--rescore-predictions` to verify
-whether a saved prediction file is failing because of formatting or because the
-model answer is actually wrong.
+Qwen final-response parsing is now implemented inside
+`llm.leverage.evaluate_sft_adapter`. Before spending on another RunPod run, use
+`--parse-predictions` to verify whether a saved prediction file is failing
+because the final response was not extracted or because the model answer is
+actually wrong.
 
-The next data iteration should focus on project-judgment examples. After cleanup,
-the smoke adapter still passes only `1/18` project-judgment tasks.
+The next data iteration should focus on project-judgment examples. After Qwen
+final-response parsing, the smoke adapter still passes only `1/18`
+project-judgment tasks.

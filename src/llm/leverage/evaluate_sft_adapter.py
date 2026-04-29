@@ -13,7 +13,7 @@ from llm.leverage.evaluate import (
     write_results,
     write_summary,
 )
-from llm.leverage.train_sft_smoke import REQUIRED_PACKAGES, render_messages
+from llm.leverage.train_sft_smoke import REQUIRED_PACKAGES
 
 
 DEFAULT_CONFIG = Path("tracks/leverage/configs/leverage-sft-smoke.toml")
@@ -88,21 +88,36 @@ def prediction_paths(output_root: Path) -> tuple[Path, Path, Path]:
     )
 
 
-def task_messages(prompt: str, system_prompt: str) -> dict[str, Any]:
-    return {
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt},
-        ]
-    }
+def task_messages(prompt: str, system_prompt: str) -> list[dict[str, str]]:
+    return [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": prompt},
+    ]
 
 
-def clean_generated_response(response: str) -> str:
-    cleaned = re.sub(r"<think>.*?</think>", "", response, flags=re.DOTALL)
-    cleaned = cleaned.replace("<think>", "").replace("</think>", "")
-    cleaned = cleaned.strip()
-    cleaned = re.sub(r"^(assistant|user)\s*\n+", "", cleaned)
-    return cleaned.strip()
+def render_qwen_messages(messages: list[dict[str, str]], tokenizer: Any) -> str:
+    if hasattr(tokenizer, "apply_chat_template") and tokenizer.chat_template:
+        try:
+            return tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+                enable_thinking=False,
+            )
+        except TypeError:
+            return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    return "\n".join(f"{message['role']}: {message['content']}" for message in messages) + "\nassistant:"
+
+
+def extract_qwen_final_response(response: str) -> str:
+    final = response
+    if "</think>" in final:
+        final = final.rsplit("</think>", 1)[1]
+    final = re.sub(r"<think>.*?</think>", "", final, flags=re.DOTALL)
+    final = final.replace("<think>", "")
+    final = final.strip()
+    final = re.sub(r"^(assistant|user)\s*\n+", "", final)
+    return final.strip()
 
 
 def load_model_pair(
@@ -139,7 +154,7 @@ def generate_text(
     device: str,
 ) -> str:
     torch = modules["torch"]
-    text = render_messages(task_messages(prompt, system_prompt), tokenizer)
+    text = render_qwen_messages(task_messages(prompt, system_prompt), tokenizer)
     encoded = tokenizer(text, return_tensors="pt").to(device)
     input_length = encoded["input_ids"].shape[-1]
     with torch.no_grad():
@@ -151,7 +166,7 @@ def generate_text(
             eos_token_id=tokenizer.eos_token_id,
         )
     new_tokens = generated[0][input_length:]
-    return clean_generated_response(tokenizer.decode(new_tokens, skip_special_tokens=True))
+    return extract_qwen_final_response(tokenizer.decode(new_tokens, skip_special_tokens=True))
 
 
 def write_predictions(path: Path, predictions: list[Prediction]) -> None:
@@ -171,34 +186,36 @@ def write_predictions(path: Path, predictions: list[Prediction]) -> None:
             )
 
 
-def clean_predictions(predictions: list[Prediction]) -> list[Prediction]:
+def parse_qwen_final_predictions(predictions: list[Prediction]) -> list[Prediction]:
     return [
         Prediction(
             task_id=prediction.task_id,
             model=prediction.model,
-            response=clean_generated_response(prediction.response),
+            response=extract_qwen_final_response(prediction.response),
         )
         for prediction in predictions
     ]
 
 
-def rescore_predictions(
+def parse_predictions(
     *,
     tasks_paths: list[Path],
     predictions_path: Path,
     output_root: Path,
 ) -> list[str]:
     tasks = load_task_suites(tasks_paths)
-    predictions = clean_predictions(load_predictions(predictions_path, set(tasks)))
-    cleaned_predictions_path, scores_path, summary_path = prediction_paths(output_root)
-    cleaned_predictions_path = output_root / "post-training-predictions.cleaned.jsonl"
-    write_predictions(cleaned_predictions_path, predictions)
+    predictions = parse_qwen_final_predictions(load_predictions(predictions_path, set(tasks)))
+    parsed_predictions_path, scores_path, summary_path = prediction_paths(output_root)
+    parsed_predictions_path = output_root / "post-training-predictions.qwen-final.jsonl"
+    scores_path = output_root / "post-training-scores.qwen-final.csv"
+    summary_path = output_root / "post-training-summary.qwen-final.csv"
+    write_predictions(parsed_predictions_path, predictions)
     results = evaluate_predictions(tasks, predictions)
     write_results(scores_path, results)
     write_summary(summary_path, results)
     return [
-        f"rescored {len(predictions)} predictions from {predictions_path}",
-        f"wrote cleaned predictions: {cleaned_predictions_path}",
+        f"parsed and scored {len(predictions)} Qwen final responses from {predictions_path}",
+        f"wrote parsed predictions: {parsed_predictions_path}",
         f"wrote scores: {scores_path}",
         f"wrote summary: {summary_path}",
     ]
@@ -300,7 +317,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--system-prompt", default=DEFAULT_SYSTEM_PROMPT)
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--rescore-predictions", type=Path)
+    parser.add_argument("--parse-predictions", type=Path)
     return parser.parse_args()
 
 
@@ -308,10 +325,10 @@ def main() -> int:
     args = parse_args()
     defaults = config_defaults(args.config)
     tasks = args.tasks if args.tasks is not None else defaults["tasks"]
-    if args.rescore_predictions is not None:
-        for line in rescore_predictions(
+    if args.parse_predictions is not None:
+        for line in parse_predictions(
             tasks_paths=tasks,
-            predictions_path=args.rescore_predictions,
+            predictions_path=args.parse_predictions,
             output_root=args.output_root,
         ):
             print(line)

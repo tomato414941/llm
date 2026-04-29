@@ -6,12 +6,13 @@ import pytest
 
 from llm.leverage import evaluate_sft_adapter
 from llm.leverage.evaluate_sft_adapter import (
-    clean_generated_response,
-    clean_predictions,
     config_defaults,
+    extract_qwen_final_response,
+    parse_predictions,
+    parse_qwen_final_predictions,
     prediction_paths,
     require_inference_packages,
-    rescore_predictions,
+    render_qwen_messages,
     run_eval,
     write_predictions,
 )
@@ -155,16 +156,42 @@ def test_write_predictions_uses_existing_evaluate_contract(tmp_path: Path) -> No
         ("<think>scratch work</think>\n\n{\"status\":\"ok\"}", "{\"status\":\"ok\"}"),
     ],
 )
-def test_clean_generated_response_removes_thinking_and_role_wrappers(raw: str, expected: str) -> None:
-    assert clean_generated_response(raw) == expected
+def test_extract_qwen_final_response_returns_content_after_thinking_block(raw: str, expected: str) -> None:
+    assert extract_qwen_final_response(raw) == expected
 
 
-def test_clean_predictions_preserves_model_and_task_id() -> None:
-    cleaned = clean_predictions(
+def test_parse_qwen_final_predictions_preserves_model_and_task_id() -> None:
+    parsed = parse_qwen_final_predictions(
         [Prediction(task_id="task-1", model="adapter", response="assistant\n</think>\n\nok")]
     )
 
-    assert cleaned == [Prediction(task_id="task-1", model="adapter", response="ok")]
+    assert parsed == [Prediction(task_id="task-1", model="adapter", response="ok")]
+
+
+def test_render_qwen_messages_disables_thinking_when_tokenizer_supports_it() -> None:
+    class Tokenizer:
+        chat_template = "template"
+
+        def apply_chat_template(self, messages, *, tokenize, add_generation_prompt, enable_thinking):
+            assert messages == [{"role": "user", "content": "Return ok."}]
+            assert tokenize is False
+            assert add_generation_prompt is True
+            assert enable_thinking is False
+            return "rendered"
+
+    assert render_qwen_messages([{"role": "user", "content": "Return ok."}], Tokenizer()) == "rendered"
+
+
+def test_render_qwen_messages_falls_back_when_enable_thinking_is_not_supported() -> None:
+    class Tokenizer:
+        chat_template = "template"
+
+        def apply_chat_template(self, messages, *, tokenize, add_generation_prompt):
+            assert tokenize is False
+            assert add_generation_prompt is True
+            return "fallback-rendered"
+
+    assert render_qwen_messages([{"role": "user", "content": "Return ok."}], Tokenizer()) == "fallback-rendered"
 
 
 def test_written_predictions_can_be_scored_by_existing_evaluator(tmp_path: Path) -> None:
@@ -202,7 +229,7 @@ def test_written_predictions_can_be_scored_by_existing_evaluator(tmp_path: Path)
     assert rows[1]["passed"] == "true"
 
 
-def test_rescore_predictions_writes_cleaned_predictions_scores_and_summary(tmp_path: Path) -> None:
+def test_parse_predictions_writes_qwen_final_predictions_scores_and_summary(tmp_path: Path) -> None:
     task_path = tmp_path / "tasks.jsonl"
     write_jsonl(
         task_path,
@@ -219,17 +246,17 @@ def test_rescore_predictions_writes_cleaned_predictions_scores_and_summary(tmp_p
     write_predictions(predictions_path, [Prediction(task_id="task-1", model="adapter", response="</think>\n\nok")])
     output_root = tmp_path / "outputs"
 
-    lines = rescore_predictions(
+    lines = parse_predictions(
         tasks_paths=[task_path],
         predictions_path=predictions_path,
         output_root=output_root,
     )
 
-    assert any("rescored 1 predictions" in line for line in lines)
-    assert (output_root / "post-training-predictions.cleaned.jsonl").exists()
-    rows = read_csv(output_root / "post-training-scores.csv")
+    assert any("parsed and scored 1 Qwen final responses" in line for line in lines)
+    assert (output_root / "post-training-predictions.qwen-final.jsonl").exists()
+    rows = read_csv(output_root / "post-training-scores.qwen-final.csv")
     assert rows[0]["passed"] == "true"
-    summary = read_csv(output_root / "post-training-summary.csv")
+    summary = read_csv(output_root / "post-training-summary.qwen-final.csv")
     assert summary[0]["passed_count"] == "1"
 
 

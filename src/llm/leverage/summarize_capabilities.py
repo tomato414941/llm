@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from llm.leverage.capabilities import ALLOWED_CAPABILITIES
+from llm.leverage.validate_reviewed_instructions import TASK_SHAPES
 
 
 DEFAULT_SEEDS = Path("tracks/leverage/prompts/instruction-seeds.jsonl")
@@ -17,6 +18,7 @@ DEFAULT_EVALS = [
 ]
 DEFAULT_OUTPUT = Path("tracks/leverage/runs/capability-distribution.csv")
 DEFAULT_PROVENANCE_OUTPUT = Path("tracks/leverage/runs/reviewed-provenance-distribution.csv")
+DEFAULT_TASK_SHAPE_OUTPUT = Path("tracks/leverage/runs/reviewed-task-shape-distribution.csv")
 REVIEWED_TARGETS = {
     "instruction_following": 80,
     "reasoning": 80,
@@ -110,6 +112,26 @@ def provenance_rows(reviewed_path: Path) -> list[dict[str, str]]:
     ]
 
 
+def task_shape_rows(reviewed_path: Path) -> list[dict[str, str]]:
+    counts: Counter[tuple[str, str]] = Counter()
+    for line_number, row in load_jsonl(reviewed_path):
+        capability = row.get("capability")
+        if not isinstance(capability, str) or not capability:
+            raise ValueError(f"{reviewed_path}:{line_number}: capability must be a non-empty string")
+        if capability not in ALLOWED_CAPABILITIES:
+            raise ValueError(f"{reviewed_path}:{line_number}: unknown capability: {capability}")
+        task_shape = row.get("task_shape")
+        if not isinstance(task_shape, str) or not task_shape:
+            raise ValueError(f"{reviewed_path}:{line_number}: task_shape must be a non-empty string")
+        if task_shape not in TASK_SHAPES:
+            raise ValueError(f"{reviewed_path}:{line_number}: unknown task_shape: {task_shape}")
+        counts[(capability, task_shape)] += 1
+    return [
+        {"capability": capability, "task_shape": task_shape, "count": str(count)}
+        for (capability, task_shape), count in sorted(counts.items())
+    ]
+
+
 def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = [
@@ -134,6 +156,14 @@ def write_provenance_csv(path: Path, rows: list[dict[str, str]]) -> None:
         writer.writerows(rows)
 
 
+def write_task_shape_csv(path: Path, rows: list[dict[str, str]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as output_file:
+        writer = csv.DictWriter(output_file, fieldnames=["capability", "task_shape", "count"])
+        writer.writeheader()
+        writer.writerows(rows)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--seeds", type=Path, default=DEFAULT_SEEDS)
@@ -141,6 +171,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--eval", type=Path, action="append", dest="evals", default=DEFAULT_EVALS)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--provenance-output", type=Path, default=DEFAULT_PROVENANCE_OUTPUT)
+    parser.add_argument("--task-shape-output", type=Path, default=DEFAULT_TASK_SHAPE_OUTPUT)
     return parser.parse_args()
 
 
@@ -149,8 +180,10 @@ def main() -> int:
     rows = summary_rows(seeds_path=args.seeds, reviewed_path=args.reviewed, eval_paths=args.evals)
     write_csv(args.output, rows)
     write_provenance_csv(args.provenance_output, provenance_rows(args.reviewed))
+    write_task_shape_csv(args.task_shape_output, task_shape_rows(args.reviewed))
     print(f"wrote capability distribution: {args.output}")
     print(f"wrote reviewed provenance distribution: {args.provenance_output}")
+    print(f"wrote reviewed task-shape distribution: {args.task_shape_output}")
     return 0
 
 

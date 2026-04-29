@@ -133,3 +133,30 @@ def test_write_provenance_csv_writes_stable_columns(tmp_path: Path) -> None:
 
     with output.open(newline="", encoding="utf-8") as input_file:
         assert list(csv.DictReader(input_file)) == rows
+
+
+def test_task_shape_rows_counts_capability_and_task_shape(tmp_path: Path) -> None:
+    reviewed = tmp_path / "reviewed.jsonl"
+    write_jsonl(
+        reviewed,
+        [
+            {"id": "row-1", "capability": "coding", "task_shape": "debugging"},
+            {"id": "row-2", "capability": "coding", "task_shape": "debugging"},
+            {"id": "row-3", "capability": "reasoning", "task_shape": "comparison"},
+        ],
+    )
+
+    assert summarize_capabilities.task_shape_rows(reviewed) == [
+        {"capability": "coding", "task_shape": "debugging", "count": "2"},
+        {"capability": "reasoning", "task_shape": "comparison", "count": "1"},
+    ]
+
+
+def test_write_task_shape_csv_writes_stable_columns(tmp_path: Path) -> None:
+    output = tmp_path / "task_shapes.csv"
+    rows = [{"capability": "coding", "task_shape": "debugging", "count": "2"}]
+
+    summarize_capabilities.write_task_shape_csv(output, rows)
+
+    with output.open(newline="", encoding="utf-8") as input_file:
+        assert list(csv.DictReader(input_file)) == rows

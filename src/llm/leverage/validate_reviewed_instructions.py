@@ -7,11 +7,22 @@ from typing import Any
 from llm.leverage.capabilities import ALLOWED_CAPABILITIES
 
 
-REQUIRED_ROW_FIELDS = {"id", "source_prompt_id", "capability", "messages", "review"}
+REQUIRED_ROW_FIELDS = {"id", "source_prompt_id", "capability", "task_shape", "messages", "review"}
 REQUIRED_ROLES = ["system", "user", "assistant"]
 ACCEPTED_STATUS = "accepted_instruction"
 REVIEW_SOURCES = {"judge_accepted_candidate", "edited_candidate", "manual", "historical_reviewed"}
 JUDGE_DECISIONS = {"accept", "needs_edit", "reject", "parse_error"}
+TASK_SHAPES = {
+    "comparison",
+    "debugging",
+    "decision",
+    "direct_answer",
+    "explanation",
+    "extraction_transformation",
+    "implementation",
+    "planning",
+    "rewrite",
+}
 SECRET_MARKERS = [
     "OPENAI_API_KEY",
     "RUNPOD_API_KEY",
@@ -93,6 +104,12 @@ def validate_row(
         errors.append("capability must be a non-empty string")
     elif capability not in ALLOWED_CAPABILITIES:
         errors.append(f"capability must be one of {sorted(ALLOWED_CAPABILITIES)}")
+
+    task_shape = row.get("task_shape")
+    if not isinstance(task_shape, str) or not task_shape:
+        errors.append("task_shape must be a non-empty string")
+    elif task_shape not in TASK_SHAPES:
+        errors.append(f"task_shape must be one of {sorted(TASK_SHAPES)}")
 
     messages = row.get("messages")
     if not isinstance(messages, list):

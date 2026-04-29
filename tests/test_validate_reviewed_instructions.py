@@ -16,6 +16,7 @@ def valid_row(**overrides: object) -> dict[str, object]:
         "id": "instr_test_001",
         "source_prompt_id": "lt_seed_test",
         "capability": "tool_use",
+        "task_shape": "explanation",
         "messages": [
             {"role": "system", "content": "Answer concisely."},
             {"role": "user", "content": "Explain when to use hosted inference."},
@@ -134,3 +135,14 @@ def test_validate_file_rejects_secret_like_openai_key(tmp_path: Path) -> None:
     errors = validate_file(dataset, eval_dir=eval_dir)
 
     assert any("secret marker" in error for error in errors)
+
+
+def test_validate_file_rejects_unknown_task_shape(tmp_path: Path) -> None:
+    dataset = tmp_path / "reviewed_instructions.jsonl"
+    eval_dir = tmp_path / "evals"
+    eval_dir.mkdir()
+    write_jsonl(dataset, [valid_row(task_shape="legacy_shape")])
+
+    errors = validate_file(dataset, eval_dir=eval_dir)
+
+    assert any("task_shape must be one of" in error for error in errors)

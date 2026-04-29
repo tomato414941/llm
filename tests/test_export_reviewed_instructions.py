@@ -19,6 +19,7 @@ def reviewed_instruction_row(**overrides: object) -> dict[str, object]:
         "id": "instr_test_001",
         "source_prompt_id": "lt_seed_test",
         "capability": "tool_use",
+        "task_shape": "explanation",
         "messages": [
             {"role": "system", "content": "Answer concisely."},
             {"role": "user", "content": "Explain when to use hosted inference."},

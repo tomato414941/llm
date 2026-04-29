@@ -38,6 +38,10 @@ seed prompts
   `deepseek-ai/DeepSeek-R1-Distill-Llama-8B`
 - Challenging open-weight target: `openai/gpt-oss-20b`
 
+Prioritize the Qwen path before side-model smoke tests: 300 reviewed rows for a
+9B readiness run, 1,000 for a pilot LoRA, and 3,000+ for the first serious
+`Qwen/Qwen3.5-9B` capability-seeking run.
+
 ## Keep It Simple
 
 Committed files should either define the loop, provide a small reviewed dataset

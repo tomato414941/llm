@@ -4,15 +4,15 @@ Date: 2026-04-29
 
 ## Purpose
 
-Define the reviewed-instruction mix needed before the next capability-seeking
-LoRA run. This file answers what kind of reviewed data to add; the run gate is
-defined in `next-lora-run-gate.md`.
+Define the reviewed-instruction mix needed for the next `Qwen/Qwen3.5-9B`
+readiness run. This file answers what kind of reviewed data to add; the run gate
+is defined in `next-lora-run-gate.md`.
 
 The dataset should be general-purpose instruction data, not a project-specific
 agent-policy dataset. Project-judgment examples are useful, but they are only
 one slice of the target mix.
 
-## Target Mix
+## 300-Row Readiness Mix
 
 Target reviewed rows: 300
 
@@ -26,6 +26,10 @@ Use the shared `capability` semantics defined in `data-category-design.md`.
 | knowledge_qa | 30 | Factual answers with appropriate specificity and uncertainty handling. |
 | summarization_transformation | 25 | Summarization, rewrite, extraction, normalization, and format transformation. |
 | tool_use | 35 | Deciding whether to use local tools, APIs, generation, evaluation, or training. |
+
+For 1,000-row and 3,000-row targets, keep the same rough capability balance
+unless evaluation failures show a clear reason to rebalance. Do not let
+project-specific policy examples dominate any larger dataset stage.
 
 ## Current State
 

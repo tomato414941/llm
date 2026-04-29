@@ -28,6 +28,7 @@ def args(tmp_path: Path) -> Namespace:
         api_key=None,
         secret_path=tmp_path / "openrouter",
         seeds=Path("tracks/leverage/prompts/leverage-training-seed-v0.jsonl"),
+        seed_id=[],
         model="qwen/qwen3.5-flash-02-23",
         model_label="qwen3-5-flash-openrouter",
         output=Path("tracks/leverage/runs/instruction-outputs/qwen.jsonl"),
@@ -91,6 +92,17 @@ def test_collect_command_can_resume_without_overwrite(tmp_path: Path) -> None:
 
     assert "--resume" in command
     assert "--overwrite" not in command
+
+
+def test_collect_command_can_target_seed_ids(tmp_path: Path) -> None:
+    run_args = args(tmp_path)
+    run_args.seed_id = ["lt_seed_051", "lt_seed_052"]
+
+    command = collect_command(run_args)
+
+    assert command.count("--seed-id") == 2
+    assert command[command.index("--seed-id") + 1] == "lt_seed_051"
+    assert command[command.index("--seed-id", command.index("--seed-id") + 1) + 1] == "lt_seed_052"
 
 
 def test_collect_env_keeps_api_key_out_of_process_arguments(tmp_path: Path) -> None:

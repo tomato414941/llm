@@ -63,6 +63,8 @@ def collect_command(args: argparse.Namespace) -> list[str]:
         "--timeout-seconds",
         str(args.timeout_seconds),
     ]
+    for seed_id in args.seed_id:
+        command.extend(["--seed-id", seed_id])
     if args.resume:
         command.append("--resume")
     else:
@@ -115,6 +117,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--api-key")
     parser.add_argument("--secret-path", type=Path, default=DEFAULT_SECRET_PATH)
     parser.add_argument("--seeds", type=Path, default=DEFAULT_SEEDS)
+    parser.add_argument("--seed-id", action="append", default=[])
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--model-label", default=DEFAULT_MODEL_LABEL)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)

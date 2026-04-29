@@ -84,6 +84,18 @@ def load_seeds(path: Path) -> dict[str, InstructionSeed]:
     return seeds
 
 
+def select_seeds(seeds: dict[str, InstructionSeed], seed_ids: list[str]) -> dict[str, InstructionSeed]:
+    if not seed_ids:
+        return seeds
+    selected: dict[str, InstructionSeed] = {}
+    for seed_id in seed_ids:
+        try:
+            selected[seed_id] = seeds[seed_id]
+        except KeyError as exc:
+            raise ValueError(f"unknown seed id: {seed_id}") from exc
+    return selected
+
+
 def build_payload(
     seed: InstructionSeed,
     *,
@@ -197,6 +209,7 @@ def environment_value(name: str) -> str:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--seeds", type=Path, required=True)
+    parser.add_argument("--seed-id", action="append", default=[])
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--model-label", default=DEFAULT_MODEL_LABEL)
     parser.add_argument("--output", type=Path, required=True)
@@ -239,7 +252,7 @@ def validate_args(args: argparse.Namespace) -> None:
 def main() -> None:
     args = parse_args()
     validate_args(args)
-    seeds = load_seeds(args.seeds)
+    seeds = select_seeds(load_seeds(args.seeds), args.seed_id)
     base_url = environment_value("OPENAI_BASE_URL")
     api_key = environment_value("OPENAI_API_KEY")
     client = chat_completions_client(base_url, api_key, args.timeout_seconds)

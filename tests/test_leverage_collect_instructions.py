@@ -52,6 +52,32 @@ def test_load_seeds_rejects_duplicate_ids(tmp_path: Path) -> None:
         collect_instructions.load_seeds(path)
 
 
+def test_select_seeds_filters_by_requested_ids(tmp_path: Path) -> None:
+    path = tmp_path / "seeds.jsonl"
+    write_jsonl(
+        path,
+        [
+            seed_payload(id="lt_seed_001"),
+            seed_payload(id="lt_seed_002"),
+        ],
+    )
+
+    selected = collect_instructions.select_seeds(
+        collect_instructions.load_seeds(path),
+        ["lt_seed_002"],
+    )
+
+    assert list(selected) == ["lt_seed_002"]
+
+
+def test_select_seeds_rejects_unknown_id(tmp_path: Path) -> None:
+    path = tmp_path / "seeds.jsonl"
+    write_jsonl(path, [seed_payload(id="lt_seed_001")])
+
+    with pytest.raises(ValueError, match="unknown seed id: missing"):
+        collect_instructions.select_seeds(collect_instructions.load_seeds(path), ["missing"])
+
+
 def test_build_payload_uses_seed_system_prompt_and_user_prompt() -> None:
     seed = collect_instructions.InstructionSeed(
         id="lt_seed_test",

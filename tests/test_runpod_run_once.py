@@ -29,6 +29,7 @@ rsync_from_remote_command = runpod_run_once.rsync_from_remote_command
 rsync_to_remote_command = runpod_run_once.rsync_to_remote_command
 runpodctl_create_command = runpod_run_once.runpodctl_create_command
 split_shell_command = runpod_run_once.split_shell_command
+step_name = runpod_run_once.step_name
 
 
 def write_repo_shape(tmp_path: Path) -> None:
@@ -137,6 +138,7 @@ def test_rsync_to_remote_syncs_default_and_explicit_sources(tmp_path: Path) -> N
     assert "tracks/leverage/configs" in command
     assert "tracks/leverage/evals" in command
     assert "tracks/from-scratch/data/processed/tokens.pt" not in command
+    assert step_name(command) == "repo_sync"
 
 
 def test_rsync_from_remote_fetches_outputs(tmp_path: Path) -> None:
@@ -148,6 +150,7 @@ def test_rsync_from_remote_fetches_outputs(tmp_path: Path) -> None:
     assert "--no-group" in command
     assert "root@host:/workspace/llm/outputs/leverage-sft-smoke" in command
     assert command[-1] == f"{tmp_path / 'outputs'}/"
+    assert step_name(command) == "output_sync"
 
 
 def test_normalize_pods_formats_v2_port_mappings() -> None:

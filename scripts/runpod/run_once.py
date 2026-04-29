@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 import argparse
+from datetime import datetime, timezone
+import json
 from pathlib import Path
 import shlex
 import sys
+import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -54,6 +57,105 @@ def split_shell_command(command: str) -> list[str]:
     if not parts:
         raise ValueError("command must not be empty")
     return parts
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def step_name(command: list[str]) -> str:
+    if command[:3] == ["rsync", "-az", "--timeout"]:
+        if command[-1].startswith("root@"):
+            return "repo_sync"
+        return "output_sync"
+    if command and Path(command[0]).name == "runpodctl":
+        if command[1:3] == ["pod", "create"]:
+            return "pod_create"
+        if command[1:3] == ["pod", "delete"]:
+            return "pod_delete"
+        return "runpodctl"
+    text = " ".join(command)
+    if "remote_transport_setup_command" in text:
+        return "transport_setup"
+    if "command -v rsync" in text:
+        return "transport_setup"
+    if "mkdir -p" in text:
+        return "remote_mkdir"
+    if "uv sync --extra dev" in text:
+        return "setup"
+    if "cuda_available=" in text:
+        return "cuda_smoke"
+    if "train_sft_smoke" in text:
+        return "train"
+    if "evaluate_sft_adapter" in text:
+        return "eval"
+    if "training packages import ok" in text:
+        return "package_import_smoke"
+    return "command"
+
+
+class TimingRecorder:
+    def __init__(self, output_path: Path | None, *, dry_run: bool, pod_name: str) -> None:
+        self.output_path = output_path
+        self.data: dict[str, object] = {
+            "pod_name": pod_name,
+            "dry_run": dry_run,
+            "started_at": utc_now(),
+            "finished_at": None,
+            "status": "running",
+            "total_seconds": None,
+            "steps": [],
+        }
+        self._start = time.monotonic()
+
+    def set_pod_id(self, pod_id: str | None) -> None:
+        self.data["pod_id"] = pod_id
+
+    def run(
+        self,
+        runner: Runner,
+        command: list[str],
+        *,
+        cwd: Path | None,
+        deadline: float | None,
+        name: str | None = None,
+        capture: bool | None = None,
+        check: bool = True,
+    ):
+        step: dict[str, object] = {
+            "name": name or step_name(command),
+            "started_at": utc_now(),
+            "duration_seconds": None,
+            "returncode": None,
+        }
+        started = time.monotonic()
+        try:
+            completed = run_with_deadline(
+                runner,
+                command,
+                cwd=cwd,
+                deadline=deadline,
+                capture=capture,
+                check=check,
+            )
+            step["returncode"] = completed.returncode
+            return completed
+        finally:
+            step["finished_at"] = utc_now()
+            step["duration_seconds"] = round(time.monotonic() - started, 3)
+            self.data["steps"].append(step)
+
+    def finish(self, status: str) -> None:
+        self.data["status"] = status
+        self.data["finished_at"] = utc_now()
+        self.data["total_seconds"] = round(time.monotonic() - self._start, 3)
+        self.write()
+
+    def write(self) -> None:
+        if self.output_path is None:
+            return
+        self.output_path.parent.mkdir(parents=True, exist_ok=True)
+        self.output_path.write_text(json.dumps(self.data, indent=2) + "\n", encoding="utf-8")
 
 
 def rsync_to_remote_command(args: argparse.Namespace, connection: PodConnection) -> list[str]:
@@ -179,6 +281,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--keep-pod", action="store_true")
     parser.add_argument("--keep-pod-on-failure", action="store_true")
+    parser.add_argument("--timings-output", type=Path)
     return parser.parse_args()
 
 
@@ -189,9 +292,20 @@ def main() -> int:
     if args.pod_name is None:
         args.pod_name = timestamped_name(args.name)
     preflight(args)
+    timings_path = args.timings_output
+    if timings_path is None and args.output:
+        timings_path = args.repo_root / Path(args.output[0]) / "runpod-timings.json"
+    timings = TimingRecorder(timings_path, dry_run=args.dry_run, pod_name=args.pod_name)
 
+    local_runner = Runner(dry_run=args.dry_run, secrets=[])
     for command in args.local:
-        Runner(dry_run=args.dry_run, secrets=[]).run(split_shell_command(command), cwd=args.repo_root)
+        timings.run(
+            local_runner,
+            split_shell_command(command),
+            cwd=args.repo_root,
+            deadline=None,
+            name="local_preflight",
+        )
 
     api_key = "" if args.dry_run else load_api_key(args.secret_path)
     public_key = ""
@@ -212,7 +326,13 @@ def main() -> int:
         ensure_before_deadline(deadline)
         if not args.dry_run:
             pods_before_create = list_pods(runner, args)
-        run_with_deadline(runner, runpodctl_create_command(args), cwd=args.repo_root, deadline=deadline)
+        timings.run(
+            runner,
+            runpodctl_create_command(args),
+            cwd=args.repo_root,
+            deadline=deadline,
+            name="pod_create",
+        )
         if args.dry_run:
             connection = PodConnection(host="dry-run.runpod.local", port=22)
             pod_id = "dry-run-pod"
@@ -220,11 +340,34 @@ def main() -> int:
             pods_after_create = list_pods(runner, args)
             pod = find_created_pod(pods_before_create, pods_after_create, args.pod_name)
             pod_id = str(pod["ID"])
+            timings.set_pod_id(pod_id)
             print(f"created pod: {pod_id}")
+            wait_started = time.monotonic()
+            wait_started_at = utc_now()
             connection = wait_for_connection(runner, args, pod_id, args.wait_seconds)
+            timings.data["steps"].append(
+                {
+                    "name": "ssh_info_wait",
+                    "started_at": wait_started_at,
+                    "finished_at": utc_now(),
+                    "duration_seconds": round(time.monotonic() - wait_started, 3),
+                    "returncode": 0,
+                }
+            )
             print(f"ssh: {connection.user}@{connection.host}:{connection.port}")
 
+        wait_started = time.monotonic()
+        wait_started_at = utc_now()
         wait_for_ssh(runner, args, connection)
+        timings.data["steps"].append(
+            {
+                "name": "ssh_ready_wait",
+                "started_at": wait_started_at,
+                "finished_at": utc_now(),
+                "duration_seconds": round(time.monotonic() - wait_started, 3),
+                "returncode": 0,
+            }
+        )
         steps = [
             ssh_command(args, connection, remote_transport_setup_command()),
             ssh_command(args, connection, f"mkdir -p {q(args.remote_dir)}"),
@@ -242,11 +385,15 @@ def main() -> int:
 
         for step in steps:
             ensure_before_deadline(deadline)
-            run_with_deadline(runner, step, cwd=args.repo_root, deadline=deadline)
+            timings.run(runner, step, cwd=args.repo_root, deadline=deadline)
         success = True
+        timings.finish("passed")
         return 0
     finally:
         cleanup_pod(runner, args, pod_id, success=success)
+        if not success:
+            timings.set_pod_id(pod_id)
+            timings.finish("failed")
 
 
 if __name__ == "__main__":

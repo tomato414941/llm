@@ -62,7 +62,7 @@ Reference docs:
 - `tracks/leverage/prompts/README.md`: generation seed prompts.
 - `tracks/leverage/docs/sft-smoke.md`: first LoRA/SFT smoke plan.
 - `tracks/leverage/runs/README.md`: which run records to read first.
-- `tracks/leverage/runs/leverage-sft-smoke-runpod-59-qwen35-08b-success.md`:
+- `tracks/leverage/runs/leverage-sft-smoke-runpod-59-qwen35-08b-timing.md`:
   current RunPod SFT smoke result.
 
 ## From-Scratch Quickstart

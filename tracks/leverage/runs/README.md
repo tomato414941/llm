@@ -12,8 +12,8 @@ exports.
   capability-seeking LoRA run.
 - `next-lora-run-gate.md`: minimum reviewed-data and eval scale before the next
   capability-seeking LoRA run.
-- `leverage-sft-smoke-runpod-59-qwen35-08b-success.md`: current RunPod Secure
-  Cloud LoRA/SFT smoke result, including command outcome, metrics, and cleanup
+- `leverage-sft-smoke-runpod-59-qwen35-08b-timing.md`: current RunPod Secure
+  Cloud LoRA/SFT smoke result, including step timing, metrics, and cleanup
   confirmation.
 - `model-spec-comparison.md`: current summary of `leverage-model-spec.jsonl`
   scoring changes and model comparison results.
@@ -72,7 +72,7 @@ For new committed notes, prefer:
 
 Examples:
 
-- `leverage-sft-smoke-runpod-59-qwen35-08b-success.md`
+- `leverage-sft-smoke-runpod-59-qwen35-08b-timing.md`
 
 Avoid adding another family of raw `*-scores.csv` / `*-summary.csv` files unless
 the raw files are directly needed for a comparison note.

@@ -27,7 +27,7 @@ seed prompts
   `evals/project-judgment.jsonl`, `evals/leverage-model-spec.jsonl`
 - LoRA smoke plan: `docs/sft-smoke.md`
 - Latest smoke result:
-  `runs/leverage-sft-smoke-runpod-59-qwen35-08b-success.md`
+  `runs/leverage-sft-smoke-runpod-59-qwen35-08b-timing.md`
 
 ## Model Roles
 

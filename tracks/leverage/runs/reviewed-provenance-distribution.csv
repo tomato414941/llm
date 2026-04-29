@@ -1,11 +1,12 @@
 capability,source,count
 coding,edited_candidate,6
-coding,judge_accepted_candidate,3
-instruction_following,judge_accepted_candidate,13
+coding,judge_accepted_candidate,5
+instruction_following,judge_accepted_candidate,20
 knowledge_qa,edited_candidate,1
 knowledge_qa,judge_accepted_candidate,9
 reasoning,edited_candidate,2
 reasoning,historical_reviewed,5
-reasoning,judge_accepted_candidate,4
+reasoning,judge_accepted_candidate,10
 summarization_transformation,judge_accepted_candidate,10
 tool_use,historical_reviewed,6
+tool_use,judge_accepted_candidate,1

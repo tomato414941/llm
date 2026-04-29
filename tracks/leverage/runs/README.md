@@ -15,6 +15,8 @@ exports.
 - `leverage-sft-smoke-runpod-59-qwen35-08b-timing.md`: current RunPod Secure
   Cloud LoRA/SFT smoke result, including step timing, metrics, and cleanup
   confirmation.
+- `reviewed-batch-001.md`: first committed reviewed-data growth batch toward
+  the 300-row Qwen3.5-9B readiness gate.
 - `model-spec-comparison.md`: current summary of `leverage-model-spec.jsonl`
   scoring changes and model comparison results.
 

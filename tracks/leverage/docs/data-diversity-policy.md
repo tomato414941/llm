@@ -12,17 +12,25 @@ is to prevent obvious data collapse without slowing down data growth.
 
 ## Decision
 
-Use a small set of human-readable metadata and lightweight duplicate checks:
+Adopt recurring patterns from public instruction-tuning work as the default
+policy for this project:
 
-- Keep `capability` as the primary distribution-control axis.
-- Add `task_shape` as an observational tag, not a hard gate.
-- Track source and model provenance so one generator or judge does not dominate
-  silently.
-- Start with string-based near-duplicate checks before adding embedding-based
-  clustering or selection.
+- Use broad task categories, following InstructGPT and Dolly.
+- Track task-form diversity, following FLAN's emphasis on template and prompt
+  setting diversity.
+- Use simple near-duplicate checks, following InstructGPT and Self-Instruct.
+- Track source and model provenance, following InstructGPT's source controls.
 
-Do not use `task_shape` as a target-count system yet. Revisit that after the
-300-row readiness dataset exists.
+For our schema, the adopted policy maps to:
+
+- `capability`: primary distribution-control axis.
+- `task_shape`: observational task-form tag, not a hard gate.
+- provenance fields: generator, judge, edit, and historical source tracking.
+- near-duplicate signal: review aid, starting with string similarity.
+
+Do not invent a project-specific ontology when a common external pattern covers
+the need. Do not use `task_shape` as a target-count system yet. Revisit that
+after the 300-row readiness dataset exists.
 
 ## Why Diversity Matters
 
@@ -38,10 +46,10 @@ For this project, diversity exists to answer:
   evals to be meaningful?
 - Are we distilling one provider or model's habits too strongly?
 
-## External Basis
+## Adopted External Patterns
 
-Public instruction-tuning projects usually combine coarse task categories with
-simple deduplication and source controls:
+This project adopts the common public pattern of coarse task categories, task
+form diversity, simple deduplication, and source controls:
 
 - InstructGPT grouped API prompts into broad use cases such as generation,
   open QA, closed QA, brainstorming, chat, rewriting, summarization,
@@ -63,6 +71,21 @@ References:
 - Self-Instruct: https://arxiv.org/abs/2212.10560
 - Stanford Alpaca: https://crfm.stanford.edu/2023/03/13/alpaca
 - FLAN Collection: https://arxiv.org/abs/2301.13688
+
+## Adopted Mapping
+
+The project follows external practice by default:
+
+| external pattern | project field or rule | reason |
+| --- | --- | --- |
+| InstructGPT and Dolly broad use-case categories | `capability` | Keep distribution planning coarse and human-readable. |
+| FLAN task and template diversity | `task_shape` | Observe whether task forms are collapsing within a capability. |
+| InstructGPT source limits | provenance summaries | Avoid silent domination by one source, generator, judge, or editor. |
+| InstructGPT and Self-Instruct heuristic deduplication | near-duplicate signal | Catch obvious repetition before training. |
+| FLAN warning that categories differ by project | no universal ontology | Avoid over-designing a taxonomy beyond current use. |
+
+When this document conflicts with a project-specific preference, use the
+external pattern unless local evaluation evidence shows that it fails here.
 
 ## Axes
 

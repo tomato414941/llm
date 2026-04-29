@@ -10,6 +10,8 @@ from llm.leverage.capabilities import ALLOWED_CAPABILITIES
 REQUIRED_ROW_FIELDS = {"id", "source_prompt_id", "capability", "messages", "review"}
 REQUIRED_ROLES = ["system", "user", "assistant"]
 ACCEPTED_STATUS = "accepted_instruction"
+REVIEW_SOURCES = {"judge_accepted_candidate", "edited_candidate", "manual", "historical_reviewed"}
+JUDGE_DECISIONS = {"accept", "needs_edit", "reject", "parse_error"}
 SECRET_MARKERS = [
     "OPENAI_API_KEY",
     "RUNPOD_API_KEY",
@@ -121,6 +123,20 @@ def validate_row(
             errors.append("review.author must be a non-empty string")
         if not isinstance(review.get("notes"), str) or not review["notes"]:
             errors.append("review.notes must be a non-empty string")
+        source = review.get("source")
+        if source is not None and source not in REVIEW_SOURCES:
+            errors.append(f"review.source must be one of {sorted(REVIEW_SOURCES)}")
+        for field_name in ("generator_model", "judge_model"):
+            value = review.get(field_name)
+            if value is not None and (not isinstance(value, str) or not value):
+                errors.append(f"review.{field_name} must be a non-empty string when present")
+        judge_decision = review.get("judge_decision")
+        if judge_decision is not None and judge_decision not in JUDGE_DECISIONS:
+            errors.append(f"review.judge_decision must be one of {sorted(JUDGE_DECISIONS)}")
+        if source in {"judge_accepted_candidate", "edited_candidate"}:
+            for field_name in ("generator_model", "judge_model", "judge_decision"):
+                if field_name not in review:
+                    errors.append(f"review.{field_name} is required for source {source!r}")
 
     text = row_text(row)
     for marker in secret_markers_in_text(text):

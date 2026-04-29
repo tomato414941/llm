@@ -94,6 +94,26 @@ def test_validate_file_does_not_reject_task_solving_text(tmp_path: Path) -> None
     assert errors == []
 
 
+def test_validate_file_rejects_incomplete_candidate_provenance(tmp_path: Path) -> None:
+    dataset = tmp_path / "reviewed_instructions.jsonl"
+    eval_dir = tmp_path / "evals"
+    eval_dir.mkdir()
+    row = valid_row()
+    row["review"] = {
+        "status": "accepted_instruction",
+        "author": "tester",
+        "source": "edited_candidate",
+        "notes": "Missing generator and judge provenance.",
+    }
+    write_jsonl(dataset, [row])
+
+    errors = validate_file(dataset, eval_dir=eval_dir)
+
+    assert any("review.generator_model is required" in error for error in errors)
+    assert any("review.judge_model is required" in error for error in errors)
+    assert any("review.judge_decision is required" in error for error in errors)
+
+
 def test_validate_file_rejects_secret_like_openai_key(tmp_path: Path) -> None:
     dataset = tmp_path / "reviewed_instructions.jsonl"
     eval_dir = tmp_path / "evals"

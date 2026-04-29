@@ -14,13 +14,16 @@ dataset. They should not define the whole 300-row target.
 
 Target reviewed rows: 300
 
-| category | target rows | purpose |
+The table uses the shared `capability_area` semantics defined in
+`data-category-design.md`.
+
+| capability_area | target rows | purpose |
 | --- | ---: | --- |
-| general_instruction_following | 80 | Basic instruction following, format control, concise answers, and user-intent handling. |
+| instruction_following | 80 | Basic instruction following, format control, concise answers, and user-intent handling. |
 | reasoning_comparison | 60 | Small reasoning tasks, tradeoff comparison, arithmetic, ordering, and consistency checks. |
-| coding_repo_reasoning | 50 | Code-reading, small implementation judgment, tests, and repository workflow. |
+| coding | 50 | Code-reading, small implementation judgment, tests, and repository workflow. |
 | tool_use_judgment | 40 | Deciding whether to use local tools, APIs, generation, evaluation, or training. |
-| eval_measurement | 30 | Train/test separation, scoring contracts, baselines, and measurement limits. |
+| evaluation_critique | 30 | Train/test separation, scoring contracts, baselines, and measurement limits. |
 | resource_cost_judgment | 20 | Bounded GPU/API use, cleanup, cost caps, and checkpoint thinking. |
 | project_specific_policy | 20 | Local leverage-track conventions that are useful but not the dataset center. |
 
@@ -50,5 +53,5 @@ first LoRA smoke. They are historical run records and specific eval notes. They
 are not the distribution plan for the 300-row reviewed dataset.
 
 Use project-judgment failures as one source of seeds for the
-`project_specific_policy`, `eval_measurement`, `resource_cost_judgment`, and
-`coding_repo_reasoning` slices only when they fit the target mix above.
+`project_specific_policy`, `evaluation_critique`, `resource_cost_judgment`, and
+`coding` slices only when they fit the target mix above.

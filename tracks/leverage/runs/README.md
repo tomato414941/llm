@@ -6,6 +6,8 @@ exports.
 
 ## Read First
 
+- `data-category-design.md`: shared top-level capability taxonomy for seed
+  prompts, reviewed instruction rows, and held-out eval tasks.
 - `reviewed-instruction-growth-plan.md`: current distribution plan for growing
   the reviewed dataset toward the next capability-seeking LoRA run.
 - `next-lora-data-targets.md`: minimum reviewed-data and eval scale before the

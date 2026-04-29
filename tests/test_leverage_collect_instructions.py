@@ -151,8 +151,9 @@ def test_collect_outputs_writes_raw_review_schema(tmp_path: Path) -> None:
 def test_real_training_seed_file_loads() -> None:
     seeds = collect_instructions.load_seeds(Path("tracks/leverage/prompts/leverage-training-seed-v0.jsonl"))
 
-    assert len(seeds) == 50
+    assert len(seeds) == 63
     assert "lt_seed_001" in seeds
+    assert "lt_seed_063" in seeds
 
 
 def test_collect_outputs_resume_skips_existing_seed_rows(tmp_path: Path) -> None:

@@ -43,7 +43,9 @@ DEFAULT_SETUP_COMMAND = (
     "curl -LsSf https://astral.sh/uv/install.sh | sh; "
     "fi; "
     "export PATH=\"$HOME/.local/bin:$PATH\"; "
-    "UV_LINK_MODE=copy uv sync --extra dev"
+    "rm -rf .venv; "
+    "UV_LINK_MODE=copy UV_PROJECT_ENVIRONMENT=/tmp/llm-runpod-venv uv sync --extra dev; "
+    "ln -sfn /tmp/llm-runpod-venv .venv"
 )
 
 
@@ -57,7 +59,17 @@ def split_shell_command(command: str) -> list[str]:
 def rsync_to_remote_command(args: argparse.Namespace, connection: PodConnection) -> list[str]:
     sources = [*DEFAULT_SYNC, *args.sync]
     seen: set[str] = set()
-    command = ["rsync", "-az", "--no-owner", "--no-group", "--relative", "-e", rsync_ssh(args, connection)]
+    command = [
+        "rsync",
+        "-az",
+        "--timeout",
+        "60",
+        "--no-owner",
+        "--no-group",
+        "--relative",
+        "-e",
+        rsync_ssh(args, connection),
+    ]
     for source in sources:
         if source in seen:
             continue
@@ -69,7 +81,16 @@ def rsync_to_remote_command(args: argparse.Namespace, connection: PodConnection)
 
 
 def rsync_from_remote_command(args: argparse.Namespace, connection: PodConnection) -> list[str]:
-    command = ["rsync", "-az", "--no-owner", "--no-group", "-e", rsync_ssh(args, connection)]
+    command = [
+        "rsync",
+        "-az",
+        "--timeout",
+        "60",
+        "--no-owner",
+        "--no-group",
+        "-e",
+        rsync_ssh(args, connection),
+    ]
     for output in args.output:
         command.append(f"{connection.user}@{connection.host}:{args.remote_dir}/{output}")
     output_parent = Path(args.output[0]).parent if args.output else Path(".")

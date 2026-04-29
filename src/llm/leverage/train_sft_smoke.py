@@ -98,6 +98,7 @@ def train_lora_smoke(
     lora_config = peft.LoraConfig(
         r=8,
         lora_alpha=16,
+        target_modules="all-linear",
         lora_dropout=0.05,
         bias="none",
         task_type="CAUSAL_LM",

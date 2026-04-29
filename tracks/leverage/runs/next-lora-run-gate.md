@@ -43,7 +43,7 @@ paid GPU run on model weights.
 
 ## Next Work
 
-Follow `reviewed-instruction-growth-plan.md` for the dataset distribution. Use
+Follow `reviewed-instruction-mix-plan.md` for the dataset distribution. Use
 failed project-judgment cases only as one seed source, not as the center of the
 300-row dataset. Promote only reviewed rows into the training dataset, then
 re-check the thresholds above before launching another LoRA run.

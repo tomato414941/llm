@@ -8,8 +8,8 @@ exports.
 
 - `data-category-design.md`: shared top-level capability taxonomy for seed
   prompts, reviewed instruction rows, and held-out eval tasks.
-- `reviewed-instruction-growth-plan.md`: current distribution plan for growing
-  the reviewed dataset toward the next capability-seeking LoRA run.
+- `reviewed-instruction-mix-plan.md`: target reviewed-data mix for the next
+  capability-seeking LoRA run.
 - `next-lora-run-gate.md`: minimum reviewed-data and eval scale before the next
   capability-seeking LoRA run.
 - `leverage-sft-smoke-runpod-59-qwen35-08b-success.md`: current RunPod Secure

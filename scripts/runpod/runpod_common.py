@@ -104,8 +104,6 @@ def runpodctl_create_command(args: argparse.Namespace) -> list[str]:
         args.gpu_type,
         "--gpu-count",
         str(args.gpu_count),
-        "--image",
-        args.image,
         "--container-disk-in-gb",
         str(args.container_disk_size),
         "--volume-in-gb",
@@ -115,6 +113,11 @@ def runpodctl_create_command(args: argparse.Namespace) -> list[str]:
         "--ports",
         "22/tcp",
     ]
+    template_id = getattr(args, "template_id", None)
+    if template_id:
+        command.extend(["--template-id", template_id])
+    else:
+        command.extend(["--image", args.image])
     if args.secure_cloud:
         command.extend(["--cloud-type", "SECURE"])
     else:

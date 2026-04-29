@@ -44,6 +44,7 @@ def args(tmp_path: Path) -> Namespace:
         gpu_type="NVIDIA GeForce RTX 3090",
         gpu_count=1,
         max_cost=0.8,
+        template_id=None,
         image="runpod/pytorch:test",
         container_disk_size=80,
         volume_size=80,
@@ -104,6 +105,17 @@ def test_runpodctl_create_command_uses_generic_args(tmp_path: Path) -> None:
     assert command[command.index("--image") + 1] == "runpod/pytorch:test"
     assert "--public-ip" in command
     assert "--cost" not in command
+
+
+def test_runpodctl_create_command_can_use_template_instead_of_image(tmp_path: Path) -> None:
+    write_repo_shape(tmp_path)
+    run_args = args(tmp_path)
+    run_args.template_id = "runpod-torch-v280"
+
+    command = runpodctl_create_command(run_args)
+
+    assert command[command.index("--template-id") + 1] == "runpod-torch-v280"
+    assert "--image" not in command
 
 
 def test_rsync_to_remote_syncs_default_and_explicit_sources(tmp_path: Path) -> None:

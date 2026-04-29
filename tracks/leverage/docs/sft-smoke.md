@@ -63,6 +63,7 @@ uv run python scripts/runpod/run_once.py \
   --dry-run \
   --name llm-leverage-sft-smoke \
   --gpu-type 'NVIDIA GeForce RTX 3090' \
+  --template-id runpod-torch-v280 \
   --mem 24 \
   --sync tracks/leverage/configs \
   --sync tracks/leverage/datasets \
@@ -94,10 +95,9 @@ the intended GPU, image, model, output paths, and cleanup policy. Check current
 RunPod pricing before launch because the v2 CLI does not accept a create-time
 cost ceiling flag.
 
-The default image is `runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404`, chosen
-for this training smoke because it provides a newer PyTorch/CUDA base than the
-older from-scratch training image. Keep the first run on the default image
-unless the dry-run review identifies a concrete compatibility issue.
+The preferred RunPod template is `runpod-torch-v280`. It uses
+`runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404` and includes RunPod's standard
+SSH setup for the same PyTorch/CUDA base.
 
 ## Success Criteria
 

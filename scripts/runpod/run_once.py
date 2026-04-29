@@ -137,6 +137,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gpu-type", default="NVIDIA GeForce RTX 4090")
     parser.add_argument("--gpu-count", type=int, default=1)
     parser.add_argument("--max-cost", type=float, default=1.0)
+    parser.add_argument("--template-id")
     parser.add_argument("--image", default=DEFAULT_IMAGE)
     parser.add_argument("--container-disk-size", type=int, default=80)
     parser.add_argument("--volume-size", type=int, default=80)

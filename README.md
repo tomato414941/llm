@@ -137,6 +137,7 @@ collection, and cleanup:
 uv run python scripts/runpod/run_once.py --dry-run \
   --name llm-leverage-sft-smoke \
   --gpu-type 'NVIDIA GeForce RTX 3090' \
+  --template-id runpod-torch-v280 \
   --sync tracks/leverage/configs \
   --sync tracks/leverage/datasets \
   --sync tracks/leverage/evals \

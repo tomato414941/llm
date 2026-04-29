@@ -99,10 +99,24 @@ An attempted Secure Cloud 3090 port check could not start because no matching
 Secure Cloud instance was available at that moment, so it did not create a pod
 or test the Secure Cloud path.
 
+## v2 Public-IP Attempt
+
+After moving to `runpodctl v2.1.9`, a Community Cloud pod created with
+`--public-ip --ssh` exposed SSH info successfully:
+
+- Pod created: `rwqns5j569e27s`
+- Public SSH target: `root@80.15.7.37:45471`
+- Failure: SSH authentication returned `Permission denied (publickey,password)`.
+- Cleanup: `runpodctl pod delete rwqns5j569e27s` succeeded.
+- Final pod check: no active pods remained.
+
+The RunPod account key fingerprint and the local private key fingerprint both
+matched `SHA256:OiZTIZLaEoFwREfbVrhNS3usRFJqkMSo41uGsWgtDaQ`, so the next
+candidate fix is to use RunPod's official PyTorch template instead of direct
+image creation.
+
 ## Next Step
 
 Fix the RunPod transport path before launching another paid training attempt.
-The likely fix is to move the runner to the current `runpodctl pod ...` command
-family, parse JSON output, and use either `runpodctl ssh info` or Community
-Cloud `--public-ip` TCP mapping instead of relying on the deprecated table
-`PORTS` field.
+The likely fix is to use the official `runpod-torch-v280` template for the SFT
+smoke so SSH setup is owned by the template rather than direct image creation.

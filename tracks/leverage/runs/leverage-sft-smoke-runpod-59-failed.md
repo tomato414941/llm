@@ -68,8 +68,41 @@ Tried a minimal `runpodctl exec python` CUDA check on a separate RTX 3090 pod:
 This suggests the immediate blocker is RunPod pod readiness/connectivity, not
 only the custom SSH bootstrap path.
 
+## CLI and Port-Exposure Findings
+
+The local runner uses `/home/dev/bin/runpodctl v1.14.3` and the deprecated
+command family:
+
+```text
+runpodctl create pod ...
+runpodctl get pod --allfields
+runpodctl remove pod ...
+```
+
+The current RunPod CLI release checked during triage was `v2.1.9`. Its help
+marks the old `get`, `create`, `remove`, and `exec` command family as
+deprecated and exposes the newer command family:
+
+```text
+runpodctl pod create ...
+runpodctl pod list ...
+runpodctl pod get ...
+runpodctl ssh info ...
+```
+
+The current RunPod docs also describe TCP port access as public-IP based. The
+new `pod create` command has a `--public-ip` flag for Community Cloud Pods; the
+old `create pod` command used by the runner does not. This is a likely reason
+the Community Cloud pod reached `RUNNING` while its `PORTS` field stayed empty.
+
+An attempted Secure Cloud 3090 port check could not start because no matching
+Secure Cloud instance was available at that moment, so it did not create a pod
+or test the Secure Cloud path.
+
 ## Next Step
 
-Fix the RunPod transport path before launching another paid attempt. The likely
-area is pod creation/readiness/connection handling, not the reviewed dataset or
-the SFT trainer.
+Fix the RunPod transport path before launching another paid training attempt.
+The likely fix is to move the runner to the current `runpodctl pod ...` command
+family, parse JSON output, and use either `runpodctl ssh info` or Community
+Cloud `--public-ip` TCP mapping instead of relying on the deprecated table
+`PORTS` field.

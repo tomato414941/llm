@@ -19,7 +19,7 @@ eval_tasks = [
 [method]
 first_choice = "lora"
 fallback = "full_sft"
-max_train_examples = 25
+max_train_examples = 29
 max_epochs = 3
 eval_max_new_tokens = 128
 max_runtime_minutes = 30
@@ -43,7 +43,7 @@ notes = "outputs/leverage-sft-smoke/notes.md"
 criteria = [
   "reviewed instructions validate successfully",
   "training export is regenerated from reviewed instructions",
-  "training command completes on at most 25 examples",
+  "training command completes on at most 29 examples",
   "adapter or checkpoint artifact is written",
   "held-out eval command can run before and after training",
 ]

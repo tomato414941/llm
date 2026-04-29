@@ -23,6 +23,19 @@ Use `Qwen/Qwen3.5-0.8B` as the test student for low-cost smoke runs. The intende
 project baseline is `Qwen/Qwen3.5-9B` after the smoke path and eval loop are
 stable. Do not treat a 0.8B smoke result as the baseline capability target.
 
+## Model Roles
+
+- Qwen test student: `Qwen/Qwen3.5-0.8B`
+- Qwen baseline target: `Qwen/Qwen3.5-9B`
+- DeepSeek test student: `deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B`
+- DeepSeek baseline target: `deepseek-ai/DeepSeek-R1-Distill-Llama-8B`
+- Challenging open-weight target: `openai/gpt-oss-20b`
+
+Use the test students for smoke, preflight, and wiring checks. Use baseline
+targets only after the smoke path and eval loop are stable. Treat
+`openai/gpt-oss-20b` as a separate compatibility challenge because it is a MoE
+model with different loading and adaptation concerns.
+
 ## Method
 
 Prefer LoRA for the first run. Full SFT is acceptable only if the implementation

@@ -63,8 +63,8 @@ qwen3-0.6b-base,__overall__,__overall__,30,3,0.100,0.100
 qwen3-0.6b-lora-smoke,__overall__,__overall__,30,2,0.067,0.067
 qwen3-0.6b-base,leverage-smoke,__overall__,12,3,0.250,0.250
 qwen3-0.6b-lora-smoke,leverage-smoke,__overall__,12,2,0.167,0.167
-qwen3-0.6b-base,project-judgment-v0,__overall__,18,0,0.000,0.000
-qwen3-0.6b-lora-smoke,project-judgment-v0,__overall__,18,0,0.000,0.000
+qwen3-0.6b-base,project-judgment,__overall__,18,0,0.000,0.000
+qwen3-0.6b-lora-smoke,project-judgment,__overall__,18,0,0.000,0.000
 ```
 
 ## Notes

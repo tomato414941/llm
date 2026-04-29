@@ -79,7 +79,7 @@ No-dependency JSONL evaluator:
 - input is one or more task JSONL files plus a saved prediction JSONL file
 - `tracks/leverage/evals/leverage-smoke.jsonl` is the smoke layer for evaluator wiring and
   prediction format checks
-- `tracks/leverage/evals/project-judgment-v0.jsonl` is the project-judgment layer for more
+- `tracks/leverage/evals/project-judgment.jsonl` is the project-judgment layer for more
   meaningful leverage-track comparisons
 - pass multiple layers with repeated `--tasks` arguments
 - output includes a local CSV scoring file and, when requested, a

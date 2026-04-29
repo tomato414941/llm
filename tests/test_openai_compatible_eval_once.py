@@ -30,7 +30,7 @@ def args(tmp_path: Path) -> Namespace:
         base_url="https://openrouter.ai/api/v1",
         api_key=None,
         secret_path=tmp_path / "llm-openrouter",
-        tasks=[Path("tracks/leverage/evals/leverage-smoke.jsonl"), Path("tracks/leverage/evals/project-judgment-v0.jsonl")],
+        tasks=[Path("tracks/leverage/evals/leverage-smoke.jsonl"), Path("tracks/leverage/evals/project-judgment.jsonl")],
         model="qwen/qwen3.5-flash-02-23",
         model_label="qwen3-5-flash-openrouter",
         output=Path("tracks/leverage/runs/qwen.jsonl"),
@@ -51,7 +51,7 @@ def write_repo_shape(tmp_path: Path) -> None:
     eval_dir = tmp_path / "tracks" / "leverage" / "evals"
     eval_dir.mkdir(parents=True)
     (eval_dir / "leverage-smoke.jsonl").write_text("{}", encoding="utf-8")
-    (eval_dir / "project-judgment-v0.jsonl").write_text("{}", encoding="utf-8")
+    (eval_dir / "project-judgment.jsonl").write_text("{}", encoding="utf-8")
 
 
 def test_parse_args_defaults_to_openrouter_qwen(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -65,7 +65,7 @@ def test_parse_args_defaults_to_openrouter_qwen(monkeypatch: pytest.MonkeyPatch)
     assert parsed.secret_path == Path.home() / ".secrets" / "openrouter"
     assert parsed.tasks == [
         Path("tracks/leverage/evals/leverage-smoke.jsonl"),
-        Path("tracks/leverage/evals/project-judgment-v0.jsonl"),
+        Path("tracks/leverage/evals/project-judgment.jsonl"),
     ]
     assert parsed.thinking_mode == "none"
     assert parsed.reasoning_effort == "none"

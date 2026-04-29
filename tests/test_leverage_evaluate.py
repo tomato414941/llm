@@ -498,8 +498,8 @@ def test_real_leverage_smoke_eval_contract() -> None:
 
 
 def test_real_project_judgment_eval_contract() -> None:
-    tasks_path = Path("tracks/leverage/evals/project-judgment-v0.jsonl")
-    predictions_path = Path("tracks/leverage/runs/project-judgment-v0.example.jsonl")
+    tasks_path = Path("tracks/leverage/evals/project-judgment.jsonl")
+    predictions_path = Path("tracks/leverage/runs/project-judgment.example.jsonl")
 
     tasks = evaluate.load_tasks(tasks_path)
     predictions = evaluate.load_predictions(predictions_path, set(tasks))
@@ -516,7 +516,7 @@ def test_real_project_judgment_eval_contract() -> None:
     }
     assert len(predictions) == len(tasks)
     assert {prediction.model for prediction in predictions} == {"example-baseline"}
-    assert all(result.suite == "project-judgment-v0" for result in results)
+    assert all(result.suite == "project-judgment" for result in results)
     assert all(result.passed for result in results)
 
 
@@ -550,7 +550,7 @@ def test_real_two_layer_eval_contract() -> None:
     tasks = evaluate.load_task_suites(
         [
             Path("tracks/leverage/evals/leverage-smoke.jsonl"),
-            Path("tracks/leverage/evals/project-judgment-v0.jsonl"),
+            Path("tracks/leverage/evals/project-judgment.jsonl"),
         ]
     )
     predictions = evaluate.load_predictions(
@@ -561,5 +561,5 @@ def test_real_two_layer_eval_contract() -> None:
 
     assert len(tasks) == 30
     assert len(predictions) == len(tasks)
-    assert {result.suite for result in results} == {"leverage-smoke", "project-judgment-v0"}
+    assert {result.suite for result in results} == {"leverage-smoke", "project-judgment"}
     assert all(result.passed for result in results)

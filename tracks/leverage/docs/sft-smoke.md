@@ -14,7 +14,7 @@ by a small student model in a bounded LoRA or SFT run.
 - Training export: `tracks/leverage/sft/bootstrap.train.jsonl`
 - Held-out evals:
   - `tracks/leverage/evals/leverage-smoke.jsonl`
-  - `tracks/leverage/evals/project-judgment-v0.jsonl`
+  - `tracks/leverage/evals/project-judgment.jsonl`
 - Config: `tracks/leverage/configs/leverage-sft-smoke.toml`
 
 ## Student Model

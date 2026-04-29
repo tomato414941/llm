@@ -13,7 +13,7 @@ reviewed-instructions = "tracks/leverage/datasets/reviewed-instructions/bootstra
 train_export = "tracks/leverage/sft/bootstrap.train.jsonl"
 eval_tasks = [
   "tracks/leverage/evals/leverage-smoke.jsonl",
-  "tracks/leverage/evals/project-judgment-v0.jsonl",
+  "tracks/leverage/evals/project-judgment.jsonl",
 ]
 
 [method]

@@ -65,34 +65,34 @@ Compares raw decoded responses with Qwen final-response parsing.
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_repo_001` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_repo_001` | 0 | 1 | `parsed_only` |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_repo_002` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_repo_002` | 0 | 0 | `fail` |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_repo_003` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_repo_003` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_repo_001` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_repo_001` | 0 | 1 | `parsed_only` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_repo_002` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_repo_002` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_repo_003` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_repo_003` | 0 | 0 | `fail` |
 
 ## eval_design
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_eval_001` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_eval_001` | 0 | 0 | `fail` |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_eval_002` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_eval_002` | 0 | 0 | `fail` |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_eval_003` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_eval_003` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_eval_001` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_eval_001` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_eval_002` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_eval_002` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_eval_003` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_eval_003` | 0 | 0 | `fail` |
 
 ## experiment_judgment
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_exp_001` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_exp_001` | 0 | 0 | `fail` |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_exp_002` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_exp_002` | 0 | 0 | `fail` |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_exp_003` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_exp_003` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_exp_001` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_exp_001` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_exp_002` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_exp_002` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_exp_003` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_exp_003` | 0 | 0 | `fail` |
 
 ## instruction
 
@@ -109,12 +109,12 @@ Compares raw decoded responses with Qwen final-response parsing.
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_loss_001` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_loss_001` | 0 | 0 | `fail` |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_loss_002` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_loss_002` | 0 | 0 | `fail` |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_loss_003` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_loss_003` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_loss_001` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_loss_001` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_loss_002` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_loss_002` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_loss_003` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_loss_003` | 0 | 0 | `fail` |
 
 ## qa
 
@@ -140,12 +140,12 @@ Compares raw decoded responses with Qwen final-response parsing.
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_cost_001` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_cost_001` | 0 | 0 | `fail` |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_cost_002` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_cost_002` | 0 | 0 | `fail` |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_cost_003` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_cost_003` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_cost_001` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_cost_001` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_cost_002` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_cost_002` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_cost_003` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_cost_003` | 0 | 0 | `fail` |
 
 ## summarization
 
@@ -160,9 +160,9 @@ Compares raw decoded responses with Qwen final-response parsing.
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_track_001` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_track_001` | 0 | 0 | `fail` |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_track_002` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_track_002` | 0 | 0 | `fail` |
-| `qwen3-0.6b-base` | `project-judgment-v0` | `pj_track_003` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment-v0` | `pj_track_003` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_track_001` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_track_001` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_track_002` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_track_002` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_track_003` | 0 | 0 | `fail` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_track_003` | 0 | 0 | `fail` |

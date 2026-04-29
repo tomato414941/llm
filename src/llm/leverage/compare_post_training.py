@@ -14,7 +14,7 @@ from llm.leverage.evaluate_sft_adapter import extract_qwen_final_response
 
 DEFAULT_TASKS = [
     Path("tracks/leverage/evals/leverage-smoke.jsonl"),
-    Path("tracks/leverage/evals/project-judgment-v0.jsonl"),
+    Path("tracks/leverage/evals/project-judgment.jsonl"),
 ]
 DEFAULT_PREDICTIONS = Path("outputs/leverage-sft-smoke/post-training-predictions.jsonl")
 DEFAULT_REPORT = Path("tracks/leverage/runs/leverage-sft-smoke-diff.md")

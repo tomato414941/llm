@@ -21,7 +21,7 @@ These files are the current human-readable run notes.
   `llm.leverage.evaluate`.
 - `two-layer.example.jsonl`: example predictions across the smoke and
   project-judgment eval layers.
-- `project-judgment-v0.example.jsonl`: example output for project judgment
+- `project-judgment.example.jsonl`: example output for project judgment
   tasks.
 - `leverage-model-spec.example.jsonl`: example output for the policy guard eval.
 

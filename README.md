@@ -89,7 +89,7 @@ Evaluate saved predictions:
 ```bash
 uv run python -m llm.leverage.evaluate \
   --tasks tracks/leverage/evals/leverage-smoke.jsonl \
-  --tasks tracks/leverage/evals/project-judgment-v0.jsonl \
+  --tasks tracks/leverage/evals/project-judgment.jsonl \
   --predictions tracks/leverage/runs/two-layer.example.jsonl \
   --output /tmp/leverage_scores.csv \
   --summary-output /tmp/leverage_summary.csv
@@ -103,7 +103,7 @@ export OPENAI_API_KEY="..."
 
 uv run python -m llm.leverage.collect_openai \
   --tasks tracks/leverage/evals/leverage-smoke.jsonl \
-  --tasks tracks/leverage/evals/project-judgment-v0.jsonl \
+  --tasks tracks/leverage/evals/project-judgment.jsonl \
   --model <provider-model-id> \
   --model-label <local_label> \
   --output tracks/leverage/runs/<local_label>.jsonl

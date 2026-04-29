@@ -32,7 +32,7 @@ wait_for_models = runpod_openai_api_once.wait_for_models
 
 def args(tmp_path: Path) -> Namespace:
     return Namespace(
-        tasks=[Path("tracks/leverage/evals/leverage-smoke.jsonl"), Path("tracks/leverage/evals/project-judgment-v0.jsonl")],
+        tasks=[Path("tracks/leverage/evals/leverage-smoke.jsonl"), Path("tracks/leverage/evals/project-judgment.jsonl")],
         model="Qwen/Qwen3-14B-FP8",
         served_model_name="Qwen/Qwen3-14B-FP8",
         model_label="qwen3_14b_fp8",
@@ -81,7 +81,7 @@ def write_repo_shape(tmp_path: Path) -> None:
     eval_dir = tmp_path / "tracks" / "leverage" / "evals"
     eval_dir.mkdir(parents=True)
     (eval_dir / "leverage-smoke.jsonl").write_text("{}", encoding="utf-8")
-    (eval_dir / "project-judgment-v0.jsonl").write_text("{}", encoding="utf-8")
+    (eval_dir / "project-judgment.jsonl").write_text("{}", encoding="utf-8")
 
 
 class RecordingRunner:
@@ -113,7 +113,7 @@ def test_parse_args_defaults_to_qwen_on_vllm_latest(monkeypatch: pytest.MonkeyPa
     assert parsed.image == "vllm/vllm-openai:latest"
     assert parsed.tasks == [
         Path("tracks/leverage/evals/leverage-smoke.jsonl"),
-        Path("tracks/leverage/evals/project-judgment-v0.jsonl"),
+        Path("tracks/leverage/evals/project-judgment.jsonl"),
     ]
     assert parsed.server_port == 8000
     assert parsed.wait_seconds == 180
@@ -375,7 +375,7 @@ def test_preflight_rejects_cost_over_allowed_limit(tmp_path: Path) -> None:
 
 def test_preflight_rejects_missing_task_file(tmp_path: Path) -> None:
     write_repo_shape(tmp_path)
-    (tmp_path / "tracks" / "leverage" / "evals" / "project-judgment-v0.jsonl").unlink()
+    (tmp_path / "tracks" / "leverage" / "evals" / "project-judgment.jsonl").unlink()
 
     with pytest.raises(FileNotFoundError, match="task file"):
         preflight(args(tmp_path))

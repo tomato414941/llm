@@ -88,3 +88,48 @@ def test_write_csv_writes_stable_columns(tmp_path: Path) -> None:
 
     with output.open(newline="", encoding="utf-8") as input_file:
         assert list(csv.DictReader(input_file)) == rows
+
+
+def test_provenance_rows_counts_capability_and_review_source(tmp_path: Path) -> None:
+    reviewed = tmp_path / "reviewed.jsonl"
+    write_jsonl(
+        reviewed,
+        [
+            {
+                "id": "row-1",
+                "capability": "coding",
+                "review": {"source": "edited_candidate"},
+            },
+            {
+                "id": "row-2",
+                "capability": "coding",
+                "review": {"source": "edited_candidate"},
+            },
+            {
+                "id": "row-3",
+                "capability": "reasoning",
+                "review": {"source": "judge_accepted_candidate"},
+            },
+            {
+                "id": "row-4",
+                "capability": "tool_use",
+                "review": {"notes": "old row"},
+            },
+        ],
+    )
+
+    assert summarize_capabilities.provenance_rows(reviewed) == [
+        {"capability": "coding", "source": "edited_candidate", "count": "2"},
+        {"capability": "reasoning", "source": "judge_accepted_candidate", "count": "1"},
+        {"capability": "tool_use", "source": "historical_reviewed", "count": "1"},
+    ]
+
+
+def test_write_provenance_csv_writes_stable_columns(tmp_path: Path) -> None:
+    output = tmp_path / "provenance.csv"
+    rows = [{"capability": "coding", "source": "edited_candidate", "count": "2"}]
+
+    summarize_capabilities.write_provenance_csv(output, rows)
+
+    with output.open(newline="", encoding="utf-8") as input_file:
+        assert list(csv.DictReader(input_file)) == rows

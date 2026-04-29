@@ -16,6 +16,7 @@ DEFAULT_EVALS = [
     Path("tracks/leverage/evals/leverage-model-spec.jsonl"),
 ]
 DEFAULT_OUTPUT = Path("tracks/leverage/runs/capability-distribution.csv")
+DEFAULT_PROVENANCE_OUTPUT = Path("tracks/leverage/runs/reviewed-provenance-distribution.csv")
 REVIEWED_TARGETS = {
     "instruction_following": 80,
     "reasoning": 80,
@@ -24,6 +25,7 @@ REVIEWED_TARGETS = {
     "summarization_transformation": 25,
     "tool_use": 35,
 }
+DEFAULT_REVIEW_SOURCE = "historical_reviewed"
 
 
 def load_jsonl(path: Path) -> list[tuple[int, dict[str, Any]]]:
@@ -85,6 +87,29 @@ def summary_rows(
     return rows
 
 
+def review_source(row: dict[str, Any]) -> str:
+    review = row.get("review")
+    if not isinstance(review, dict):
+        return DEFAULT_REVIEW_SOURCE
+    source = review.get("source")
+    return source if isinstance(source, str) and source else DEFAULT_REVIEW_SOURCE
+
+
+def provenance_rows(reviewed_path: Path) -> list[dict[str, str]]:
+    counts: Counter[tuple[str, str]] = Counter()
+    for line_number, row in load_jsonl(reviewed_path):
+        capability = row.get("capability")
+        if not isinstance(capability, str) or not capability:
+            raise ValueError(f"{reviewed_path}:{line_number}: capability must be a non-empty string")
+        if capability not in ALLOWED_CAPABILITIES:
+            raise ValueError(f"{reviewed_path}:{line_number}: unknown capability: {capability}")
+        counts[(capability, review_source(row))] += 1
+    return [
+        {"capability": capability, "source": source, "count": str(count)}
+        for (capability, source), count in sorted(counts.items())
+    ]
+
+
 def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = [
@@ -101,12 +126,21 @@ def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
         writer.writerows(rows)
 
 
+def write_provenance_csv(path: Path, rows: list[dict[str, str]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as output_file:
+        writer = csv.DictWriter(output_file, fieldnames=["capability", "source", "count"])
+        writer.writeheader()
+        writer.writerows(rows)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--seeds", type=Path, default=DEFAULT_SEEDS)
     parser.add_argument("--reviewed", type=Path, default=DEFAULT_REVIEWED)
     parser.add_argument("--eval", type=Path, action="append", dest="evals", default=DEFAULT_EVALS)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--provenance-output", type=Path, default=DEFAULT_PROVENANCE_OUTPUT)
     return parser.parse_args()
 
 
@@ -114,7 +148,9 @@ def main() -> int:
     args = parse_args()
     rows = summary_rows(seeds_path=args.seeds, reviewed_path=args.reviewed, eval_paths=args.evals)
     write_csv(args.output, rows)
+    write_provenance_csv(args.provenance_output, provenance_rows(args.reviewed))
     print(f"wrote capability distribution: {args.output}")
+    print(f"wrote reviewed provenance distribution: {args.provenance_output}")
     return 0
 
 

@@ -256,18 +256,29 @@ def judge_rows(
             judge_candidates=candidates,
             rng=rng,
         )
-        response = client_response_text(
-            client(
-                build_payload(
-                    row,
-                    judge_model=selected_judge_model,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    reasoning_effort=reasoning_effort,
-                    exclude_reasoning=exclude_reasoning,
+        try:
+            response = client_response_text(
+                client(
+                    build_payload(
+                        row,
+                        judge_model=selected_judge_model,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                        reasoning_effort=reasoning_effort,
+                        exclude_reasoning=exclude_reasoning,
+                    )
                 )
             )
-        )
+        except Exception as exc:
+            record = failed_judgment_record(
+                row,
+                judge_model=selected_judge_model,
+                judge_label=selected_judge_label,
+                judge_response="",
+                error=exc,
+            )
+            records.append(record)
+            continue
         try:
             record = judgment_record(
                 row,

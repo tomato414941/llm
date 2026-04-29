@@ -183,6 +183,31 @@ def test_judge_rows_records_parse_errors_and_continues() -> None:
     assert [record["decision"] for record in records] == ["parse_error", "accept"]
 
 
+def test_judge_rows_records_client_errors_and_continues() -> None:
+    calls = iter([ValueError("API response message content must be text"), judge_json("accept")])
+
+    def client(_payload):
+        value = next(calls)
+        if isinstance(value, Exception):
+            raise value
+        return value
+
+    records = judge.judge_rows(
+        [(1, raw_row(source_prompt_id="a")), (2, raw_row(source_prompt_id="b"))],
+        client=client,
+        judge_model="judge/model",
+        judge_label="judge_label",
+        max_tokens=256,
+        temperature=0.0,
+        reasoning_effort="none",
+        exclude_reasoning=True,
+        limit=None,
+    )
+
+    assert [record["decision"] for record in records] == ["parse_error", "accept"]
+    assert "API response message content must be text" in records[0]["reason"]
+
+
 def test_judge_rows_can_choose_random_non_self_judges_per_row() -> None:
     calls: list[dict[str, object]] = []
 

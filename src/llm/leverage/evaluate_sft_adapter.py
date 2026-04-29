@@ -8,6 +8,7 @@ from llm.config import load_toml
 from llm.leverage.evaluate import (
     Prediction,
     evaluate_predictions,
+    load_predictions,
     load_task_suites,
     write_results,
     write_summary,
@@ -170,6 +171,39 @@ def write_predictions(path: Path, predictions: list[Prediction]) -> None:
             )
 
 
+def clean_predictions(predictions: list[Prediction]) -> list[Prediction]:
+    return [
+        Prediction(
+            task_id=prediction.task_id,
+            model=prediction.model,
+            response=clean_generated_response(prediction.response),
+        )
+        for prediction in predictions
+    ]
+
+
+def rescore_predictions(
+    *,
+    tasks_paths: list[Path],
+    predictions_path: Path,
+    output_root: Path,
+) -> list[str]:
+    tasks = load_task_suites(tasks_paths)
+    predictions = clean_predictions(load_predictions(predictions_path, set(tasks)))
+    cleaned_predictions_path, scores_path, summary_path = prediction_paths(output_root)
+    cleaned_predictions_path = output_root / "post-training-predictions.cleaned.jsonl"
+    write_predictions(cleaned_predictions_path, predictions)
+    results = evaluate_predictions(tasks, predictions)
+    write_results(scores_path, results)
+    write_summary(summary_path, results)
+    return [
+        f"rescored {len(predictions)} predictions from {predictions_path}",
+        f"wrote cleaned predictions: {cleaned_predictions_path}",
+        f"wrote scores: {scores_path}",
+        f"wrote summary: {summary_path}",
+    ]
+
+
 def run_eval(
     *,
     tasks_paths: list[Path],
@@ -266,6 +300,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--system-prompt", default=DEFAULT_SYSTEM_PROMPT)
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--rescore-predictions", type=Path)
     return parser.parse_args()
 
 
@@ -273,6 +308,14 @@ def main() -> int:
     args = parse_args()
     defaults = config_defaults(args.config)
     tasks = args.tasks if args.tasks is not None else defaults["tasks"]
+    if args.rescore_predictions is not None:
+        for line in rescore_predictions(
+            tasks_paths=tasks,
+            predictions_path=args.rescore_predictions,
+            output_root=args.output_root,
+        ):
+            print(line)
+        return 0
     for line in run_eval(
         tasks_paths=tasks,
         base_model=args.base_model,

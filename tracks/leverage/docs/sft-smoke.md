@@ -107,7 +107,7 @@ unless the dry-run review identifies a concrete compatibility issue.
 
 ## Post-Training Eval
 
-After a smoke adapter exists under `outputs/leverage-sft-smoke/adapter/`, compare
+After a smoke adapter exists under `outputs/leverage-sft-smoke/lora-adapter/`, compare
 the base student and adapter on the same eval tasks:
 
 ```bash

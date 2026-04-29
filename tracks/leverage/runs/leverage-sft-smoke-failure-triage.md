@@ -25,9 +25,16 @@ qwen3-0.6b-base,30,3,0.100
 qwen3-0.6b-lora-smoke,30,2,0.067
 ```
 
-If generated responses are post-processed to strip `<think>...</think>`,
-orphan `</think>` tags, and leading `assistant` / `user` role labels, the
-score changes to:
+The cleanup effect was verified by rescoring the existing saved predictions:
+
+```bash
+uv run python -m llm.leverage.evaluate_sft_adapter \
+  --rescore-predictions outputs/leverage-sft-smoke/post-training-predictions.jsonl
+```
+
+If generated responses are post-processed to strip `<think>...</think>`, orphan
+`</think>` tags, and leading `assistant` / `user` role labels, the score changes
+to:
 
 ```csv
 model,passed_count_before,passed_count_after_strip,recovered_tasks
@@ -113,6 +120,10 @@ RunPod cost policy, track classification, repo hygiene, and eval design.
 
 ## Next Action
 
-Implement output cleanup inside `llm.leverage.evaluate_sft_adapter` and test it
-against the recovered task cases. Then rerun the local scoring against existing
-predictions before spending another RunPod run.
+Output cleanup is now implemented inside `llm.leverage.evaluate_sft_adapter`.
+Before spending on another RunPod run, use `--rescore-predictions` to verify
+whether a saved prediction file is failing because of formatting or because the
+model answer is actually wrong.
+
+The next data iteration should focus on project-judgment examples. After cleanup,
+the smoke adapter still passes only `1/18` project-judgment tasks.

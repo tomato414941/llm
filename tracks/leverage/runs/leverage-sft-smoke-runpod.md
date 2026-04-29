@@ -36,7 +36,7 @@ Status: completed
 - Training packages imported: `torch`, `transformers`, `peft`, `trl`.
 - Student model loaded: `Qwen/Qwen3-0.6B`.
 - LoRA smoke training completed for 30 steps.
-- Adapter artifact synced to `outputs/leverage-sft-smoke/adapter/`.
+- Adapter artifact synced to `outputs/leverage-sft-smoke/lora-adapter/`.
 - Metrics and notes synced to `outputs/leverage-sft-smoke/`.
 - Post-training base-vs-adapter eval completed for 30 tasks.
 - RunPod pod cleanup verified with no active pods remaining.

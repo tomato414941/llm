@@ -36,7 +36,7 @@ max_train_examples = {max_examples}
 max_epochs = 3
 
 [outputs]
-adapter_dir = "{tmp_path / "outputs" / "adapter"}"
+adapter_dir = "{tmp_path / "outputs" / "lora-adapter"}"
 logs = "{tmp_path / "outputs" / "logs"}"
 metrics = "{tmp_path / "outputs" / "metrics.csv"}"
 notes = "{tmp_path / "outputs" / "notes.md"}"

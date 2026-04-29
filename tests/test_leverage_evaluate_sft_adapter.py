@@ -7,9 +7,11 @@ import pytest
 from llm.leverage import evaluate_sft_adapter
 from llm.leverage.evaluate_sft_adapter import (
     clean_generated_response,
+    clean_predictions,
     config_defaults,
     prediction_paths,
     require_inference_packages,
+    rescore_predictions,
     run_eval,
     write_predictions,
 )
@@ -51,7 +53,7 @@ eval_max_new_tokens = 32
 
 [outputs]
 root = "{tmp_path / "outputs" / "leverage-sft-smoke"}"
-adapter_dir = "{tmp_path / "outputs" / "leverage-sft-smoke" / "adapter"}"
+adapter_dir = "{tmp_path / "outputs" / "leverage-sft-smoke" / "lora-adapter"}"
 logs = "{tmp_path / "outputs" / "leverage-sft-smoke" / "logs"}"
 metrics = "{tmp_path / "outputs" / "leverage-sft-smoke" / "metrics.csv"}"
 notes = "{tmp_path / "outputs" / "leverage-sft-smoke" / "notes.md"}"
@@ -72,7 +74,7 @@ def test_config_defaults_reads_sft_smoke_eval_inputs(tmp_path: Path) -> None:
     defaults = config_defaults(config_path)
 
     assert defaults["base_model"] == "base/model"
-    assert defaults["adapter_dir"] == tmp_path / "outputs" / "leverage-sft-smoke" / "adapter"
+    assert defaults["adapter_dir"] == tmp_path / "outputs" / "leverage-sft-smoke" / "lora-adapter"
     assert defaults["max_new_tokens"] == 32
     assert len(defaults["tasks"]) == 1
 
@@ -157,6 +159,14 @@ def test_clean_generated_response_removes_thinking_and_role_wrappers(raw: str, e
     assert clean_generated_response(raw) == expected
 
 
+def test_clean_predictions_preserves_model_and_task_id() -> None:
+    cleaned = clean_predictions(
+        [Prediction(task_id="task-1", model="adapter", response="assistant\n</think>\n\nok")]
+    )
+
+    assert cleaned == [Prediction(task_id="task-1", model="adapter", response="ok")]
+
+
 def test_written_predictions_can_be_scored_by_existing_evaluator(tmp_path: Path) -> None:
     task_path = tmp_path / "tasks.jsonl"
     write_jsonl(
@@ -190,6 +200,37 @@ def test_written_predictions_can_be_scored_by_existing_evaluator(tmp_path: Path)
     assert rows[0]["passed"] == "false"
     assert rows[1]["model"] == "adapter"
     assert rows[1]["passed"] == "true"
+
+
+def test_rescore_predictions_writes_cleaned_predictions_scores_and_summary(tmp_path: Path) -> None:
+    task_path = tmp_path / "tasks.jsonl"
+    write_jsonl(
+        task_path,
+        [
+            {
+                "id": "task-1",
+                "category": "qa",
+                "prompt": "Return ok.",
+                "scoring": {"type": "exact", "expected": "ok"},
+            }
+        ],
+    )
+    predictions_path = tmp_path / "predictions.jsonl"
+    write_predictions(predictions_path, [Prediction(task_id="task-1", model="adapter", response="</think>\n\nok")])
+    output_root = tmp_path / "outputs"
+
+    lines = rescore_predictions(
+        tasks_paths=[task_path],
+        predictions_path=predictions_path,
+        output_root=output_root,
+    )
+
+    assert any("rescored 1 predictions" in line for line in lines)
+    assert (output_root / "post-training-predictions.cleaned.jsonl").exists()
+    rows = read_csv(output_root / "post-training-scores.csv")
+    assert rows[0]["passed"] == "true"
+    summary = read_csv(output_root / "post-training-summary.csv")
+    assert summary[0]["passed_count"] == "1"
 
 
 def test_require_inference_packages_reports_missing_optional_dependencies(monkeypatch) -> None:

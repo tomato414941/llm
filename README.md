@@ -4,10 +4,10 @@ Small LLM learning lab.
 
 This repository has two tracks:
 
-- `tracks/from-scratch/`: implement and train small decoder-only language models
-  to understand the mechanics.
 - `tracks/leverage/`: evaluate, adapt, and operate existing open models under
   practical constraints.
+- `tracks/from-scratch/`: implement and train small decoder-only language models
+  to understand the mechanics.
 
 See `ROADMAP.md` for goals, non-goals, and RunPod policy. See `tracks/README.md`
 for directory roles.
@@ -16,67 +16,6 @@ for directory roles.
 
 ```bash
 uv sync --extra dev
-```
-
-## From-Scratch Quickstart
-
-Put local text data under `tracks/from-scratch/data/raw/`. Data files are
-ignored by git.
-
-Train a BPE tokenizer:
-
-```bash
-uv run python -m llm.tokenize \
-  --input tracks/from-scratch/data/raw/tinyshakespeare.txt \
-  --output tracks/from-scratch/data/processed/bpe_tokenizer.json \
-  --vocab-size 500
-```
-
-Prepare token tensors:
-
-```bash
-uv run python -m llm.prepare_data \
-  --input tracks/from-scratch/data/raw/tinyshakespeare.txt \
-  --tokenizer tracks/from-scratch/data/processed/bpe_tokenizer.json \
-  --output tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt
-```
-
-Train from a TOML config:
-
-```bash
-uv run python -m llm.train \
-  --config tracks/from-scratch/configs/tinyshakespeare-bpe-500-small.toml
-```
-
-Generate from a checkpoint:
-
-```bash
-uv run python -m llm.generate \
-  --checkpoint tracks/from-scratch/checkpoints/mini-gpt.pt \
-  --prompt "KING:" \
-  --max-new-tokens 200 \
-  --seed 1337 \
-  --samples 2
-```
-
-Evaluate and observe a checkpoint:
-
-```bash
-uv run python -m llm.evaluate \
-  --checkpoint tracks/from-scratch/checkpoints/mini-gpt.pt \
-  --tokens tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt
-
-uv run python -m llm.observe \
-  --config tracks/from-scratch/configs/tinyshakespeare-bpe-500-small.toml
-```
-
-Append a model-size comparison row:
-
-```bash
-uv run python -m llm.scaling \
-  --checkpoint tracks/from-scratch/checkpoints/tinyshakespeare-bpe-500-small.pt \
-  --summary tracks/from-scratch/runs/summaries/observations.csv \
-  --output tracks/from-scratch/runs/summaries/scaling.csv
 ```
 
 ## Leverage Quickstart
@@ -117,13 +56,27 @@ teacher generation -> structural filter -> model judge -> student training -> he
 
 Reference docs:
 
+- `tracks/leverage/README.md`: current mainline and source-of-truth map.
 - `tracks/leverage/model-spec.md`: target behavior and policy guard spec.
 - `tracks/leverage/datasets/README.md`: reviewed instruction dataset lifecycle.
 - `tracks/leverage/prompts/README.md`: generation seed prompts.
 - `tracks/leverage/docs/sft-smoke.md`: first LoRA/SFT smoke plan.
 - `tracks/leverage/runs/README.md`: which run records to read first.
-- `tracks/leverage/runs/leverage-sft-smoke-runpod-59-secure-success.md`: current
-  RunPod SFT smoke result.
+- `tracks/leverage/runs/leverage-sft-smoke-runpod-59-qwen35-08b-success.md`:
+  current RunPod SFT smoke result.
+
+## From-Scratch Quickstart
+
+The from-scratch track is secondary right now. Use it for mechanics, not for
+claims about practical model quality.
+
+```bash
+uv run python -m llm.train \
+  --config tracks/from-scratch/configs/tinyshakespeare-bpe-500-small.toml
+
+uv run python -m llm.observe \
+  --config tracks/from-scratch/configs/tinyshakespeare-bpe-500-small.toml
+```
 
 ## RunPod
 

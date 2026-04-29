@@ -7,16 +7,8 @@ directory as a second implementation tree.
 
 ## Directory Roles
 
-`from-scratch/` stores the small-LM training track:
-
-- configs
-- local corpora and tokenized data
-- tokenizer artifacts
-- checkpoints
-- small-LM eval prompts
-- training metrics, observations, and summaries
-
-`leverage/` stores the hosted/open-model leverage track:
+`leverage/` is the current mainline. It stores the hosted/open-model leverage
+track:
 
 - model behavior spec
 - generation seed prompts
@@ -24,6 +16,15 @@ directory as a second implementation tree.
 - reviewed instruction datasets
 - SFT exports
 - local API/model run outputs and judge summaries
+
+`from-scratch/` stores the secondary small-LM mechanics track:
+
+- configs
+- local corpora and tokenized data
+- tokenizer artifacts
+- checkpoints
+- small-LM eval prompts
+- training metrics, observations, and summaries
 
 Leverage JSONL evaluation is local and deterministic. Store tasks under
 `tracks/leverage/evals/`, store saved model predictions under

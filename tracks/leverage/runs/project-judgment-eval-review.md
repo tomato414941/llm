@@ -67,6 +67,27 @@ Use this split:
   `pj_eval_003` before using them as improvement targets.
 - Rewrite `pj_track_002` before treating its failures as model failures.
 
+## Applied Eval Fixes
+
+Applied on 2026-04-29:
+
+- `pj_loss_001`: changed exact scoring to regex scoring for the `overfitting`
+  concept.
+- `pj_repo_002`: changed phrase scoring to regex scoring that accepts equivalent
+  no-touch/no-revert language for `README.md`.
+- `pj_eval_001`: changed scoring to accept exact-match criticism for open-ended
+  or long-form essay tasks.
+- `pj_eval_003`: changed the prompt to ask for the imbalance and missing areas,
+  and relaxed `category imbalance` to `imbalance`.
+- `pj_track_002`: rewrote the prompt to explicitly ask for the engineering and
+  research labels that should be kept separate.
+
+After regenerating `leverage-sft-smoke-diff.md`, the Qwen final-response score
+changed from `16 / 60` to `19 / 60`. `pj_loss_001` moved to `both_pass`, and
+`pj_eval_001` moved to `base_only`. The remaining project-judgment failures are
+now better treated as data/model gaps unless a future run exposes a regression
+or a new ambiguity.
+
 ## Stable Operation Rule
 
 Once the above fixes are made, stop doing full manual failure classification.

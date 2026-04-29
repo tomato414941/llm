@@ -6,7 +6,7 @@ Compares raw decoded responses with Qwen final-response parsing.
 
 | raw passed | qwen-final passed | total |
 | ---: | ---: | ---: |
-| 5 | 16 | 60 |
+| 8 | 19 | 60 |
 
 ## Adapter Only
 
@@ -17,6 +17,7 @@ Compares raw decoded responses with Qwen final-response parsing.
 
 - `qa_capital_france`
 - `summary_mission`
+- `pj_eval_001`
 
 ## Both Pass
 
@@ -26,6 +27,7 @@ Compares raw decoded responses with Qwen final-response parsing.
 - `coding_python_function`
 - `coding_sql_count`
 - `instruction_lowercase`
+- `pj_loss_001`
 
 ## Both Fail
 
@@ -41,12 +43,10 @@ Compares raw decoded responses with Qwen final-response parsing.
 - `pj_track_001`
 - `pj_track_002`
 - `pj_track_003`
-- `pj_loss_001`
 - `pj_loss_002`
 - `pj_loss_003`
 - `pj_repo_002`
 - `pj_repo_003`
-- `pj_eval_001`
 - `pj_eval_002`
 - `pj_eval_003`
 
@@ -76,7 +76,7 @@ Compares raw decoded responses with Qwen final-response parsing.
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |
-| `qwen3-0.6b-base` | `project-judgment` | `pj_eval_001` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_eval_001` | 1 | 1 | `pass` |
 | `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_eval_001` | 0 | 0 | `fail` |
 | `qwen3-0.6b-base` | `project-judgment` | `pj_eval_002` | 0 | 0 | `fail` |
 | `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_eval_002` | 0 | 0 | `fail` |
@@ -109,8 +109,8 @@ Compares raw decoded responses with Qwen final-response parsing.
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |
-| `qwen3-0.6b-base` | `project-judgment` | `pj_loss_001` | 0 | 0 | `fail` |
-| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_loss_001` | 0 | 0 | `fail` |
+| `qwen3-0.6b-base` | `project-judgment` | `pj_loss_001` | 1 | 1 | `pass` |
+| `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_loss_001` | 1 | 1 | `pass` |
 | `qwen3-0.6b-base` | `project-judgment` | `pj_loss_002` | 0 | 0 | `fail` |
 | `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_loss_002` | 0 | 0 | `fail` |
 | `qwen3-0.6b-base` | `project-judgment` | `pj_loss_003` | 0 | 0 | `fail` |

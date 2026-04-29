@@ -72,7 +72,8 @@ def rsync_from_remote_command(args: argparse.Namespace, connection: PodConnectio
     command = ["rsync", "-az", "--no-owner", "--no-group", "-e", rsync_ssh(args, connection)]
     for output in args.output:
         command.append(f"{connection.user}@{connection.host}:{args.remote_dir}/{output}")
-    command.append(f"{args.repo_root}/")
+    output_parent = Path(args.output[0]).parent if args.output else Path(".")
+    command.append(f"{args.repo_root / output_parent}/")
     return command
 
 

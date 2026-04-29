@@ -147,7 +147,7 @@ def test_rsync_from_remote_fetches_outputs(tmp_path: Path) -> None:
     assert "--no-owner" in command
     assert "--no-group" in command
     assert "root@host:/workspace/llm/outputs/leverage-sft-smoke" in command
-    assert command[-1] == f"{tmp_path}/"
+    assert command[-1] == f"{tmp_path / 'outputs'}/"
 
 
 def test_normalize_pods_formats_v2_port_mappings() -> None:

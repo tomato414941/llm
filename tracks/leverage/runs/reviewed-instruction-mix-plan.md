@@ -33,7 +33,7 @@ project-specific policy examples dominate any larger dataset stage.
 
 ## Current State
 
-Current reviewed rows: 83
+Current reviewed rows: 99
 
 The current reviewed dataset is enough for training-path smoke tests. It is not
 large or general enough for a capability claim.

@@ -10,6 +10,8 @@ exports.
   RunPod, including command, metrics, and cleanup confirmation.
 - `leverage-sft-smoke-failure-triage.md`: failure classification for the first
   SFT smoke and the next concrete fix.
+- `next-lora-data-targets.md`: minimum reviewed-data and eval scale before the
+  next capability-seeking LoRA run.
 - `model-spec-comparison.md`: current summary of `leverage-model-spec.jsonl`
   scoring changes and model comparison results.
 

@@ -82,3 +82,17 @@ An `accept` decision does not automatically promote a row. Promotion still
 requires a non-duplicate source prompt, no secret or environment leakage, and a
 human-readable answer that is concise enough for the reviewed instruction
 dataset. If an accepted answer is trimmed, note that in the reviewed row.
+
+Default candidate pool for the next generation/judge batches:
+
+| label | OpenRouter model | weight |
+| --- | --- | ---: |
+| `qwen3-6-plus-openrouter` | `qwen/qwen3.6-plus` | 0.50 |
+| `gpt-5-4-openrouter` | `openai/gpt-5.4` | 0.15 |
+| `claude-sonnet-4-6-openrouter` | `anthropic/claude-sonnet-4.6` | 0.15 |
+| `gpt-5-5-openrouter` | `openai/gpt-5.5` | 0.10 |
+| `kimi-k2-6-openrouter` | `moonshotai/kimi-k2.6` | 0.10 |
+
+Use the same pool for generation and judging unless a run note states a specific
+reason to deviate. Because non-self judging removes the generator label before
+sampling, realized judge percentages can differ from these raw weights.

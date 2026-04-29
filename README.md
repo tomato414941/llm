@@ -121,6 +121,7 @@ Reference docs:
 - `tracks/leverage/datasets/README.md`: reviewed instruction dataset lifecycle.
 - `tracks/leverage/prompts/README.md`: generation seed prompts.
 - `tracks/leverage/docs/sft-smoke.md`: first LoRA/SFT smoke plan.
+- `tracks/leverage/runs/README.md`: which run records to read first.
 - `tracks/leverage/runs/leverage-sft-smoke-runpod.md`: first RunPod SFT smoke result.
 - `tracks/leverage/runs/leverage-sft-smoke-failure-triage.md`: failure classification.
 

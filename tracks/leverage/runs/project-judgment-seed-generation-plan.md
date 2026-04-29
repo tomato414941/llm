@@ -313,3 +313,69 @@ Example target mix:
 
 This keeps both generation diversity and judge diversity while preventing
 self-evaluation.
+
+## Weighted Random Dry Run
+
+Executed on 2026-04-29 with the 13 project-judgment seeds. This run was used to
+validate weighted-random operation and logging only. No rows were promoted from
+this run.
+
+Random seed: `20260429`
+
+Generator pool:
+
+- `qwen3-6-plus-openrouter` (`qwen/qwen3.6-plus`), weight `0.60`
+- `gpt-5-4-openrouter` (`openai/gpt-5.4`), weight `0.25`
+- `claude-sonnet-4-6-openrouter` (`anthropic/claude-sonnet-4.6`), weight `0.15`
+
+Judge pool:
+
+- `qwen3-6-plus-openrouter` (`qwen/qwen3.6-plus`), weight `0.20`
+- `gpt-5-4-openrouter` (`openai/gpt-5.4`), weight `0.40`
+- `claude-sonnet-4-6-openrouter` (`anthropic/claude-sonnet-4.6`), weight `0.40`
+
+Generation summary:
+
+- total: 13
+- `qwen3-6-plus-openrouter`: 9
+- `gpt-5-4-openrouter`: 2
+- `claude-sonnet-4-6-openrouter`: 2
+- estimated generation cost: `$0.02180705`
+
+Structural filter:
+
+- total: 13
+- `needs_judge`: 13
+- `response_too_long`: 2
+
+Judge summary:
+
+- total: 13
+- `accept`: 4
+- `needs_edit`: 6
+- `reject`: 3
+- `gpt-5-4-openrouter` judged 11 rows
+- `claude-sonnet-4-6-openrouter` judged 2 rows
+- self-evaluation: 0
+
+Assignment/result:
+
+| seed | generator | judge | decision |
+| --- | --- | --- | --- |
+| `lt_seed_051` | `qwen3-6-plus-openrouter` | `gpt-5-4-openrouter` | `accept` |
+| `lt_seed_052` | `qwen3-6-plus-openrouter` | `gpt-5-4-openrouter` | `accept` |
+| `lt_seed_053` | `claude-sonnet-4-6-openrouter` | `gpt-5-4-openrouter` | `reject` |
+| `lt_seed_054` | `qwen3-6-plus-openrouter` | `gpt-5-4-openrouter` | `needs_edit` |
+| `lt_seed_055` | `claude-sonnet-4-6-openrouter` | `gpt-5-4-openrouter` | `needs_edit` |
+| `lt_seed_056` | `qwen3-6-plus-openrouter` | `gpt-5-4-openrouter` | `needs_edit` |
+| `lt_seed_057` | `qwen3-6-plus-openrouter` | `gpt-5-4-openrouter` | `accept` |
+| `lt_seed_058` | `gpt-5-4-openrouter` | `claude-sonnet-4-6-openrouter` | `accept` |
+| `lt_seed_059` | `gpt-5-4-openrouter` | `claude-sonnet-4-6-openrouter` | `needs_edit` |
+| `lt_seed_060` | `qwen3-6-plus-openrouter` | `gpt-5-4-openrouter` | `needs_edit` |
+| `lt_seed_061` | `qwen3-6-plus-openrouter` | `gpt-5-4-openrouter` | `reject` |
+| `lt_seed_062` | `qwen3-6-plus-openrouter` | `gpt-5-4-openrouter` | `needs_edit` |
+| `lt_seed_063` | `qwen3-6-plus-openrouter` | `gpt-5-4-openrouter` | `reject` |
+
+The judge distribution skewed heavily toward GPT-5.4 in this 13-row sample.
+That is acceptable for a dry run, but future larger runs should inspect actual
+assignment counts before interpreting accept rates.

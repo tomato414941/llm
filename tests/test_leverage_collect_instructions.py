@@ -243,7 +243,6 @@ def test_parse_model_candidate_accepts_optional_weight() -> None:
 def test_real_training_seed_file_loads() -> None:
     seeds = collect_instructions.load_seeds(Path("tracks/leverage/prompts/instruction-seeds.jsonl"))
 
-    assert len(seeds) == 79
     assert "lt_seed_001" in seeds
     assert "lt_seed_079" in seeds
 

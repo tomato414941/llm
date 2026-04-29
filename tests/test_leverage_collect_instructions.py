@@ -14,7 +14,7 @@ def read_jsonl(path: Path) -> list[dict[str, object]]:
 def seed_payload(**overrides: object) -> dict[str, object]:
     payload: dict[str, object] = {
         "id": "lt_seed_test",
-        "category": "resource_judgment",
+        "capability": "tool_use",
         "purpose": "Generate a resource judgment example.",
         "system_prompt": "Answer as a project lead.",
         "prompt": "When should we use hosted inference?",
@@ -39,7 +39,7 @@ def test_load_seeds_reads_prompt_seed_schema(tmp_path: Path) -> None:
     seeds = collect_instructions.load_seeds(path)
 
     seed = seeds["lt_seed_test"]
-    assert seed.category == "resource_judgment"
+    assert seed.capability == "tool_use"
     assert seed.system_prompt == "Answer as a project lead."
     assert seed.constraints == ["mention cost", "mention training"]
 
@@ -81,7 +81,7 @@ def test_select_seeds_rejects_unknown_id(tmp_path: Path) -> None:
 def test_build_payload_uses_seed_system_prompt_and_user_prompt() -> None:
     seed = collect_instructions.InstructionSeed(
         id="lt_seed_test",
-        category="resource_judgment",
+        capability="tool_use",
         purpose="Generate a resource judgment example.",
         system_prompt="Answer as a project lead.",
         prompt="When should we use hosted inference?",
@@ -117,7 +117,7 @@ def test_collect_outputs_writes_raw_review_schema(tmp_path: Path) -> None:
     seeds = {
         "lt_seed_test": collect_instructions.InstructionSeed(
             id="lt_seed_test",
-            category="resource_judgment",
+            capability="tool_use",
             purpose="Generate a resource judgment example.",
             system_prompt="Answer as a project lead.",
             prompt="When should we use hosted inference?",
@@ -150,7 +150,7 @@ def test_collect_outputs_writes_raw_review_schema(tmp_path: Path) -> None:
     assert read_jsonl(output) == [
         {
             "source_prompt_id": "lt_seed_test",
-            "category": "resource_judgment",
+            "capability": "tool_use",
             "purpose": "Generate a resource judgment example.",
             "model": "provider_model",
             "messages": [
@@ -181,7 +181,7 @@ def test_collect_outputs_can_choose_weighted_random_generators_per_seed(tmp_path
     seeds = {
         "lt_seed_001": collect_instructions.InstructionSeed(
             id="lt_seed_001",
-            category="resource_judgment",
+            capability="tool_use",
             purpose="First row.",
             system_prompt="Answer as a project lead.",
             prompt="First prompt",
@@ -190,7 +190,7 @@ def test_collect_outputs_can_choose_weighted_random_generators_per_seed(tmp_path
         ),
         "lt_seed_002": collect_instructions.InstructionSeed(
             id="lt_seed_002",
-            category="resource_judgment",
+            capability="tool_use",
             purpose="Second row.",
             system_prompt="Answer as a project lead.",
             prompt="Second prompt",
@@ -252,7 +252,7 @@ def test_collect_outputs_resume_skips_existing_seed_rows(tmp_path: Path) -> None
     output = tmp_path / "instruction_outputs.jsonl"
     existing = {
         "source_prompt_id": "lt_seed_001",
-        "category": "resource_judgment",
+        "capability": "tool_use",
         "purpose": "Existing row.",
         "model": "provider_model",
         "messages": [
@@ -269,7 +269,7 @@ def test_collect_outputs_resume_skips_existing_seed_rows(tmp_path: Path) -> None
     seeds = {
         "lt_seed_001": collect_instructions.InstructionSeed(
             id="lt_seed_001",
-            category="resource_judgment",
+            capability="tool_use",
             purpose="Existing row.",
             system_prompt="Answer as a project lead.",
             prompt="First prompt",
@@ -278,7 +278,7 @@ def test_collect_outputs_resume_skips_existing_seed_rows(tmp_path: Path) -> None
         ),
         "lt_seed_002": collect_instructions.InstructionSeed(
             id="lt_seed_002",
-            category="resource_judgment",
+            capability="tool_use",
             purpose="New row.",
             system_prompt="Answer as a project lead.",
             prompt="Second prompt",

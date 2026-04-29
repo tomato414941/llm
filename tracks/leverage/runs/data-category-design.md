@@ -36,11 +36,11 @@ removed rather than maintained decoratively.
 
 ## Naming
 
-`capability` means the primary ability being trained or evaluated.
+`capability` is the JSONL field name and means the primary ability being
+trained or evaluated.
 
-`category` is the current JSONL field name. Existing files may keep that field
-until a schema cleanup is worth the churn, but its intended value should be one
-of the `capability` values in this document.
+Older notes may mention `category`; treat that as a historical name, not the
+current schema.
 
 ## External Basis
 
@@ -134,7 +134,7 @@ concerns as separate metadata only if they become necessary.
   history.
 - Keep eval prompts held out from training-generation seeds.
 - Use project-specific examples only when they fit the planned allocation.
-- Treat existing non-capability `category` values as legacy labels until mapped
-  to `capability`.
+- Treat any old `category` field or non-capability value as legacy data that
+  must be mapped before use.
 - If an audit needs remapping, change the mapping rule first, then rerun the
   count. Do not manually override individual rows after seeing the result.

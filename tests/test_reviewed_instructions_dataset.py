@@ -2,10 +2,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+from llm.leverage.capabilities import ALLOWED_CAPABILITIES
 from llm.leverage.validate_reviewed_instructions import validate_file
 
 DATASET_PATH = Path("tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl")
-REQUIRED_ROW_FIELDS = {"id", "source_prompt_id", "category", "messages", "review"}
+REQUIRED_ROW_FIELDS = {"id", "source_prompt_id", "capability", "messages", "review"}
 REQUIRED_ROLES = ["system", "user", "assistant"]
 
 
@@ -30,7 +31,8 @@ def test_reviewed_instruction_dataset_has_reviewed_chat_schema() -> None:
         assert row["id"] not in seen_ids
         seen_ids.add(row["id"])
         assert isinstance(row["source_prompt_id"], str) and row["source_prompt_id"].startswith("lt_seed_")
-        assert isinstance(row["category"], str) and row["category"]
+        assert isinstance(row["capability"], str) and row["capability"]
+        assert row["capability"] in ALLOWED_CAPABILITIES
 
         messages = row["messages"]
         assert isinstance(messages, list)

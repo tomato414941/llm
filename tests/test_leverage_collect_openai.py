@@ -10,7 +10,7 @@ from llm.leverage.evaluate import Task
 def task(task_id: str, prompt: str = "Return ok.") -> Task:
     return Task(
         id=task_id,
-        category="qa",
+        capability="knowledge_qa",
         prompt=prompt,
         scoring={"type": "exact", "expected": "ok"},
         suite="suite",

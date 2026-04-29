@@ -31,7 +31,7 @@ def write_config(tmp_path: Path) -> Path:
         [
             {
                 "id": "task-1",
-                "category": "qa",
+                "capability": "knowledge_qa",
                 "prompt": "Return ok.",
                 "scoring": {"type": "exact", "expected": "ok"},
             }
@@ -201,7 +201,7 @@ def test_written_predictions_can_be_scored_by_existing_evaluator(tmp_path: Path)
         [
             {
                 "id": "task-1",
-                "category": "qa",
+                "capability": "knowledge_qa",
                 "prompt": "Return ok.",
                 "scoring": {"type": "exact", "expected": "ok"},
             }
@@ -236,7 +236,7 @@ def test_parse_predictions_writes_qwen_final_predictions_scores_and_summary(tmp_
         [
             {
                 "id": "task-1",
-                "category": "qa",
+                "capability": "knowledge_qa",
                 "prompt": "Return ok.",
                 "scoring": {"type": "exact", "expected": "ok"},
             }

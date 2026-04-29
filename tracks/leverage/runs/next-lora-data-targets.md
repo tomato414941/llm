@@ -28,7 +28,7 @@ The next LoRA run is useful only if:
 
 - Overall pass rate is at least the base student pass rate.
 - Project-judgment pass rate improves over the base student pass rate.
-- General `leverage-smoke` categories do not materially regress.
+- General `leverage-smoke` capabilities do not materially regress.
 - RunPod cleanup is verified after the run.
 
 ## Rationale

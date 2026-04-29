@@ -6,11 +6,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from llm.leverage.capabilities import ALLOWED_CAPABILITIES
+
 
 @dataclass(frozen=True)
 class Task:
     id: str
-    category: str
+    capability: str
     prompt: str
     scoring: dict[str, Any]
     suite: str = ""
@@ -27,7 +29,7 @@ class Prediction:
 class ScoreResult:
     model: str
     task_id: str
-    category: str
+    capability: str
     score: float
     passed: bool
     reason: str
@@ -38,11 +40,13 @@ def load_tasks(path: Path) -> dict[str, Task]:
     tasks: dict[str, Task] = {}
     suite = path.stem
     for line_number, payload in load_jsonl(path):
-        require_keys(payload, {"id", "category", "prompt", "scoring"}, "task", line_number)
+        require_keys(payload, {"id", "capability", "prompt", "scoring"}, "task", line_number)
         task_id = require_string(payload["id"], f"task line {line_number} field 'id'")
         if task_id in tasks:
             raise ValueError(f"duplicate task id {task_id!r} in {path} at line {line_number}")
-        category = require_string(payload["category"], f"task {task_id!r} field 'category'")
+        capability = require_string(payload["capability"], f"task {task_id!r} field 'capability'")
+        if capability not in ALLOWED_CAPABILITIES:
+            raise ValueError(f"task {task_id!r} field 'capability' must be one of {sorted(ALLOWED_CAPABILITIES)}")
         prompt = require_string(payload["prompt"], f"task {task_id!r} field 'prompt'")
         scoring = payload["scoring"]
         if not isinstance(scoring, dict):
@@ -50,7 +54,7 @@ def load_tasks(path: Path) -> dict[str, Task]:
         validate_scoring(scoring, task_id)
         tasks[task_id] = Task(
             id=task_id,
-            category=category,
+            capability=capability,
             prompt=prompt,
             scoring=scoring,
             suite=suite,
@@ -106,7 +110,7 @@ def evaluate_predictions(tasks: dict[str, Task], predictions: list[Prediction]) 
                 model=prediction.model,
                 task_id=prediction.task_id,
                 suite=task.suite,
-                category=task.category,
+                capability=task.capability,
                 score=score,
                 passed=passed,
                 reason=reason,
@@ -145,7 +149,7 @@ def write_results(path: Path, results: list[ScoreResult]) -> None:
     with path.open("w", encoding="utf-8", newline="") as file:
         writer = csv.DictWriter(
             file,
-            fieldnames=["model", "suite", "task_id", "category", "score", "passed", "reason"],
+            fieldnames=["model", "suite", "task_id", "capability", "score", "passed", "reason"],
         )
         writer.writeheader()
         for result in results:
@@ -154,7 +158,7 @@ def write_results(path: Path, results: list[ScoreResult]) -> None:
                     "model": result.model,
                     "suite": result.suite,
                     "task_id": result.task_id,
-                    "category": result.category,
+                    "capability": result.capability,
                     "score": f"{result.score:.1f}",
                     "passed": str(result.passed).lower(),
                     "reason": result.reason,
@@ -167,7 +171,7 @@ def write_summary(path: Path, results: list[ScoreResult]) -> None:
     fieldnames = [
         "model",
         "suite",
-        "category",
+        "capability",
         "task_count",
         "passed_count",
         "avg_score",
@@ -175,7 +179,7 @@ def write_summary(path: Path, results: list[ScoreResult]) -> None:
     ]
     groups: dict[tuple[str, str, str], list[ScoreResult]] = {}
     for result in results:
-        groups.setdefault((result.model, result.suite, result.category), []).append(result)
+        groups.setdefault((result.model, result.suite, result.capability), []).append(result)
         groups.setdefault((result.model, result.suite, "__overall__"), []).append(result)
         groups.setdefault((result.model, "__overall__", "__overall__"), []).append(result)
 
@@ -188,12 +192,12 @@ def write_summary(path: Path, results: list[ScoreResult]) -> None:
             passed_count = sum(1 for result in group_results if result.passed)
             avg_score = sum(result.score for result in group_results) / task_count
             pass_rate = passed_count / task_count
-            model, suite, category = key
+            model, suite, capability = key
             writer.writerow(
                 {
                     "model": model,
                     "suite": suite,
-                    "category": category,
+                    "capability": capability,
                     "task_count": str(task_count),
                     "passed_count": str(passed_count),
                     "avg_score": f"{avg_score:.3f}",

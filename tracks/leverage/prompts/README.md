@@ -14,7 +14,7 @@ is promoted into a committed dataset.
 Required fields:
 
 - `id`: stable unique identifier
-- `category`: broad capability or project concern
+- `capability`: broad model capability
 - `purpose`: why this generated example would be useful
 - `system_prompt`: provider-facing instruction
 - `prompt`: user-facing input to answer
@@ -50,7 +50,7 @@ through, rerun the instruction collection wrapper with `--resume` so completed
 `source_prompt_id` rows are skipped instead of overwritten.
 
 Run the structural filter with `--summary-output` after generation to record
-candidate count, reject reasons, and category distribution before any review or
+candidate count, reject reasons, and capability distribution before any review or
 promotion step.
 
 Instruction generation uses a large default response cap (`--max-tokens 16384`)

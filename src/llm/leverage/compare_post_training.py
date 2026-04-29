@@ -27,7 +27,7 @@ class ComparedTask:
     model: str
     task_id: str
     suite: str
-    category: str
+    capability: str
     raw_passed: bool
     parsed_passed: bool
     raw_reason: str
@@ -63,7 +63,7 @@ def compare_scores(raw: list[ScoreResult], parsed: list[ScoreResult]) -> list[Co
                 model=raw_result.model,
                 task_id=raw_result.task_id,
                 suite=raw_result.suite,
-                category=raw_result.category,
+                capability=raw_result.capability,
                 raw_passed=raw_result.passed,
                 parsed_passed=parsed_result.passed,
                 raw_reason=raw_result.reason,
@@ -73,10 +73,10 @@ def compare_scores(raw: list[ScoreResult], parsed: list[ScoreResult]) -> list[Co
     return compared
 
 
-def grouped_by_category(rows: list[ComparedTask]) -> dict[str, list[ComparedTask]]:
+def grouped_by_capability(rows: list[ComparedTask]) -> dict[str, list[ComparedTask]]:
     groups: dict[str, list[ComparedTask]] = {}
     for row in rows:
-        groups.setdefault(row.category, []).append(row)
+        groups.setdefault(row.capability, []).append(row)
     return groups
 
 
@@ -158,16 +158,16 @@ def write_report(path: Path, rows: list[ComparedTask], *, base_model: str, adapt
         "## Details",
         "",
     ]
-    for category, category_rows in sorted(grouped_by_category(rows).items()):
+    for capability, capability_rows in sorted(grouped_by_capability(rows).items()):
         lines.extend(
             [
-                f"## {category}",
+                f"## {capability}",
                 "",
                 "| model | suite | task | raw | qwen-final | status |",
                 "| --- | --- | --- | ---: | ---: | --- |",
             ]
         )
-        for row in category_rows:
+        for row in capability_rows:
             lines.append(
                 f"| `{row.model}` | `{row.suite}` | `{row.task_id}` | {format_passed(row.raw_passed)} | "
                 f"{format_passed(row.parsed_passed)} | `{status(row.raw_passed, row.parsed_passed)}` |"

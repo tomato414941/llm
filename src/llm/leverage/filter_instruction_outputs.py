@@ -16,7 +16,7 @@ DEFAULT_MAX_RESPONSE_CHARS = 2200
 @dataclass(frozen=True)
 class FilterResult:
     source_prompt_id: str
-    category: str
+    capability: str
     model: str
     decision: str
     issues: list[str]
@@ -59,22 +59,22 @@ def filter_row(
 ) -> FilterResult:
     issues: list[str] = []
     source_prompt_id = row.get("source_prompt_id")
-    category = row.get("category")
+    capability = row.get("capability")
     model = row.get("model")
     if not isinstance(source_prompt_id, str) or not source_prompt_id:
         issues.append("missing_source_prompt_id")
         source_prompt_id = ""
-    if not isinstance(category, str) or not category:
-        issues.append("missing_category")
-        category = ""
+    if not isinstance(capability, str) or not capability:
+        issues.append("missing_capability")
+        capability = ""
     if not isinstance(model, str) or not model:
         issues.append("missing_model")
         model = ""
     seed = seeds.get(source_prompt_id)
     if source_prompt_id and seed is None:
         issues.append("unknown_source_prompt_id")
-    elif seed is not None and category and seed.category != category:
-        issues.append("category_mismatch")
+    elif seed is not None and capability and seed.capability != capability:
+        issues.append("capability_mismatch")
 
     messages = row.get("messages")
     if not isinstance(messages, list):
@@ -106,7 +106,7 @@ def filter_row(
         decision = "needs_judge"
     return FilterResult(
         source_prompt_id=source_prompt_id,
-        category=category,
+        capability=capability,
         model=model,
         decision=decision,
         issues=issues,
@@ -134,7 +134,7 @@ def write_csv(path: Path, results: list[tuple[int, dict[str, Any], FilterResult]
             fieldnames=[
                 "line_number",
                 "source_prompt_id",
-                "category",
+                "capability",
                 "model",
                 "decision",
                 "issue_count",
@@ -148,7 +148,7 @@ def write_csv(path: Path, results: list[tuple[int, dict[str, Any], FilterResult]
                 {
                     "line_number": line_number,
                     "source_prompt_id": result.source_prompt_id,
-                    "category": result.category,
+                    "capability": result.capability,
                     "model": result.model,
                     "decision": result.decision,
                     "issue_count": len(result.issues),
@@ -175,17 +175,17 @@ def summary_rows(results: list[tuple[int, dict[str, Any], FilterResult]]) -> lis
     rows.append({"scope": "overall", "name": "total", "count": total, "rate": "1.000" if total else "0.000"})
 
     decision_counts: dict[str, int] = {}
-    category_counts: dict[str, int] = {}
+    capability_counts: dict[str, int] = {}
     issue_counts: dict[str, int] = {}
     for _line_number, _row, result in results:
         decision_counts[result.decision] = decision_counts.get(result.decision, 0) + 1
-        category_counts[result.category] = category_counts.get(result.category, 0) + 1
+        capability_counts[result.capability] = capability_counts.get(result.capability, 0) + 1
         for issue in result.issues:
             issue_counts[issue] = issue_counts.get(issue, 0) + 1
 
     for scope, counts in (
         ("decision", decision_counts),
-        ("category", category_counts),
+        ("capability", capability_counts),
         ("issue", issue_counts),
     ):
         for name, count in sorted(counts.items()):

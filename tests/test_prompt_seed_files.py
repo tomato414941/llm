@@ -2,11 +2,13 @@ import json
 from pathlib import Path
 from typing import Any
 
+from llm.leverage.capabilities import ALLOWED_CAPABILITIES
+
 
 PROMPT_FILES = [Path("tracks/leverage/prompts/instruction-seeds.jsonl")]
 REQUIRED_FIELDS = {
     "id",
-    "category",
+    "capability",
     "purpose",
     "system_prompt",
     "prompt",
@@ -35,7 +37,8 @@ def test_prompt_seed_files_have_stable_schema_and_unique_ids() -> None:
             assert isinstance(row["id"], str) and row["id"]
             assert row["id"] not in seen_ids
             seen_ids.add(row["id"])
-            assert isinstance(row["category"], str) and row["category"]
+            assert isinstance(row["capability"], str) and row["capability"]
+            assert row["capability"] in ALLOWED_CAPABILITIES
             assert isinstance(row["purpose"], str) and row["purpose"]
             assert isinstance(row["system_prompt"], str) and row["system_prompt"]
             assert isinstance(row["prompt"], str) and row["prompt"]
@@ -46,18 +49,8 @@ def test_prompt_seed_files_have_stable_schema_and_unique_ids() -> None:
 
 def test_training_seed_prompts_cover_current_decision_areas() -> None:
     rows = load_jsonl(Path("tracks/leverage/prompts/instruction-seeds.jsonl"))
-    categories = {row["category"] for row in rows}
+    capabilities = {row["capability"] for row in rows}
 
     assert len(rows) >= 50
-    assert {
-        "resource_judgment",
-        "data_pipeline",
-        "eval_design",
-        "training_strategy",
-        "from_scratch_track",
-        "operations",
-        "model_spec_behavior",
-        "sft_data_quality",
-        "judge_design",
-        "runpod_recovery",
-    } <= categories
+    assert capabilities <= ALLOWED_CAPABILITIES
+    assert {"instruction_following", "reasoning", "coding", "tool_use"} <= capabilities

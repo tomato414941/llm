@@ -4,8 +4,10 @@ from pathlib import Path
 import re
 from typing import Any
 
+from llm.leverage.capabilities import ALLOWED_CAPABILITIES
 
-REQUIRED_ROW_FIELDS = {"id", "source_prompt_id", "category", "messages", "review"}
+
+REQUIRED_ROW_FIELDS = {"id", "source_prompt_id", "capability", "messages", "review"}
 REQUIRED_ROLES = ["system", "user", "assistant"]
 ACCEPTED_STATUS = "accepted_instruction"
 SECRET_MARKERS = [
@@ -84,9 +86,11 @@ def validate_row(
     if not isinstance(source_prompt_id, str) or not source_prompt_id:
         errors.append("source_prompt_id must be a non-empty string")
 
-    category = row.get("category")
-    if not isinstance(category, str) or not category:
-        errors.append("category must be a non-empty string")
+    capability = row.get("capability")
+    if not isinstance(capability, str) or not capability:
+        errors.append("capability must be a non-empty string")
+    elif capability not in ALLOWED_CAPABILITIES:
+        errors.append(f"capability must be one of {sorted(ALLOWED_CAPABILITIES)}")
 
     messages = row.get("messages")
     if not isinstance(messages, list):

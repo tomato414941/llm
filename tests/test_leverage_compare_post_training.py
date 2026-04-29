@@ -3,7 +3,7 @@ from pathlib import Path
 
 from llm.leverage.compare_post_training import (
     ComparedTask,
-    grouped_by_category,
+    grouped_by_capability,
     grouped_by_model_outcome,
     score_predictions,
     write_report,
@@ -23,7 +23,7 @@ def test_score_predictions_compares_raw_decoded_and_qwen_final_parse(tmp_path: P
         [
             {
                 "id": "task-1",
-                "category": "qa",
+                "capability": "knowledge_qa",
                 "prompt": "Return ok.",
                 "scoring": {"type": "exact", "expected": "ok"},
             }
@@ -44,7 +44,7 @@ def test_score_predictions_compares_raw_decoded_and_qwen_final_parse(tmp_path: P
             model="base",
             task_id="task-1",
             suite="tasks",
-            category="qa",
+            capability="knowledge_qa",
             raw_passed=False,
             parsed_passed=True,
             raw_reason="response did not exactly match expected text",
@@ -54,7 +54,7 @@ def test_score_predictions_compares_raw_decoded_and_qwen_final_parse(tmp_path: P
             model="adapter",
             task_id="task-1",
             suite="tasks",
-            category="qa",
+            capability="knowledge_qa",
             raw_passed=False,
             parsed_passed=False,
             raw_reason="response did not exactly match expected text",
@@ -63,25 +63,25 @@ def test_score_predictions_compares_raw_decoded_and_qwen_final_parse(tmp_path: P
     ]
 
 
-def test_grouped_by_category_preserves_rows() -> None:
+def test_grouped_by_capability_preserves_rows() -> None:
     rows = [
-        ComparedTask("base", "task-1", "suite", "qa", False, True, "raw failed", "parsed passed"),
-        ComparedTask("base", "task-2", "suite", "json", True, True, "raw passed", "parsed passed"),
+        ComparedTask("base", "task-1", "suite", "knowledge_qa", False, True, "raw failed", "parsed passed"),
+        ComparedTask("base", "task-2", "suite", "instruction_following", True, True, "raw passed", "parsed passed"),
     ]
 
-    assert grouped_by_category(rows) == {"qa": [rows[0]], "json": [rows[1]]}
+    assert grouped_by_capability(rows) == {"knowledge_qa": [rows[0]], "instruction_following": [rows[1]]}
 
 
 def test_grouped_by_model_outcome_classifies_base_and_adapter() -> None:
     rows = [
-        ComparedTask("base", "adapter-only", "suite", "qa", False, False, "raw failed", "parsed failed"),
-        ComparedTask("adapter", "adapter-only", "suite", "qa", False, True, "raw failed", "parsed passed"),
-        ComparedTask("base", "base-only", "suite", "qa", False, True, "raw failed", "parsed passed"),
-        ComparedTask("adapter", "base-only", "suite", "qa", False, False, "raw failed", "parsed failed"),
-        ComparedTask("base", "both-pass", "suite", "qa", True, True, "raw passed", "parsed passed"),
-        ComparedTask("adapter", "both-pass", "suite", "qa", True, True, "raw passed", "parsed passed"),
-        ComparedTask("base", "both-fail", "suite", "qa", False, False, "raw failed", "parsed failed"),
-        ComparedTask("adapter", "both-fail", "suite", "qa", False, False, "raw failed", "parsed failed"),
+        ComparedTask("base", "adapter-only", "suite", "knowledge_qa", False, False, "raw failed", "parsed failed"),
+        ComparedTask("adapter", "adapter-only", "suite", "knowledge_qa", False, True, "raw failed", "parsed passed"),
+        ComparedTask("base", "base-only", "suite", "knowledge_qa", False, True, "raw failed", "parsed passed"),
+        ComparedTask("adapter", "base-only", "suite", "knowledge_qa", False, False, "raw failed", "parsed failed"),
+        ComparedTask("base", "both-pass", "suite", "knowledge_qa", True, True, "raw passed", "parsed passed"),
+        ComparedTask("adapter", "both-pass", "suite", "knowledge_qa", True, True, "raw passed", "parsed passed"),
+        ComparedTask("base", "both-fail", "suite", "knowledge_qa", False, False, "raw failed", "parsed failed"),
+        ComparedTask("adapter", "both-fail", "suite", "knowledge_qa", False, False, "raw failed", "parsed failed"),
     ]
 
     groups = grouped_by_model_outcome(rows, base_model="base", adapter_model="adapter")
@@ -94,13 +94,13 @@ def test_grouped_by_model_outcome_classifies_base_and_adapter() -> None:
     }
 
 
-def test_write_report_contains_category_sections_and_statuses(tmp_path: Path) -> None:
+def test_write_report_contains_capability_sections_and_statuses(tmp_path: Path) -> None:
     report_path = tmp_path / "report.md"
     rows = [
-        ComparedTask("base", "task-1", "suite-a", "qa", False, False, "raw failed", "parsed failed"),
-        ComparedTask("adapter", "task-1", "suite-a", "qa", False, True, "raw failed", "parsed passed"),
-        ComparedTask("base", "task-2", "suite-b", "json", True, True, "raw passed", "parsed passed"),
-        ComparedTask("adapter", "task-2", "suite-b", "json", True, False, "raw passed", "parsed failed"),
+        ComparedTask("base", "task-1", "suite-a", "knowledge_qa", False, False, "raw failed", "parsed failed"),
+        ComparedTask("adapter", "task-1", "suite-a", "knowledge_qa", False, True, "raw failed", "parsed passed"),
+        ComparedTask("base", "task-2", "suite-b", "instruction_following", True, True, "raw passed", "parsed passed"),
+        ComparedTask("adapter", "task-2", "suite-b", "instruction_following", True, False, "raw passed", "parsed failed"),
     ]
 
     write_report(report_path, rows, base_model="base", adapter_model="adapter")
@@ -109,7 +109,7 @@ def test_write_report_contains_category_sections_and_statuses(tmp_path: Path) ->
     assert "| 2 | 2 | 4 |" in text
     assert "## Adapter Only" in text
     assert "- `task-1`" in text
-    assert "## json" in text
-    assert "## qa" in text
+    assert "## instruction_following" in text
+    assert "## knowledge_qa" in text
     assert "| `adapter` | `suite-a` | `task-1` | 0 | 1 | `parsed_only` |" in text
     assert "| `adapter` | `suite-b` | `task-2` | 1 | 0 | `raw_only` |" in text

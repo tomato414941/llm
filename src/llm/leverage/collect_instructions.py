@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
+from llm.leverage.capabilities import ALLOWED_CAPABILITIES
 from llm.leverage.collect_openai import ChatResult, chat_completions_client
 
 
@@ -13,7 +14,7 @@ DEFAULT_MODEL = "qwen/qwen3.6-plus"
 DEFAULT_MODEL_LABEL = "qwen3-6-plus-openrouter"
 REQUIRED_FIELDS = {
     "id",
-    "category",
+    "capability",
     "purpose",
     "system_prompt",
     "prompt",
@@ -28,7 +29,7 @@ ModelCandidate = tuple[str, str, float]
 @dataclass(frozen=True)
 class InstructionSeed:
     id: str
-    category: str
+    capability: str
     purpose: str
     system_prompt: str
     prompt: str
@@ -63,9 +64,13 @@ def seed_from_payload(path: Path, line_number: int, payload: dict[str, Any]) -> 
         if not isinstance(value, str) or not value:
             raise ValueError(f"{path}:{line_number}: {name} must be a non-empty string")
         values[name] = value
+    if values["capability"] not in ALLOWED_CAPABILITIES:
+        raise ValueError(
+            f"{path}:{line_number}: capability must be one of {sorted(ALLOWED_CAPABILITIES)}"
+        )
     return InstructionSeed(
         id=values["id"],
-        category=values["category"],
+        capability=values["capability"],
         purpose=values["purpose"],
         system_prompt=values["system_prompt"],
         prompt=values["prompt"],
@@ -221,7 +226,7 @@ def collect_outputs(
             response = client(payload)
             record = {
                 "source_prompt_id": seed.id,
-                "category": seed.category,
+                "capability": seed.capability,
                 "purpose": seed.purpose,
                 "model": selected_label,
                 "messages": [

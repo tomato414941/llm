@@ -10,7 +10,7 @@ from llm.leverage.collect_openai import ChatResult
 def raw_row(**overrides: object) -> dict[str, object]:
     row: dict[str, object] = {
         "source_prompt_id": "lt_seed_test",
-        "category": "resource_judgment",
+        "capability": "tool_use",
         "model": "generator_a",
         "messages": [
             {"role": "system", "content": "Answer concisely."},

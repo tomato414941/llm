@@ -61,7 +61,7 @@ Compares raw decoded responses with Qwen final-response parsing.
 | `qwen3-0.6b-base` | `leverage-smoke` | `coding_sql_count` | 0 | 1 | `parsed_only` |
 | `qwen3-0.6b-lora-smoke` | `leverage-smoke` | `coding_sql_count` | 0 | 1 | `parsed_only` |
 
-## coding_repo_reasoning
+## coding
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |
@@ -72,7 +72,7 @@ Compares raw decoded responses with Qwen final-response parsing.
 | `qwen3-0.6b-base` | `project-judgment` | `pj_repo_003` | 0 | 0 | `fail` |
 | `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_repo_003` | 0 | 0 | `fail` |
 
-## eval_design
+## reasoning
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |
@@ -83,7 +83,7 @@ Compares raw decoded responses with Qwen final-response parsing.
 | `qwen3-0.6b-base` | `project-judgment` | `pj_eval_003` | 0 | 0 | `fail` |
 | `qwen3-0.6b-lora-smoke` | `project-judgment` | `pj_eval_003` | 0 | 0 | `fail` |
 
-## experiment_judgment
+## reasoning
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |
@@ -105,7 +105,7 @@ Compares raw decoded responses with Qwen final-response parsing.
 | `qwen3-0.6b-base` | `leverage-smoke` | `instruction_lowercase` | 0 | 1 | `parsed_only` |
 | `qwen3-0.6b-lora-smoke` | `leverage-smoke` | `instruction_lowercase` | 0 | 1 | `parsed_only` |
 
-## loss_curve_interpretation
+## reasoning
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |
@@ -136,7 +136,7 @@ Compares raw decoded responses with Qwen final-response parsing.
 | `qwen3-0.6b-base` | `leverage-smoke` | `reasoning_order` | 0 | 1 | `parsed_only` |
 | `qwen3-0.6b-lora-smoke` | `leverage-smoke` | `reasoning_order` | 0 | 1 | `parsed_only` |
 
-## runpod_cost_awareness
+## reasoning
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |
@@ -156,7 +156,7 @@ Compares raw decoded responses with Qwen final-response parsing.
 | `qwen3-0.6b-base` | `leverage-smoke` | `summary_runpod` | 1 | 1 | `pass` |
 | `qwen3-0.6b-lora-smoke` | `leverage-smoke` | `summary_runpod` | 1 | 1 | `pass` |
 
-## track_distinction
+## reasoning
 
 | model | suite | task | raw | qwen-final | status |
 | --- | --- | --- | ---: | ---: | --- |

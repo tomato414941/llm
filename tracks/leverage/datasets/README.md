@@ -20,7 +20,7 @@ Each row contains:
 
 - `id`: stable unique identifier
 - `source_prompt_id`: source prompt id from `tracks/leverage/prompts/` when applicable
-- `category`: broad capability area
+- `capability`: broad model capability
 - `messages`: chat-style SFT messages with `system`, `user`, and `assistant`
   turns
 - `review`: lightweight provenance and acceptance notes

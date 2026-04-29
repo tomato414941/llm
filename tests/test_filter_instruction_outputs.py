@@ -15,7 +15,7 @@ from llm.leverage.filter_instruction_outputs import (
 def seed() -> InstructionSeed:
     return InstructionSeed(
         id="lt_seed_test",
-        category="resource_judgment",
+        capability="tool_use",
         purpose="Generate a resource judgment example.",
         system_prompt="Answer concisely.",
         prompt="When should hosted inference be used?",
@@ -27,7 +27,7 @@ def seed() -> InstructionSeed:
 def raw_row(**overrides: object) -> dict[str, object]:
     row: dict[str, object] = {
         "source_prompt_id": "lt_seed_test",
-        "category": "resource_judgment",
+        "capability": "tool_use",
         "purpose": "Generate a resource judgment example.",
         "model": "teacher",
         "messages": [
@@ -155,7 +155,7 @@ def test_write_csv_and_candidate_jsonl(tmp_path: Path) -> None:
     assert candidates == [clean]
 
 
-def test_summary_rows_counts_decisions_categories_and_issues() -> None:
+def test_summary_rows_counts_decisions_capabilities_and_issues() -> None:
     clean = raw_row()
     bad = raw_row(source_prompt_id="unknown")
     results = filter_rows(

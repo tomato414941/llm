@@ -70,9 +70,9 @@ Use in the first LoRA/SFT smoke:
 Hold out from the first smoke unless the experiment explicitly tests
 label-only behavior:
 
-- `instr_0013`: correct `track_distinction` label, but only `research`.
-- `instr_0014`: correct `track_distinction` label, but only `operations`.
-- `instr_0016`: correct `experiment_judgment` label, but only `REPEAT`.
+- `instr_0013`: correct `reasoning` label, but only `research`.
+- `instr_0014`: correct `reasoning` label, but only `operations`.
+- `instr_0016`: correct `reasoning` label, but only `REPEAT`.
 
 Reason:
 

@@ -1,13 +1,13 @@
-model,suite,task_id,category,score,passed,reason
-qwen3_5_flash_openrouter,leverage_smoke,qa_capital_france,qa,1.0,true,response exactly matched expected text
-qwen3_5_flash_openrouter,leverage_smoke,qa_water_freezing,qa,1.0,true,response exactly matched expected text
-qwen3_5_flash_openrouter,leverage_smoke,summary_mission,summarization,1.0,true,contains all required text
-qwen3_5_flash_openrouter,leverage_smoke,summary_runpod,summarization,1.0,true,contains all required text
-qwen3_5_flash_openrouter,leverage_smoke,instruction_json,instruction,1.0,true,response exactly matched expected text
-qwen3_5_flash_openrouter,leverage_smoke,instruction_bullets,instruction,0.0,false,response did not match regex
+model,suite,task_id,capability,score,passed,reason
+qwen3_5_flash_openrouter,leverage_smoke,qa_capital_france,knowledge_qa,1.0,true,response exactly matched expected text
+qwen3_5_flash_openrouter,leverage_smoke,qa_water_freezing,knowledge_qa,1.0,true,response exactly matched expected text
+qwen3_5_flash_openrouter,leverage_smoke,summary_mission,summarization_transformation,1.0,true,contains all required text
+qwen3_5_flash_openrouter,leverage_smoke,summary_runpod,summarization_transformation,1.0,true,contains all required text
+qwen3_5_flash_openrouter,leverage_smoke,instruction_json,instruction_following,1.0,true,response exactly matched expected text
+qwen3_5_flash_openrouter,leverage_smoke,instruction_bullets,instruction_following,0.0,false,response did not match regex
 qwen3_5_flash_openrouter,leverage_smoke,reasoning_arithmetic,reasoning,1.0,true,response exactly matched expected text
 qwen3_5_flash_openrouter,leverage_smoke,reasoning_order,reasoning,1.0,true,response exactly matched expected text
 qwen3_5_flash_openrouter,leverage_smoke,coding_python_function,coding,1.0,true,contains all required text
 qwen3_5_flash_openrouter,leverage_smoke,coding_sql_count,coding,1.0,true,response matched regex
-qwen3_5_flash_openrouter,leverage_smoke,qa_author,qa,1.0,true,response exactly matched expected text
-qwen3_5_flash_openrouter,leverage_smoke,instruction_lowercase,instruction,1.0,true,response exactly matched expected text
+qwen3_5_flash_openrouter,leverage_smoke,qa_author,knowledge_qa,1.0,true,response exactly matched expected text
+qwen3_5_flash_openrouter,leverage_smoke,instruction_lowercase,instruction_following,1.0,true,response exactly matched expected text

@@ -15,4 +15,4 @@
 {"task_id":"pj_repo_003","model":"example-baseline","response":"Check git status and find the relevant tests before editing."}
 {"task_id":"pj_eval_001","model":"example-baseline","response":"The flaw is using exact match for an open-ended essay; that scoring will be brittle."}
 {"task_id":"pj_eval_002","model":"example-baseline","response":"contains_all"}
-{"task_id":"pj_eval_003","model":"example-baseline","response":"Fix the category imbalance by adding coverage for loss curves and repo reasoning."}
+{"task_id":"pj_eval_003","model":"example-baseline","response":"Fix the capability imbalance by adding coverage for loss curves and repo reasoning."}

@@ -20,12 +20,12 @@ def write_jsonl(path: Path, rows: list[dict[str, object]]) -> None:
 def task(
     task_id: str,
     *,
-    category: str = "qa",
+    capability: str = "knowledge_qa",
     expected: str = "ok",
 ) -> dict[str, object]:
     return {
         "id": task_id,
-        "category": category,
+        "capability": capability,
         "prompt": f"Return {expected}.",
         "scoring": {"type": "exact", "expected": expected},
     }
@@ -144,16 +144,16 @@ def test_score_response_json_fields_rejects_fenced_json() -> None:
     "task",
     [
         {
-            "category": "qa",
+            "capability": "knowledge_qa",
             "prompt": "Missing id.",
             "scoring": {"type": "exact", "expected": "ok"},
         },
         {
             "id": "missing-prompt",
-            "category": "qa",
+            "capability": "knowledge_qa",
             "scoring": {"type": "exact", "expected": "ok"},
         },
-        {"id": "missing-scoring", "category": "qa", "prompt": "Missing scoring."},
+        {"id": "missing-scoring", "capability": "knowledge_qa", "prompt": "Missing scoring."},
     ],
 )
 def test_load_tasks_rejects_missing_required_fields(
@@ -173,13 +173,13 @@ def test_load_tasks_rejects_duplicate_task_ids(tmp_path: Path) -> None:
         [
             {
                 "id": "duplicate",
-                "category": "qa",
+                "capability": "knowledge_qa",
                 "prompt": "First.",
                 "scoring": {"type": "exact", "expected": "yes"},
             },
             {
                 "id": "duplicate",
-                "category": "qa",
+                "capability": "knowledge_qa",
                 "prompt": "Second.",
                 "scoring": {"type": "exact", "expected": "no"},
             },
@@ -255,7 +255,7 @@ def test_load_tasks_rejects_unknown_scoring_type(tmp_path: Path) -> None:
         [
             {
                 "id": "unknown",
-                "category": "qa",
+                "capability": "knowledge_qa",
                 "prompt": "Use an unsupported scorer.",
                 "scoring": {"type": "semantic", "expected": "ok"},
             }
@@ -298,13 +298,13 @@ def test_evaluate_predictions_rejects_model_with_missing_task() -> None:
     tasks = {
         "first": evaluate.Task(
             id="first",
-            category="qa",
+            capability="knowledge_qa",
             prompt="First?",
             scoring={"type": "exact", "expected": "yes"},
         ),
         "second": evaluate.Task(
             id="second",
-            category="qa",
+            capability="knowledge_qa",
             prompt="Second?",
             scoring={"type": "exact", "expected": "no"},
         ),
@@ -321,7 +321,7 @@ def test_evaluate_predictions_rejects_empty_predictions() -> None:
     tasks = {
         "first": evaluate.Task(
             id="first",
-            category="qa",
+            capability="knowledge_qa",
             prompt="First?",
             scoring={"type": "exact", "expected": "yes"},
         )
@@ -364,8 +364,8 @@ def test_cli_writes_summary_output_with_overall_rows(tmp_path: Path) -> None:
     predictions_path = tmp_path / "predictions.jsonl"
     detail_path = tmp_path / "detail.csv"
     summary_path = tmp_path / "summary.csv"
-    write_jsonl(alpha_tasks_path, [task("alpha-qa", category="qa")])
-    write_jsonl(beta_tasks_path, [task("beta-reasoning", category="reasoning", expected="4")])
+    write_jsonl(alpha_tasks_path, [task("alpha-qa", capability="knowledge_qa")])
+    write_jsonl(beta_tasks_path, [task("beta-reasoning", capability="reasoning", expected="4")])
     write_jsonl(
         predictions_path,
         [
@@ -391,8 +391,8 @@ def test_cli_writes_summary_output_with_overall_rows(tmp_path: Path) -> None:
 
     assert result.returncode == 0, result.stderr
     rows = read_csv(summary_path)
-    row_keys = {(row["model"], row["suite"], row["category"]) for row in rows}
-    assert ("example", "alpha", "qa") in row_keys
+    row_keys = {(row["model"], row["suite"], row["capability"]) for row in rows}
+    assert ("example", "alpha", "knowledge_qa") in row_keys
     assert ("example", "beta", "reasoning") in row_keys
     assert ("example", "alpha", "__overall__") in row_keys
     assert ("example", "beta", "__overall__") in row_keys
@@ -401,7 +401,7 @@ def test_cli_writes_summary_output_with_overall_rows(tmp_path: Path) -> None:
         for row in rows
         if row["model"] == "example"
         and row["suite"] == "alpha"
-        and row["category"] == "__overall__"
+        and row["capability"] == "__overall__"
     )
     assert overall["task_count"] == "1"
     assert overall["passed_count"] == "1"
@@ -417,19 +417,19 @@ def test_cli_writes_csv_scores(tmp_path: Path) -> None:
         [
             {
                 "id": "contains",
-                "category": "qa",
+                "capability": "knowledge_qa",
                 "prompt": "Name two primary colors.",
                 "scoring": {"type": "contains_all", "phrases": ["red", "blue"]},
             },
             {
                 "id": "exact",
-                "category": "reasoning",
+                "capability": "reasoning",
                 "prompt": "What is 2 + 2?",
                 "scoring": {"type": "exact", "expected": "4"},
             },
             {
                 "id": "regex",
-                "category": "instruction",
+                "capability": "instruction_following",
                 "prompt": "Return an ISO date.",
                 "scoring": {"type": "regex", "pattern": r"^\d{4}-\d{2}-\d{2}$"},
             },
@@ -484,12 +484,12 @@ def test_real_leverage_smoke_eval_contract() -> None:
         "qa_author",
         "instruction_lowercase",
     }
-    assert {task.category for task in tasks.values()} == {
+    assert {task.capability for task in tasks.values()} == {
         "coding",
-        "instruction",
-        "qa",
+        "instruction_following",
+        "knowledge_qa",
         "reasoning",
-        "summarization",
+        "summarization_transformation",
     }
     assert len(predictions) == len(tasks)
     assert {prediction.model for prediction in predictions} == {"example-baseline"}
@@ -506,13 +506,9 @@ def test_real_project_judgment_eval_contract() -> None:
     results = evaluate.evaluate_predictions(tasks, predictions)
 
     assert len(tasks) == 18
-    assert {task.category for task in tasks.values()} == {
-        "coding_repo_reasoning",
-        "eval_design",
-        "experiment_judgment",
-        "loss_curve_interpretation",
-        "runpod_cost_awareness",
-        "track_distinction",
+    assert {task.capability for task in tasks.values()} == {
+        "coding",
+        "reasoning",
     }
     assert len(predictions) == len(tasks)
     assert {prediction.model for prediction in predictions} == {"example-baseline"}
@@ -529,15 +525,10 @@ def test_real_leverage_model_spec_eval_contract() -> None:
     results = evaluate.evaluate_predictions(tasks, predictions)
 
     assert len(tasks) == 18
-    assert {task.category for task in tasks.values()} == {
-        "conciseness",
-        "cost_awareness",
-        "data_quality",
-        "eval_hygiene",
-        "instruction_hierarchy",
-        "overbuild_avoidance",
-        "run_recovery",
-        "training_distinction",
+    assert {task.capability for task in tasks.values()} == {
+        "instruction_following",
+        "reasoning",
+        "tool_use",
     }
     assert len(predictions) == len(tasks)
     assert {prediction.model for prediction in predictions} == {"example-baseline"}

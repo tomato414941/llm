@@ -11,9 +11,13 @@ def load_config() -> dict[str, object]:
 
 def test_leverage_sft_smoke_config_references_existing_inputs() -> None:
     config = load_config()
+    model = config["model"]
     data = config["data"]
+    assert isinstance(model, dict)
     assert isinstance(data, dict)
 
+    assert model["student"] == "Qwen/Qwen3.5-0.8B"
+    assert model["target_baseline"] == "Qwen/Qwen3.5-9B"
     assert Path(data["reviewed-instructions"]).exists()
     for task in data["eval_tasks"]:
         assert Path(task).exists()
@@ -46,4 +50,5 @@ def test_leverage_sft_smoke_doc_exists() -> None:
     assert doc.exists()
     text = doc.read_text(encoding="utf-8")
     assert "not a claim that the model improves" in text
+    assert "Qwen/Qwen3.5-9B" in text
     assert "Do not launch a paid GPU job" in text

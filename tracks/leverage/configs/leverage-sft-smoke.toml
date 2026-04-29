@@ -6,7 +6,8 @@ status = "planned"
 
 [model]
 student = "Qwen/Qwen3.5-0.8B"
-selection_reason = "Small current Qwen-family student for low-cost smoke runs with better expected capability than Qwen3-0.6B."
+target_baseline = "Qwen/Qwen3.5-9B"
+selection_reason = "Qwen3.5-0.8B is a low-cost test student. Qwen3.5-9B is the intended baseline once the smoke path and eval loop are stable."
 
 [data]
 reviewed-instructions = "tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl"

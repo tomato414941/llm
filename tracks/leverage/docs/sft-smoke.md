@@ -19,9 +19,9 @@ by a small student model in a bounded LoRA or SFT run.
 
 ## Student Model
 
-Use `Qwen/Qwen3.5-0.8B` as the default small student. It keeps the smoke run
-near the previous 0.6B cost profile while using a newer Qwen-family model with
-better expected capability.
+Use `Qwen/Qwen3.5-0.8B` as the test student for low-cost smoke runs. The intended
+project baseline is `Qwen/Qwen3.5-9B` after the smoke path and eval loop are
+stable. Do not treat a 0.8B smoke result as the baseline capability target.
 
 ## Method
 

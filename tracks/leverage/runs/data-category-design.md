@@ -36,10 +36,11 @@ removed rather than maintained decoratively.
 
 ## Naming
 
-`category` is the current JSONL field name. In this document, the intended
-meaning is `capability_area`: the primary ability being trained or evaluated.
-Existing files may keep the `category` field until a schema cleanup is worth the
-extra churn.
+`capability` means the primary ability being trained or evaluated.
+
+`category` is the current JSONL field name. Existing files may keep that field
+until a schema cleanup is worth the churn, but its intended value should be one
+of the `capability` values in this document.
 
 ## External Basis
 
@@ -75,7 +76,7 @@ source model, or operational topic.
 Classify a row by asking:
 
 ```text
-If this row disappeared, which capability area's coverage would shrink most?
+If this row disappeared, which capability coverage would shrink most?
 ```
 
 Examples:
@@ -116,9 +117,9 @@ If a row is mainly about evaluation design, resource cost, or local project
 policy, still choose the underlying capability area. Track those operational
 concerns as separate metadata only if they become necessary.
 
-## Shared Capability Areas
+## Shared Capabilities
 
-| capability_area | definition |
+| capability | definition |
 | --- | --- |
 | instruction_following | Follow explicit user constraints, output formats, brevity requirements, and refusal to over-answer. |
 | reasoning | Compare options, do small calculations, preserve ordering, and explain tradeoffs. |
@@ -129,11 +130,11 @@ concerns as separate metadata only if they become necessary.
 
 ## Rules
 
-- Design new seed batches from `capability_area`, not from project-specific run
+- Design new seed batches from `capability`, not from project-specific run
   history.
 - Keep eval prompts held out from training-generation seeds.
 - Use project-specific examples only when they fit the planned allocation.
-- Treat existing `category` values as legacy labels until mapped to
-  `capability_area`.
+- Treat existing non-capability `category` values as legacy labels until mapped
+  to `capability`.
 - If an audit needs remapping, change the mapping rule first, then rerun the
   count. Do not manually override individual rows after seeing the result.

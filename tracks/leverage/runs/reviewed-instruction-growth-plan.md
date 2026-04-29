@@ -14,10 +14,10 @@ dataset. They should not define the whole 300-row target.
 
 Target reviewed rows: 300
 
-The table uses the shared `capability_area` semantics defined in
+The table uses the shared `capability` semantics defined in
 `data-category-design.md`.
 
-| capability_area | target rows | purpose |
+| capability | target rows | purpose |
 | --- | ---: | --- |
 | instruction_following | 80 | Basic instruction following, format control, concise answers, and user-intent handling. |
 | reasoning | 80 | Small reasoning tasks, tradeoff comparison, arithmetic, ordering, and consistency checks. |

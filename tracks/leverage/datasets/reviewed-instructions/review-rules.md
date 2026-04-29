@@ -54,3 +54,38 @@ An accepted reviewed instruction is still not proof of value. It becomes useful 
 - a held-out eval is selected
 - a baseline model result exists
 - a small training run shows measurable improvement
+
+## Bootstrap Dataset Triage
+
+Triage on 2026-04-29 for
+`tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl` at 17 rows.
+This is a training-readiness note only; no rows were removed.
+
+Use in the first LoRA/SFT smoke:
+
+- `instr_0001` through `instr_0012`
+- `instr_0015`
+- `instr_0017`
+
+Hold out from the first smoke unless the experiment explicitly tests
+label-only behavior:
+
+- `instr_0013`: correct `track_distinction` label, but only `research`.
+- `instr_0014`: correct `track_distinction` label, but only `operations`.
+- `instr_0016`: correct `experiment_judgment` label, but only `REPEAT`.
+
+Reason:
+
+- The held rows are valid reviewed instructions, but they are very short
+  classification targets.
+- In a tiny bootstrap dataset, label-only rows can overrepresent terse answer
+  behavior.
+- They remain useful for future classification-focused experiments or a larger
+  mixed dataset where label-only answers are a small minority.
+
+Initial smoke recommendation:
+
+- Train on 14 explanatory rows.
+- Keep the 3 label-only rows reviewed but excluded from the first training
+  subset.
+- Revisit them after a baseline smoke run exists.

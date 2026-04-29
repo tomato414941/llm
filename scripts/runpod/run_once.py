@@ -57,7 +57,7 @@ def split_shell_command(command: str) -> list[str]:
 def rsync_to_remote_command(args: argparse.Namespace, connection: PodConnection) -> list[str]:
     sources = [*DEFAULT_SYNC, *args.sync]
     seen: set[str] = set()
-    command = ["rsync", "-az", "--relative", "-e", rsync_ssh(args, connection)]
+    command = ["rsync", "-az", "--no-owner", "--no-group", "--relative", "-e", rsync_ssh(args, connection)]
     for source in sources:
         if source in seen:
             continue
@@ -69,7 +69,7 @@ def rsync_to_remote_command(args: argparse.Namespace, connection: PodConnection)
 
 
 def rsync_from_remote_command(args: argparse.Namespace, connection: PodConnection) -> list[str]:
-    command = ["rsync", "-az", "-e", rsync_ssh(args, connection)]
+    command = ["rsync", "-az", "--no-owner", "--no-group", "-e", rsync_ssh(args, connection)]
     for output in args.output:
         command.append(f"{connection.user}@{connection.host}:{args.remote_dir}/{output}")
     command.append(f"{args.repo_root}/")

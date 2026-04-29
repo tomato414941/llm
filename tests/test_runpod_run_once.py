@@ -130,6 +130,8 @@ def test_rsync_to_remote_syncs_default_and_explicit_sources(tmp_path: Path) -> N
 
     command = rsync_to_remote_command(args(tmp_path), PodConnection("host", 2222))
 
+    assert "--no-owner" in command
+    assert "--no-group" in command
     assert "src" in command
     assert "tests" in command
     assert "tracks/leverage/configs" in command
@@ -142,6 +144,8 @@ def test_rsync_from_remote_fetches_outputs(tmp_path: Path) -> None:
 
     command = rsync_from_remote_command(args(tmp_path), PodConnection("host", 2222))
 
+    assert "--no-owner" in command
+    assert "--no-group" in command
     assert "root@host:/workspace/llm/outputs/leverage-sft-smoke" in command
     assert command[-1] == f"{tmp_path}/"
 

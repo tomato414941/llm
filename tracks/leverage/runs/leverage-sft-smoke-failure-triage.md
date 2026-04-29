@@ -117,10 +117,9 @@ Examples:
 
 Decision:
 
-After Qwen final-response parsing is fixed, build the next reviewed dataset
-slice around project-judgment examples. Keep it small, but cover experiment
-controls, RunPod cost policy, track classification, repo hygiene, and eval
-design.
+After Qwen final-response parsing is fixed, treat project-judgment failures as
+one source of future seeds. Do not make them the center of the reviewed dataset.
+The dataset distribution is defined in `reviewed-instruction-growth-plan.md`.
 
 ## Next Action
 
@@ -130,6 +129,7 @@ Qwen final-response parsing is now implemented inside
 because the final response was not extracted or because the model answer is
 actually wrong.
 
-The next data iteration should focus on project-judgment examples. After Qwen
-final-response parsing, the smoke adapter still passes only `1/18`
-project-judgment tasks.
+The next data iteration should follow `reviewed-instruction-growth-plan.md`.
+After Qwen final-response parsing, project-judgment remains a useful failure
+source, but the 300-row reviewed dataset should stay general-purpose rather
+than becoming a project-specific agent policy dataset.

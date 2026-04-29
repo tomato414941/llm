@@ -25,8 +25,8 @@ because the goal is wiring, not capability.
 ## Method
 
 Prefer LoRA for the first run. Full SFT is acceptable only if the implementation
-is simpler in the selected training stack and remains bounded to the 10 reviewed
-examples.
+is simpler in the selected training stack and remains bounded to the configured
+smoke example limit.
 
 ## Before Training
 
@@ -101,7 +101,7 @@ unless the dry-run review identifies a concrete compatibility issue.
 
 - The reviewed instruction file validates.
 - The training JSONL export is regenerated.
-- The training command completes on at most 10 examples.
+- The training command completes within the configured smoke example limit.
 - An adapter or checkpoint artifact is written.
 - The held-out eval command can run before and after training.
 

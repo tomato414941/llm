@@ -64,6 +64,10 @@ contract changes.
 
 Do not train on all `both_fail` tasks indiscriminately.
 
+These recommendations apply only to this historical project-judgment eval
+cleanup thread. They are not a recommendation to center the full reviewed
+instruction dataset on project-judgment behavior.
+
 Use this split:
 
 - Add or regenerate training data for the 13 `good_eval` behaviors.

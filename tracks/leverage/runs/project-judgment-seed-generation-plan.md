@@ -183,3 +183,38 @@ Default going forward:
 All default hosted calls use the OpenRouter-compatible API base URL. Qwen3.5
 Flash may still be used explicitly for low-cost exploration, but it is not the
 default path for reviewed training-data generation.
+
+## Qwen3.6 Plus Teacher Check
+
+Executed on 2026-04-29 with the same 13 project-judgment seeds.
+
+Generator:
+
+- `qwen3-6-plus-openrouter` (`qwen/qwen3.6-plus`)
+
+Judge:
+
+- `claude-sonnet-4-6-openrouter` (`anthropic/claude-sonnet-4.6`)
+
+Structural filter:
+
+- total: 13
+- `needs_judge`: 13
+- `response_too_long`: 4
+
+Judge result:
+
+- `accept`: 4
+- `needs_edit`: 7
+- `reject`: 2
+
+Accepted rows:
+
+- `lt_seed_052`: already covered by `instr_0011`
+- `lt_seed_053`: promoted to `instr_0016`
+- `lt_seed_057`: already covered by `instr_0013`
+- `lt_seed_058`: already covered by `instr_0014`
+
+Compared with Qwen3.5 Flash's 1/13 accept rate, Qwen3.6 Plus improved to 4/13
+and produced one new unique reviewed instruction row. The reviewed dataset now
+contains 16 rows.

@@ -21,7 +21,7 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
 
 def test_reviewed_instruction_dataset_has_reviewed_chat_schema() -> None:
     rows = load_jsonl(DATASET_PATH)
-    assert len(rows) == 15
+    assert len(rows) == 16
 
     seen_ids: set[str] = set()
     for row in rows:

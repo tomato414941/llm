@@ -11,14 +11,14 @@ CONFIG_PATH = Path("tracks/leverage/configs/leverage-sft-smoke.toml")
 def test_preflight_real_config_exports_bootstrap_training_rows() -> None:
     lines = preflight(CONFIG_PATH, overwrite=True)
 
-    assert any("exported training rows: 15" in line for line in lines)
+    assert any("exported training rows: 16" in line for line in lines)
     assert Path("tracks/leverage/sft/bootstrap.train.jsonl").exists()
 
 
 def test_preflight_rejects_too_many_training_rows(tmp_path: Path) -> None:
     config_path = tmp_path / "leverage-sft-smoke.toml"
     text = CONFIG_PATH.read_text(encoding="utf-8")
-    text = text.replace("max_train_examples = 15", "max_train_examples = 1")
+    text = text.replace("max_train_examples = 16", "max_train_examples = 1")
     config_path.write_text(text, encoding="utf-8")
 
     with pytest.raises(ValueError, match="exceeding max_train_examples"):

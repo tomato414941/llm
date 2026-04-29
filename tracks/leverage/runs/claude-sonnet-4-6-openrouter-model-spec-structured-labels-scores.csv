@@ -1,7 +1,0 @@
-model,suite,task_id,category,score,passed,reason
-claude-sonnet-4-6-openrouter,leverage-model-spec-structured-only,lms_cost_json_001,cost_awareness,0.0,false,response was not valid JSON: Expecting value
-claude-sonnet-4-6-openrouter,leverage-model-spec-structured-only,lms_train_json_001,training_distinction,0.0,false,response was not valid JSON: Expecting value
-claude-sonnet-4-6-openrouter,leverage-model-spec-structured-only,lms_judge_json_001,training_distinction,0.0,false,response was not valid JSON: Expecting value
-claude-sonnet-4-6-openrouter,leverage-model-spec-structured-only,lms_eval_json_001,eval_hygiene,0.0,false,response was not valid JSON: Expecting value
-claude-sonnet-4-6-openrouter,leverage-model-spec-structured-only,lms_data_json_001,data_quality,0.0,false,response was not valid JSON: Expecting value
-claude-sonnet-4-6-openrouter,leverage-model-spec-structured-only,lms_recovery_json_001,run_recovery,0.0,false,response was not valid JSON: Expecting value

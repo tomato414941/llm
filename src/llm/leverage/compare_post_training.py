@@ -1,5 +1,4 @@
 import argparse
-import csv
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -9,287 +8,193 @@ from llm.leverage.evaluate import (
     evaluate_predictions,
     load_predictions,
     load_task_suites,
-    write_results,
-    write_summary,
 )
 from llm.leverage.evaluate_sft_adapter import extract_qwen_final_response
 
 
-DEFAULT_OUTPUT_ROOT = Path("outputs/leverage-sft-smoke")
 DEFAULT_TASKS = [
     Path("tracks/leverage/evals/leverage-smoke.jsonl"),
     Path("tracks/leverage/evals/project-judgment-v0.jsonl"),
 ]
+DEFAULT_PREDICTIONS = Path("outputs/leverage-sft-smoke/post-training-predictions.jsonl")
 DEFAULT_REPORT = Path("tracks/leverage/runs/leverage-sft-smoke-diff.md")
+DEFAULT_BASE_MODEL = "qwen3-0.6b-base"
+DEFAULT_ADAPTER_MODEL = "qwen3-0.6b-lora-smoke"
 
 
 @dataclass(frozen=True)
-class ScoreRow:
+class ComparedTask:
     model: str
-    suite: str
     task_id: str
+    suite: str
     category: str
-    passed: bool
-    reason: str
+    raw_passed: bool
+    parsed_passed: bool
+    raw_reason: str
+    parsed_reason: str
 
 
-def score_row(result: ScoreResult) -> ScoreRow:
-    return ScoreRow(
-        model=result.model,
-        suite=result.suite,
-        task_id=result.task_id,
-        category=result.category,
-        passed=result.passed,
-        reason=result.reason,
-    )
-
-
-def score_predictions(
-    *,
-    tasks_paths: list[Path],
-    predictions_path: Path,
-    parse_qwen_final: bool,
-) -> dict[tuple[str, str], ScoreRow]:
-    tasks = load_task_suites(tasks_paths)
-    predictions = load_predictions(predictions_path, set(tasks))
-    if parse_qwen_final:
-        predictions = [
-            Prediction(
-                task_id=prediction.task_id,
-                model=prediction.model,
-                response=extract_qwen_final_response(prediction.response),
-            )
-            for prediction in predictions
-        ]
-    return {
-        (result.model, result.task_id): score_row(result)
-        for result in evaluate_predictions(tasks, predictions)
-    }
-
-
-def read_scores(path: Path) -> dict[tuple[str, str], ScoreRow]:
-    rows: dict[tuple[str, str], ScoreRow] = {}
-    with path.open(newline="", encoding="utf-8") as handle:
-        for row in csv.DictReader(handle):
-            score = ScoreRow(
-                model=row["model"],
-                suite=row["suite"],
-                task_id=row["task_id"],
-                category=row["category"],
-                passed=row["passed"] == "true",
-                reason=row["reason"],
-            )
-            rows[(score.model, score.task_id)] = score
-    return rows
-
-
-def task_order(scores: dict[tuple[str, str], ScoreRow]) -> list[str]:
-    seen: set[str] = set()
-    ordered: list[str] = []
-    for _key, score in scores.items():
-        if score.task_id not in seen:
-            seen.add(score.task_id)
-            ordered.append(score.task_id)
-    return ordered
-
-
-def classify_task(
-    *,
-    task_id: str,
-    base_model: str,
-    adapter_model: str,
-    raw_scores: dict[tuple[str, str], ScoreRow],
-    parsed_scores: dict[tuple[str, str], ScoreRow],
-) -> str:
-    base_raw = raw_scores[(base_model, task_id)].passed
-    adapter_raw = raw_scores[(adapter_model, task_id)].passed
-    base_parsed = parsed_scores[(base_model, task_id)].passed
-    adapter_parsed = parsed_scores[(adapter_model, task_id)].passed
-    if not base_raw and not adapter_raw and (base_parsed or adapter_parsed):
-        return "recovered_by_qwen_final_parse"
-    if base_parsed and not adapter_parsed:
-        return "base_only"
-    if adapter_parsed and not base_parsed:
-        return "adapter_only"
-    if base_parsed and adapter_parsed:
-        return "both_pass"
-    return "both_fail"
-
-
-def grouped_tasks(
-    *,
-    base_model: str,
-    adapter_model: str,
-    raw_scores: dict[tuple[str, str], ScoreRow],
-    parsed_scores: dict[tuple[str, str], ScoreRow],
-) -> dict[str, list[str]]:
-    groups: dict[str, list[str]] = {
-        "recovered_by_qwen_final_parse": [],
-        "adapter_only": [],
-        "base_only": [],
-        "both_pass": [],
-        "both_fail": [],
-    }
-    for task_id in task_order(raw_scores):
-        if (base_model, task_id) not in raw_scores:
-            continue
-        groups[
-            classify_task(
-                task_id=task_id,
-                base_model=base_model,
-                adapter_model=adapter_model,
-                raw_scores=raw_scores,
-                parsed_scores=parsed_scores,
-            )
-        ].append(task_id)
-    return groups
-
-
-def pass_count(scores: dict[tuple[str, str], ScoreRow], model: str) -> int:
-    return sum(1 for (score_model, _task_id), row in scores.items() if score_model == model and row.passed)
-
-
-def task_count(scores: dict[tuple[str, str], ScoreRow], model: str) -> int:
-    return sum(1 for score_model, _task_id in scores if score_model == model)
-
-
-def markdown_list(items: list[str]) -> list[str]:
-    if not items:
-        return ["- none"]
-    return [f"- `{item}`" for item in items]
-
-
-def write_score_artifacts(
-    *,
-    raw_output: Path,
-    parsed_output: Path,
-    summary_output: Path,
-    tasks_paths: list[Path],
-    predictions_path: Path,
-) -> None:
-    tasks = load_task_suites(tasks_paths)
-    raw_predictions = load_predictions(predictions_path, set(tasks))
-    parsed_predictions = [
+def qwen_final_predictions(predictions: list[Prediction]) -> list[Prediction]:
+    return [
         Prediction(
             task_id=prediction.task_id,
             model=prediction.model,
             response=extract_qwen_final_response(prediction.response),
         )
-        for prediction in raw_predictions
+        for prediction in predictions
     ]
-    raw_results = evaluate_predictions(tasks, raw_predictions)
-    parsed_results = evaluate_predictions(tasks, parsed_predictions)
-    write_results(raw_output, raw_results)
-    write_results(parsed_output, parsed_results)
-    write_summary(summary_output, parsed_results)
 
 
-def write_report(
+def score_predictions(tasks_paths: list[Path], predictions_path: Path) -> list[ComparedTask]:
+    tasks = load_task_suites(tasks_paths)
+    predictions = load_predictions(predictions_path, set(tasks))
+    raw = evaluate_predictions(tasks, predictions)
+    parsed = evaluate_predictions(tasks, qwen_final_predictions(predictions))
+    return compare_scores(raw, parsed)
+
+
+def compare_scores(raw: list[ScoreResult], parsed: list[ScoreResult]) -> list[ComparedTask]:
+    parsed_by_key = {(result.model, result.task_id): result for result in parsed}
+    compared: list[ComparedTask] = []
+    for raw_result in raw:
+        parsed_result = parsed_by_key[(raw_result.model, raw_result.task_id)]
+        compared.append(
+            ComparedTask(
+                model=raw_result.model,
+                task_id=raw_result.task_id,
+                suite=raw_result.suite,
+                category=raw_result.category,
+                raw_passed=raw_result.passed,
+                parsed_passed=parsed_result.passed,
+                raw_reason=raw_result.reason,
+                parsed_reason=parsed_result.reason,
+            )
+        )
+    return compared
+
+
+def grouped_by_category(rows: list[ComparedTask]) -> dict[str, list[ComparedTask]]:
+    groups: dict[str, list[ComparedTask]] = {}
+    for row in rows:
+        groups.setdefault(row.category, []).append(row)
+    return groups
+
+
+def grouped_by_model_outcome(
+    rows: list[ComparedTask],
     *,
-    path: Path,
     base_model: str,
     adapter_model: str,
-    raw_scores: dict[tuple[str, str], ScoreRow],
-    parsed_scores: dict[tuple[str, str], ScoreRow],
-) -> None:
-    groups = grouped_tasks(
-        base_model=base_model,
-        adapter_model=adapter_model,
-        raw_scores=raw_scores,
-        parsed_scores=parsed_scores,
-    )
-    total = task_count(raw_scores, base_model)
+) -> dict[str, list[str]]:
+    parsed_by_key = {(row.model, row.task_id): row.parsed_passed for row in rows}
+    task_ids = list(dict.fromkeys(row.task_id for row in rows if row.model == base_model))
+    groups: dict[str, list[str]] = {
+        "adapter_only": [],
+        "base_only": [],
+        "both_pass": [],
+        "both_fail": [],
+    }
+    for task_id in task_ids:
+        base_passed = parsed_by_key[(base_model, task_id)]
+        adapter_passed = parsed_by_key[(adapter_model, task_id)]
+        if adapter_passed and not base_passed:
+            groups["adapter_only"].append(task_id)
+        elif base_passed and not adapter_passed:
+            groups["base_only"].append(task_id)
+        elif base_passed and adapter_passed:
+            groups["both_pass"].append(task_id)
+        else:
+            groups["both_fail"].append(task_id)
+    return groups
+
+
+def pass_count(rows: list[ComparedTask], *, parsed: bool) -> int:
+    return sum(1 for row in rows if (row.parsed_passed if parsed else row.raw_passed))
+
+
+def status(raw_passed: bool, parsed_passed: bool) -> str:
+    if raw_passed and parsed_passed:
+        return "pass"
+    if raw_passed and not parsed_passed:
+        return "raw_only"
+    if not raw_passed and parsed_passed:
+        return "parsed_only"
+    return "fail"
+
+
+def markdown_list(items: list[str]) -> list[str]:
+    return [f"- `{item}`" for item in items] if items else ["- none"]
+
+
+def write_report(path: Path, rows: list[ComparedTask], *, base_model: str, adapter_model: str) -> None:
+    outcome_groups = grouped_by_model_outcome(rows, base_model=base_model, adapter_model=adapter_model)
     lines = [
-        "# Leverage SFT Smoke Diff",
+        "# Leverage Post-Training Compare",
         "",
-        "This report compares raw decoded scoring with Qwen final-response scoring.",
+        "Compares raw decoded responses with Qwen final-response parsing.",
         "",
         "## Summary",
         "",
-        "| model | raw passed | qwen-final passed | total |",
-        "| --- | ---: | ---: | ---: |",
-        f"| `{base_model}` | {pass_count(raw_scores, base_model)} | {pass_count(parsed_scores, base_model)} | {total} |",
-        f"| `{adapter_model}` | {pass_count(raw_scores, adapter_model)} | {pass_count(parsed_scores, adapter_model)} | {total} |",
-        "",
-        "## Recovered By Qwen Final Parse",
-        "",
-        *markdown_list(groups["recovered_by_qwen_final_parse"]),
+        "| raw passed | qwen-final passed | total |",
+        "| ---: | ---: | ---: |",
+        f"| {pass_count(rows, parsed=False)} | {pass_count(rows, parsed=True)} | {len(rows)} |",
         "",
         "## Adapter Only",
         "",
-        *markdown_list(groups["adapter_only"]),
+        *markdown_list(outcome_groups["adapter_only"]),
         "",
         "## Base Only",
         "",
-        *markdown_list(groups["base_only"]),
+        *markdown_list(outcome_groups["base_only"]),
         "",
         "## Both Pass",
         "",
-        *markdown_list(groups["both_pass"]),
+        *markdown_list(outcome_groups["both_pass"]),
         "",
         "## Both Fail",
         "",
-        *markdown_list(groups["both_fail"]),
+        *markdown_list(outcome_groups["both_fail"]),
         "",
-        "## Next Data Target",
+        "## Details",
         "",
-        "Prioritize `both_fail` project-judgment tasks before another training run.",
     ]
+    for category, category_rows in sorted(grouped_by_category(rows).items()):
+        lines.extend(
+            [
+                f"## {category}",
+                "",
+                "| model | suite | task | raw | qwen-final | status |",
+                "| --- | --- | --- | ---: | ---: | --- |",
+            ]
+        )
+        for row in category_rows:
+            lines.append(
+                f"| `{row.model}` | `{row.suite}` | `{row.task_id}` | {format_passed(row.raw_passed)} | "
+                f"{format_passed(row.parsed_passed)} | `{status(row.raw_passed, row.parsed_passed)}` |"
+            )
+        lines.append("")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def format_passed(passed: bool) -> str:
+    return "1" if passed else "0"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--tasks", type=Path, action="append", default=DEFAULT_TASKS)
-    parser.add_argument(
-        "--predictions",
-        type=Path,
-        default=DEFAULT_OUTPUT_ROOT / "post-training-predictions.jsonl",
-    )
-    parser.add_argument("--base-model", default="qwen3-0.6b-base")
-    parser.add_argument("--adapter-model", default="qwen3-0.6b-lora-smoke")
+    parser.add_argument("--predictions", type=Path, default=DEFAULT_PREDICTIONS)
+    parser.add_argument("--base-model", default=DEFAULT_BASE_MODEL)
+    parser.add_argument("--adapter-model", default=DEFAULT_ADAPTER_MODEL)
     parser.add_argument("--output", type=Path, default=DEFAULT_REPORT)
-    parser.add_argument("--raw-scores-output", type=Path, default=DEFAULT_OUTPUT_ROOT / "post-training-scores.raw.csv")
-    parser.add_argument(
-        "--qwen-final-scores-output",
-        type=Path,
-        default=DEFAULT_OUTPUT_ROOT / "post-training-scores.qwen-final.csv",
-    )
-    parser.add_argument(
-        "--qwen-final-summary-output",
-        type=Path,
-        default=DEFAULT_OUTPUT_ROOT / "post-training-summary.qwen-final.csv",
-    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    raw_scores = score_predictions(
-        tasks_paths=args.tasks,
-        predictions_path=args.predictions,
-        parse_qwen_final=False,
-    )
-    parsed_scores = score_predictions(
-        tasks_paths=args.tasks,
-        predictions_path=args.predictions,
-        parse_qwen_final=True,
-    )
-    write_score_artifacts(
-        raw_output=args.raw_scores_output,
-        parsed_output=args.qwen_final_scores_output,
-        summary_output=args.qwen_final_summary_output,
-        tasks_paths=args.tasks,
-        predictions_path=args.predictions,
-    )
-    write_report(
-        path=args.output,
-        base_model=args.base_model,
-        adapter_model=args.adapter_model,
-        raw_scores=raw_scores,
-        parsed_scores=parsed_scores,
-    )
+    rows = score_predictions(args.tasks, args.predictions)
+    write_report(args.output, rows, base_model=args.base_model, adapter_model=args.adapter_model)
     print(f"wrote report: {args.output}")
     return 0
 

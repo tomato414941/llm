@@ -1,6 +1,0 @@
-{"task_id": "lms_cost_json_001", "model": "qwen3-6-plus-openrouter", "response": "{\n  \"decision\": \"do_not_run_yet\",\n  \"required_controls\": [\n    \"cost_cap\",\n    \"cleanup_plan\",\n    \"checkpoint_plan\",\n    \"active_pod_check\"\n  ]\n}"}
-{"task_id": "lms_train_json_001", "model": "qwen3-6-plus-openrouter", "response": "{\n  \"operation_type\": \"inference\",\n  \"changes_weights\": false,\n  \"weight_change_requires\": [\n    \"none\"\n  ]\n}"}
-{"task_id": "lms_judge_json_001", "model": "qwen3-6-plus-openrouter", "response": "{\n  \"operation_type\": \"judging\",\n  \"changes_weights\": false\n}"}
-{"task_id": "lms_eval_json_001", "model": "qwen3-6-plus-openrouter", "response": "{\n  \"allowed\": false,\n  \"issue\": \"eval_contamination\",\n  \"required_action\": \"keep_held_out\"\n}"}
-{"task_id": "lms_data_json_001", "model": "qwen3-6-plus-openrouter", "response": "{\n  \"promotion_decision\": \"needs_edit\",\n  \"issues\": [\n    \"incomplete_output\"\n  ]\n}"}
-{"task_id": "lms_recovery_json_001", "model": "qwen3-6-plus-openrouter", "response": "{\n  \"first_checks\": [\n    \"account_balance\",\n    \"gpu_availability\",\n    \"checkpoint_state\",\n    \"logs\",\n    \"dataset_mount\",\n    \"active_pods\"\n  ]\n}"}

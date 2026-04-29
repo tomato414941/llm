@@ -12,9 +12,16 @@ runpod_run_once = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
 SPEC.loader.exec_module(runpod_run_once)
 
-PodConnection = runpod_run_once.PodConnection
-normalize_pods = runpod_run_once.normalize_pods
-parse_ssh_info = runpod_run_once.parse_ssh_info
+COMMON_MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "runpod" / "runpod_common.py"
+COMMON_SPEC = importlib.util.spec_from_file_location("runpod_common", COMMON_MODULE_PATH)
+assert COMMON_SPEC is not None
+runpod_common = importlib.util.module_from_spec(COMMON_SPEC)
+assert COMMON_SPEC.loader is not None
+COMMON_SPEC.loader.exec_module(runpod_common)
+
+PodConnection = runpod_common.PodConnection
+normalize_pods = runpod_common.normalize_pods
+parse_ssh_info = runpod_common.parse_ssh_info
 preflight = runpod_run_once.preflight
 remote_cuda_smoke_command = runpod_run_once.remote_cuda_smoke_command
 remote_user_command = runpod_run_once.remote_user_command

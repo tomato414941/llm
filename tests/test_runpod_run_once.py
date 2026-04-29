@@ -13,6 +13,8 @@ assert SPEC.loader is not None
 SPEC.loader.exec_module(runpod_run_once)
 
 PodConnection = runpod_run_once.PodConnection
+normalize_pods = runpod_run_once.normalize_pods
+parse_ssh_info = runpod_run_once.parse_ssh_info
 preflight = runpod_run_once.preflight
 remote_cuda_smoke_command = runpod_run_once.remote_cuda_smoke_command
 remote_user_command = runpod_run_once.remote_user_command
@@ -97,9 +99,11 @@ def test_runpodctl_create_command_uses_generic_args(tmp_path: Path) -> None:
 
     command = runpodctl_create_command(run_args)
 
-    assert command[command.index("--gpuType") + 1] == "NVIDIA GeForce RTX 3090"
-    assert command[command.index("--cost") + 1] == "0.8"
-    assert command[command.index("--imageName") + 1] == "runpod/pytorch:test"
+    assert command[:4] == ["/home/dev/bin/runpodctl", "pod", "create", "-o"]
+    assert command[command.index("--gpu-id") + 1] == "NVIDIA GeForce RTX 3090"
+    assert command[command.index("--image") + 1] == "runpod/pytorch:test"
+    assert "--public-ip" in command
+    assert "--cost" not in command
 
 
 def test_rsync_to_remote_syncs_default_and_explicit_sources(tmp_path: Path) -> None:
@@ -121,6 +125,42 @@ def test_rsync_from_remote_fetches_outputs(tmp_path: Path) -> None:
 
     assert "root@host:/workspace/llm/outputs/leverage-sft-smoke" in command
     assert command[-1] == f"{tmp_path}/"
+
+
+def test_normalize_pods_formats_v2_port_mappings() -> None:
+    pods = normalize_pods(
+        [
+            {
+                "id": "pod123",
+                "name": "run",
+                "desiredStatus": "RUNNING",
+                "ports": [
+                    {
+                        "ip": "104.1.2.3",
+                        "publicPort": 45678,
+                        "privatePort": 22,
+                        "type": "tcp",
+                        "isIpPublic": True,
+                    }
+                ],
+            }
+        ]
+    )
+
+    assert pods == [
+        {
+            "ID": "pod123",
+            "NAME": "run",
+            "STATUS": "RUNNING",
+            "PORTS": "104.1.2.3:45678->22 (pub,tcp)",
+        }
+    ]
+
+
+def test_parse_ssh_info_reads_command_shape() -> None:
+    connection = parse_ssh_info('{"command":"ssh root@213.173.108.12 -p 17445 -i ~/.ssh/id_ed25519"}')
+
+    assert connection == PodConnection("213.173.108.12", 17445)
 
 
 def test_remote_cuda_smoke_requires_cuda() -> None:

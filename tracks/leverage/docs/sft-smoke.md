@@ -63,7 +63,6 @@ uv run python scripts/runpod/run_once.py \
   --dry-run \
   --name llm-leverage-sft-smoke \
   --gpu-type 'NVIDIA GeForce RTX 3090' \
-  --max-cost 0.8 \
   --mem 24 \
   --sync tracks/leverage/configs \
   --sync tracks/leverage/datasets \
@@ -80,7 +79,8 @@ uv run python scripts/runpod/run_once.py \
 The dry run must show these steps in order:
 
 - local SFT smoke preflight
-- RunPod pod creation with the configured cost and runtime ceiling
+- RunPod pod creation with `runpodctl pod create`, Community Cloud public IP,
+  and the configured runtime ceiling
 - repo, reviewed data, SFT export, and eval task sync
 - CUDA smoke
 - training-package import smoke
@@ -90,7 +90,9 @@ The dry run must show these steps in order:
 - cleanup
 
 Do not run the same command without `--dry-run` until the dry-run plan matches
-the intended cost, GPU, image, model, output paths, and cleanup policy.
+the intended GPU, image, model, output paths, and cleanup policy. Check current
+RunPod pricing before launch because the v2 CLI does not accept a create-time
+cost ceiling flag.
 
 The default image is `runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404`, chosen
 for this training smoke because it provides a newer PyTorch/CUDA base than the

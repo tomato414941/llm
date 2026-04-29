@@ -33,7 +33,7 @@ The next LoRA run is useful only if:
 
 ## Rationale
 
-The current 17-row reviewed dataset is adequate for a wiring smoke, but too
+The current reviewed dataset is adequate for a wiring smoke, but still too
 small for a capability claim. Continuing to tune the student model on small,
 hand-shaped examples would bias the project toward brittle rule injection.
 

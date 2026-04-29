@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 from dataclasses import dataclass
+import json
 import os
 from pathlib import Path
 import re
@@ -75,40 +76,47 @@ def server_args(args: argparse.Namespace) -> str:
 
 
 def runpodctl_create_api_command(args: argparse.Namespace) -> list[str]:
+    env = {
+        **{name: value for name, value in args.server_env},
+        "MODEL_ID": args.model,
+        "SERVED_MODEL_NAME": args.served_model_name,
+        "HOST": "0.0.0.0",
+        "PORT": str(args.server_port),
+        "MAX_MODEL_LEN": str(args.max_model_len),
+        "LANGUAGE_MODEL_ONLY": "1" if args.language_model_only else "0",
+        "API_KEY": args.api_key,
+    }
+    if args.reasoning_parser:
+        env["REASONING_PARSER"] = args.reasoning_parser
     command = [
         args.runpodctl,
-        "create",
         "pod",
+        "create",
+        "-o",
+        "json",
         "--name",
         args.pod_name,
-        "--gpuType",
+        "--gpu-id",
         args.gpu_type,
-        "--gpuCount",
+        "--gpu-count",
         str(args.gpu_count),
-        "--imageName",
+        "--image",
         args.image,
-        "--containerDiskSize",
+        "--container-disk-in-gb",
         str(args.container_disk_size),
-        "--volumeSize",
+        "--volume-in-gb",
         str(args.volume_size),
-        "--volumePath",
+        "--volume-mount-path",
         args.remote_volume,
         "--ports",
         f"{args.server_port}/http",
-        "--cost",
-        str(args.max_cost),
+        "--env",
+        json.dumps(env, separators=(",", ":")),
     ]
-    if args.vcpu:
-        command.extend(["--vcpu", str(args.vcpu)])
-    if args.mem:
-        command.extend(["--mem", str(args.mem)])
     if args.secure_cloud:
-        command.append("--secureCloud")
+        command.extend(["--cloud-type", "SECURE"])
     else:
-        command.append("--communityCloud")
-    for name, value in args.server_env:
-        command.extend(["--env", f"{name}={value}"])
-    command.extend(["--args", server_args(args)])
+        command.extend(["--cloud-type", "COMMUNITY"])
     return command
 
 
@@ -287,7 +295,7 @@ def cleanup_named_pods(runner: Runner, args: argparse.Namespace, pod_id: str | N
         if pod_id is not None and pod.get("ID") == pod_id:
             continue
         if pod.get("NAME") == args.pod_name:
-            runner.run([args.runpodctl, "remove", "pod", str(pod["ID"])], check=False)
+            runner.run([args.runpodctl, "pod", "delete", str(pod["ID"])], check=False)
 
 
 def remaining_seconds(deadline: float | None) -> float | None:
@@ -333,6 +341,8 @@ def preflight(args: argparse.Namespace) -> None:
         raise ValueError("--max-tokens must be positive")
     if args.temperature < 0:
         raise ValueError("--temperature must be non-negative")
+    if args.server_extra_args:
+        raise ValueError("--server-extra-args is not supported by the runpodctl v2 pod runner")
     if not args.model_label:
         raise ValueError("--model-label must not be empty")
     if not args.dry_run and not Path(args.runpodctl).exists():

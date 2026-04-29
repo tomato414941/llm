@@ -137,7 +137,6 @@ collection, and cleanup:
 uv run python scripts/runpod/run_once.py --dry-run \
   --name llm-leverage-sft-smoke \
   --gpu-type 'NVIDIA GeForce RTX 3090' \
-  --max-cost 0.8 \
   --sync tracks/leverage/configs \
   --sync tracks/leverage/datasets \
   --sync tracks/leverage/evals \
@@ -149,10 +148,11 @@ uv run python scripts/runpod/run_once.py --dry-run \
   --remote 'uv run python -u -m llm.leverage.evaluate_sft_adapter --config tracks/leverage/configs/leverage-sft-smoke.toml'
 ```
 
+The runner expects `runpodctl` v2 and uses `runpodctl pod ...` commands.
 Use `--dry-run` first. After any real RunPod job, verify no active pods remain:
 
 ```bash
-/home/dev/bin/runpodctl get pod --allfields
+/home/dev/bin/runpodctl pod list -o json
 ```
 
 ## Project Shape

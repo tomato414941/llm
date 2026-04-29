@@ -1,5 +1,6 @@
 from argparse import Namespace
 import importlib.util
+import json
 from pathlib import Path
 import sys
 
@@ -155,18 +156,18 @@ def test_server_args_include_custom_port_and_extra_vllm_args() -> None:
 
 def test_runpodctl_create_api_command_exposes_http_without_ssh(tmp_path: Path) -> None:
     command = runpodctl_create_api_command(args(tmp_path))
-    server_command = command[command.index("--args") + 1]
+    env = json.loads(command[command.index("--env") + 1])
 
-    assert command[:3] == ["/home/dev/bin/runpodctl", "create", "pod"]
-    assert command[command.index("--imageName") + 1] == "vllm/vllm-openai:test"
+    assert command[:4] == ["/home/dev/bin/runpodctl", "pod", "create", "-o"]
+    assert command[command.index("--image") + 1] == "vllm/vllm-openai:test"
     assert command[command.index("--ports") + 1] == "8000/http"
-    assert command[command.index("--gpuType") + 1] == "NVIDIA GeForce RTX 4090"
-    assert command[command.index("--cost") + 1] == "2.0"
-    assert command[command.index("--mem") + 1] == "29"
-    assert command[command.index("--env") + 1] == "VLLM_ENABLE_CUDA_COMPATIBILITY=1"
-    assert server_command.startswith("--model Qwen/Qwen3-14B-FP8")
-    assert "--api-key" in server_command
-    assert "vllm serve" not in server_command
+    assert command[command.index("--gpu-id") + 1] == "NVIDIA GeForce RTX 4090"
+    assert "--cost" not in command
+    assert "--mem" not in command
+    assert env["VLLM_ENABLE_CUDA_COMPATIBILITY"] == "1"
+    assert env["MODEL_ID"] == "Qwen/Qwen3-14B-FP8"
+    assert env["SERVED_MODEL_NAME"] == "Qwen/Qwen3-14B-FP8"
+    assert env["API_KEY"] == "runpod-local"
     assert "openssh-server" not in command
     assert "rsync" not in command
 
@@ -187,7 +188,7 @@ def test_cleanup_named_pods_removes_matching_active_pod(tmp_path: Path, monkeypa
 
     cleanup_named_pods(runner, run_args, None)
 
-    assert runner.commands == [["/home/dev/bin/runpodctl", "remove", "pod", "target"]]
+    assert runner.commands == [["/home/dev/bin/runpodctl", "pod", "delete", "target"]]
 
 
 def test_runpodctl_create_api_command_keeps_runpod_http_port_in_sync_with_server_port(tmp_path: Path) -> None:
@@ -195,24 +196,21 @@ def test_runpodctl_create_api_command_keeps_runpod_http_port_in_sync_with_server
     run_args.server_port = 8080
 
     command = runpodctl_create_api_command(run_args)
-    server_command = command[command.index("--args") + 1]
+    env = json.loads(command[command.index("--env") + 1])
 
     assert command[command.index("--ports") + 1] == "8080/http"
-    assert "--port 8080" in server_command
+    assert env["PORT"] == "8080"
     assert "8000/http" not in command
     assert "8080/tcp" not in command
 
 
-def test_runpodctl_create_api_command_keeps_server_extra_args_inside_container_args(tmp_path: Path) -> None:
+def test_preflight_rejects_server_extra_args(tmp_path: Path) -> None:
+    write_repo_shape(tmp_path)
     run_args = args(tmp_path)
     run_args.server_extra_args = ["--uvicorn-log-level", "warning"]
 
-    command = runpodctl_create_api_command(run_args)
-    server_command = command[command.index("--args") + 1]
-
-    assert "--uvicorn-log-level warning" in server_command
-    assert "--uvicorn-log-level" not in command[:-1]
-    assert "warning" not in command[:-1]
+    with pytest.raises(ValueError, match="server-extra-args"):
+        preflight(run_args)
 
 
 def test_parse_port_mappings_reads_runpod_public_http_mapping() -> None:
@@ -388,8 +386,8 @@ def test_cleanup_policy_removes_pod_on_success_and_failure(tmp_path: Path) -> No
     cleanup_pod(runner, args(tmp_path), "pod-failure", success=False)
 
     assert runner.commands == [
-        ["/home/dev/bin/runpodctl", "remove", "pod", "pod-success"],
-        ["/home/dev/bin/runpodctl", "remove", "pod", "pod-failure"],
+        ["/home/dev/bin/runpodctl", "pod", "delete", "pod-success"],
+        ["/home/dev/bin/runpodctl", "pod", "delete", "pod-failure"],
     ]
 
 

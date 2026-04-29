@@ -2,6 +2,7 @@
 import argparse
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import json
 import os
 from pathlib import Path
 import re
@@ -93,71 +94,84 @@ class Runner:
 def runpodctl_create_command(args: argparse.Namespace) -> list[str]:
     command = [
         args.runpodctl,
-        "create",
         "pod",
+        "create",
+        "-o",
+        "json",
         "--name",
         args.pod_name,
-        "--gpuType",
+        "--gpu-id",
         args.gpu_type,
-        "--gpuCount",
+        "--gpu-count",
         str(args.gpu_count),
-        "--imageName",
+        "--image",
         args.image,
-        "--containerDiskSize",
+        "--container-disk-in-gb",
         str(args.container_disk_size),
-        "--volumeSize",
+        "--volume-in-gb",
         str(args.volume_size),
-        "--volumePath",
+        "--volume-mount-path",
         args.remote_volume,
         "--ports",
         "22/tcp",
-        "--cost",
-        str(args.max_cost),
     ]
-    if args.vcpu:
-        command.extend(["--vcpu", str(args.vcpu)])
-    if args.mem:
-        command.extend(["--mem", str(args.mem)])
     if args.secure_cloud:
-        command.append("--secureCloud")
+        command.extend(["--cloud-type", "SECURE"])
     else:
-        command.append("--communityCloud")
+        command.extend(["--cloud-type", "COMMUNITY", "--public-ip"])
     if args.bootstrap_sshd:
-        public_key = args.ssh_public_key.read_text(encoding="utf-8").strip()
-        command.extend(["--env", f"PUBLIC_KEY={public_key}"])
-        command.extend(
-            [
-                "--args",
-                (
-                    "bash -c 'apt-get update && "
-                    "DEBIAN_FRONTEND=noninteractive apt-get install -y openssh-server rsync && "
-                    "mkdir -p ~/.ssh && chmod 700 ~/.ssh && "
-                    "echo \"$PUBLIC_KEY\" >> ~/.ssh/authorized_keys && "
-                    "chmod 600 ~/.ssh/authorized_keys && "
-                    "service ssh start && sleep infinity'"
-                ),
-            ]
-        )
+        command.append("--ssh")
     return command
 
 
-def parse_pod_table(output: str) -> list[dict[str, str]]:
-    lines = [line for line in output.splitlines() if line.strip()]
-    if len(lines) <= 1:
+def parse_json_output(output: str) -> object:
+    text = output.strip()
+    if not text:
         return []
-    headers = [header.strip() for header in lines[0].split("\t")]
-    pods: list[dict[str, str]] = []
-    for line in lines[1:]:
-        values = [value.strip() for value in line.split("\t")]
-        row = {header: values[index] if index < len(values) else "" for index, header in enumerate(headers)}
-        if row.get("ID"):
-            pods.append(row)
-    return pods
+    return json.loads(text)
+
+
+def normalize_pod(raw: dict[str, object]) -> dict[str, str]:
+    ports = raw.get("ports") or raw.get("PORTS") or raw.get("portMappings") or ""
+    if isinstance(ports, list):
+        ports = ",".join(format_port_mapping(item) for item in ports)
+    return {
+        "ID": str(raw.get("id") or raw.get("ID") or ""),
+        "NAME": str(raw.get("name") or raw.get("NAME") or ""),
+        "STATUS": str(raw.get("desiredStatus") or raw.get("status") or raw.get("STATUS") or ""),
+        "PORTS": str(ports),
+    }
+
+
+def format_port_mapping(raw: object) -> str:
+    if not isinstance(raw, dict):
+        return str(raw)
+    host = raw.get("ip") or raw.get("host") or raw.get("hostname") or raw.get("publicIp") or raw.get("privateIp")
+    public_port = raw.get("publicPort") or raw.get("externalPort") or raw.get("port")
+    container_port = raw.get("privatePort") or raw.get("containerPort") or raw.get("internalPort")
+    port_type = str(raw.get("type") or raw.get("protocol") or raw.get("scheme") or "tcp").lower()
+    is_public = raw.get("isIpPublic")
+    label = f"{'pub' if is_public is True else 'prv' if is_public is False else ''},{port_type}".strip(",")
+    if host and public_port and container_port:
+        return f"{host}:{public_port}->{container_port} ({label})"
+    return str(raw)
+
+
+def normalize_pods(raw: object) -> list[dict[str, str]]:
+    if isinstance(raw, dict):
+        for key in ("pods", "data", "items"):
+            value = raw.get(key)
+            if isinstance(value, list):
+                return [normalize_pod(item) for item in value if isinstance(item, dict)]
+        return [normalize_pod(raw)]
+    if isinstance(raw, list):
+        return [normalize_pod(item) for item in raw if isinstance(item, dict)]
+    return []
 
 
 def list_pods(runner: Runner, args: argparse.Namespace) -> list[dict[str, str]]:
-    completed = runner.run([args.runpodctl, "get", "pod", "--allfields"], capture=True)
-    return parse_pod_table(completed.stdout)
+    completed = runner.run([args.runpodctl, "pod", "list", "-o", "json"], capture=True)
+    return normalize_pods(parse_json_output(completed.stdout))
 
 
 def active_pods(runner: Runner, args: argparse.Namespace) -> list[dict[str, str]]:
@@ -205,11 +219,14 @@ def wait_for_connection(
 ) -> PodConnection:
     deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
-        pod = next((item for item in list_pods(runner, args) if item.get("ID") == pod_id), None)
-        if pod is not None:
+        pod = pod_get(runner, args, pod_id)
+        if pod:
             connection = pod_connection(pod)
             if connection is not None:
                 return connection
+        connection = ssh_info_connection(runner, args, pod_id)
+        if connection is not None:
+            return connection
         time.sleep(10)
     raise TimeoutError(f"pod did not expose SSH within {timeout_seconds} seconds: {pod_id}")
 
@@ -223,6 +240,49 @@ def pod_connection(pod: dict[str, str]) -> PodConnection | None:
         if "tcp" in labels.lower() and "prv" not in labels.lower():
             return PodConnection(host=host, port=int(public_port))
     return None
+
+
+def pod_get(runner: Runner, args: argparse.Namespace, pod_id: str) -> dict[str, str] | None:
+    completed = runner.run([args.runpodctl, "pod", "get", pod_id, "-o", "json"], capture=True, check=False)
+    if completed.returncode != 0:
+        return None
+    pods = normalize_pods(parse_json_output(completed.stdout))
+    return pods[0] if pods else None
+
+
+def ssh_info_connection(runner: Runner, args: argparse.Namespace, pod_id: str) -> PodConnection | None:
+    completed = runner.run([args.runpodctl, "ssh", "info", pod_id, "-o", "json"], capture=True, check=False)
+    if completed.returncode != 0:
+        return None
+    return parse_ssh_info(completed.stdout)
+
+
+def parse_ssh_info(output: str) -> PodConnection | None:
+    try:
+        raw = parse_json_output(output)
+    except json.JSONDecodeError:
+        raw = None
+    if isinstance(raw, dict):
+        host = raw.get("host") or raw.get("hostname") or raw.get("ip") or raw.get("publicIp")
+        port = raw.get("port") or raw.get("sshPort")
+        user = raw.get("user") or raw.get("username") or "root"
+        command = raw.get("command") or raw.get("sshCommand")
+        if host and port:
+            return PodConnection(host=str(host), port=int(port), user=str(user))
+        if command:
+            return parse_ssh_command(str(command))
+    return parse_ssh_command(output)
+
+
+def parse_ssh_command(command: str) -> PodConnection | None:
+    match = re.search(r"ssh\s+(?:-i\s+\S+\s+)?(?P<target>[A-Za-z0-9_.-]+@[A-Za-z0-9_.-]+)(?:\s+-p\s+(?P<port1>\d+))?", command)
+    if not match:
+        match = re.search(r"ssh\s+(?:-p\s+(?P<port2>\d+)\s+)?(?P<target>[A-Za-z0-9_.-]+@[A-Za-z0-9_.-]+)", command)
+    if not match:
+        return None
+    user, host = match.group("target").split("@", 1)
+    port_text = match.groupdict().get("port1") or match.groupdict().get("port2") or "22"
+    return PodConnection(host=host, port=int(port_text), user=user)
 
 
 def ssh_base(args: argparse.Namespace, connection: PodConnection) -> list[str]:
@@ -342,7 +402,7 @@ def cleanup_pod(
     keep_on_failure = getattr(args, "keep_pod_on_failure", False)
     if args.keep_pod or (not success and keep_on_failure):
         return
-    runner.run([args.runpodctl, "remove", "pod", pod_id], check=False)
+    runner.run([args.runpodctl, "pod", "delete", pod_id], check=False)
     if not runner.dry_run:
         remaining = [pod for pod in list_pods(runner, args) if pod.get("ID") == pod_id]
         if remaining:

@@ -7,11 +7,11 @@ import subprocess
 
 
 DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
-DEFAULT_MODEL = "qwen/qwen3.5-flash-02-23"
-DEFAULT_MODEL_LABEL = "qwen3-5-flash-openrouter"
+DEFAULT_MODEL = "qwen/qwen3.6-plus"
+DEFAULT_MODEL_LABEL = "qwen3-6-plus-openrouter"
 DEFAULT_SECRET_PATH = Path.home() / ".secrets" / "openrouter"
 DEFAULT_SEEDS = Path("tracks/leverage/prompts/leverage-training-seed-v0.jsonl")
-DEFAULT_OUTPUT = Path("tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter.jsonl")
+DEFAULT_OUTPUT = Path("tracks/leverage/runs/instruction-outputs/qwen3-6-plus-openrouter.jsonl")
 
 
 def load_api_key(path: Path) -> str:

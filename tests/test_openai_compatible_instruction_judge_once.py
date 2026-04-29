@@ -56,10 +56,12 @@ def test_parse_args_defaults_to_openrouter_judge(monkeypatch: pytest.MonkeyPatch
 
     assert parsed.base_url == "https://openrouter.ai/api/v1"
     assert parsed.secret_path == Path.home() / ".secrets" / "openrouter"
-    assert parsed.input == Path("tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-candidates.jsonl")
-    assert parsed.output == Path("tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-judgments.jsonl")
+    assert parsed.input == Path("tracks/leverage/runs/instruction-outputs/qwen3-6-plus-openrouter-candidates.jsonl")
+    assert parsed.output == Path(
+        "tracks/leverage/runs/instruction-outputs/qwen3-6-plus-openrouter-claude-sonnet-4-6-judgments.jsonl"
+    )
     assert parsed.summary_output == Path(
-        "tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-judgments-summary.csv"
+        "tracks/leverage/runs/instruction-outputs/qwen3-6-plus-openrouter-claude-sonnet-4-6-judgments-summary.csv"
     )
     assert parsed.resume is False
 

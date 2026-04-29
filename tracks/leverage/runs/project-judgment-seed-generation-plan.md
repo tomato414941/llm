@@ -160,3 +160,26 @@ covered by `instr_0011`, so it was not duplicated.
 
 The reviewed dataset now contains 15 rows. SFT export was regenerated with 15
 rows.
+
+## Default Teacher/Judge Decision
+
+Decision on 2026-04-29: retire `qwen3-5-flash-openrouter` as the default
+instruction teacher or judge. Use the current OpenRouter Qwen model instead of
+the older Flash model.
+
+Reason:
+
+- Qwen3.5 Flash is cheap, but this pass accepted only 1 of 13 generated rows.
+- Low API price is not useful if most rows still require review, editing, or
+  rejection.
+- For reviewed SFT data, optimize for accepted rows per dollar, not raw tokens
+  per dollar.
+
+Default going forward:
+
+- instruction teacher: `qwen3-6-plus-openrouter`
+- instruction judge: `claude-sonnet-4-6-openrouter`
+
+All default hosted calls use the OpenRouter-compatible API base URL. Qwen3.5
+Flash may still be used explicitly for low-cost exploration, but it is not the
+default path for reviewed training-data generation.

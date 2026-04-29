@@ -7,13 +7,15 @@ import subprocess
 
 
 DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
-DEFAULT_JUDGE_MODEL = "qwen/qwen3.5-flash-02-23"
-DEFAULT_JUDGE_LABEL = "qwen3-5-flash-openrouter"
+DEFAULT_JUDGE_MODEL = "anthropic/claude-sonnet-4.6"
+DEFAULT_JUDGE_LABEL = "claude-sonnet-4-6-openrouter"
 DEFAULT_SECRET_PATH = Path.home() / ".secrets" / "openrouter"
-DEFAULT_INPUT = Path("tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-candidates.jsonl")
-DEFAULT_OUTPUT = Path("tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-judgments.jsonl")
-DEFAULT_CSV_OUTPUT = Path("tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-judgments.csv")
-DEFAULT_SUMMARY_OUTPUT = Path("tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-judgments-summary.csv")
+DEFAULT_INPUT = Path("tracks/leverage/runs/instruction-outputs/qwen3-6-plus-openrouter-candidates.jsonl")
+DEFAULT_OUTPUT = Path("tracks/leverage/runs/instruction-outputs/qwen3-6-plus-openrouter-claude-sonnet-4-6-judgments.jsonl")
+DEFAULT_CSV_OUTPUT = Path("tracks/leverage/runs/instruction-outputs/qwen3-6-plus-openrouter-claude-sonnet-4-6-judgments.csv")
+DEFAULT_SUMMARY_OUTPUT = Path(
+    "tracks/leverage/runs/instruction-outputs/qwen3-6-plus-openrouter-claude-sonnet-4-6-judgments-summary.csv"
+)
 
 
 def load_api_key(path: Path) -> str:

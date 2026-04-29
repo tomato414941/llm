@@ -29,8 +29,8 @@ def args(tmp_path: Path) -> Namespace:
         secret_path=tmp_path / "openrouter",
         seeds=Path("tracks/leverage/prompts/leverage-training-seed-v0.jsonl"),
         seed_id=[],
-        model="qwen/qwen3.5-flash-02-23",
-        model_label="qwen3-5-flash-openrouter",
+        model="qwen/qwen3.6-plus",
+        model_label="qwen3-6-plus-openrouter",
         output=Path("tracks/leverage/runs/instruction-outputs/qwen.jsonl"),
         max_tokens=16384,
         temperature=0.2,
@@ -58,11 +58,11 @@ def test_parse_args_defaults_to_openrouter_instruction_collection(
     parsed = normalize_args(parse_args())
 
     assert parsed.base_url == "https://openrouter.ai/api/v1"
-    assert parsed.model == "qwen/qwen3.5-flash-02-23"
-    assert parsed.model_label == "qwen3-5-flash-openrouter"
+    assert parsed.model == "qwen/qwen3.6-plus"
+    assert parsed.model_label == "qwen3-6-plus-openrouter"
     assert parsed.secret_path == Path.home() / ".secrets" / "openrouter"
     assert parsed.seeds == Path("tracks/leverage/prompts/leverage-training-seed-v0.jsonl")
-    assert parsed.output == Path("tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter.jsonl")
+    assert parsed.output == Path("tracks/leverage/runs/instruction-outputs/qwen3-6-plus-openrouter.jsonl")
     assert parsed.max_tokens == 16384
     assert parsed.reasoning_effort == "none"
     assert parsed.exclude_reasoning is True
@@ -76,7 +76,7 @@ def test_collect_command_targets_instruction_collector(tmp_path: Path) -> None:
 
     assert "llm.leverage.collect_instructions" in command
     assert command[command.index("--seeds") + 1] == "tracks/leverage/prompts/leverage-training-seed-v0.jsonl"
-    assert command[command.index("--model") + 1] == "qwen/qwen3.5-flash-02-23"
+    assert command[command.index("--model") + 1] == "qwen/qwen3.6-plus"
     assert command[command.index("--output") + 1] == "tracks/leverage/runs/instruction-outputs/qwen.jsonl"
     assert command[command.index("--reasoning-effort") + 1] == "none"
     assert "--exclude-reasoning" in command

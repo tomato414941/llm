@@ -8,8 +8,8 @@ from typing import Any, Callable
 from llm.leverage.collect_openai import ChatResult, chat_completions_client
 
 
-DEFAULT_MODEL = "qwen/qwen3.5-flash-02-23"
-DEFAULT_MODEL_LABEL = "qwen3-5-flash-openrouter"
+DEFAULT_MODEL = "qwen/qwen3.6-plus"
+DEFAULT_MODEL_LABEL = "qwen3-6-plus-openrouter"
 REQUIRED_FIELDS = {
     "id",
     "category",

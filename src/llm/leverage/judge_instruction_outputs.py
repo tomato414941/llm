@@ -9,8 +9,8 @@ from llm.leverage.collect_instructions import load_jsonl
 from llm.leverage.collect_openai import ChatResult, chat_completions_client
 
 
-DEFAULT_JUDGE_MODEL = "qwen/qwen3.5-flash-02-23"
-DEFAULT_JUDGE_LABEL = "qwen3_5_flash_openrouter"
+DEFAULT_JUDGE_MODEL = "anthropic/claude-sonnet-4.6"
+DEFAULT_JUDGE_LABEL = "claude-sonnet-4-6-openrouter"
 ChatClient = Callable[[dict[str, Any]], ChatResult | str]
 
 

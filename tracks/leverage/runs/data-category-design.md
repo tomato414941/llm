@@ -14,6 +14,23 @@ Do not create separate top-level category systems for each layer. Separate
 systems would make it hard to compare seed supply, reviewed-data coverage, and
 eval coverage.
 
+## Why Categories Exist
+
+Categories exist only as data-distribution control metadata. They are not labels
+to teach the model, and they are not a quality score.
+
+Use them to answer:
+
+- Which capability areas are over- or under-supplied at the seed layer?
+- Which capability areas fail to survive generation, judging, and review?
+- Which capability areas have reviewed training rows but too little held-out
+  eval coverage?
+- Which capability areas improve or regress after a LoRA run?
+
+If the project stops using category counts for seed planning, reviewed-data
+coverage, eval coverage, or post-training analysis, the category metadata should
+be removed rather than maintained as decorative labels.
+
 ## Naming
 
 `category` is the current JSONL field name. It is broad and can mean several
@@ -22,6 +39,33 @@ things.
 For design discussions, use `capability_area` to mean the shared top-level
 ability being trained or evaluated. Existing files may continue to use the
 field name `category` until a separate schema cleanup is justified.
+
+## Primary Axis
+
+The top-level category axis is capability, not domain, format, lifecycle,
+difficulty, source model, or operational topic.
+
+Classify a row by asking:
+
+```text
+If this row disappeared, which capability area's coverage would shrink most?
+```
+
+Examples:
+
+- A RunPod cost calculation is `resource_cost_judgment`, not `runpod`.
+- A JSON-only answer task is `instruction_following`, not `json`.
+- A held-out scoring-contract critique is `evaluation_critique`, not `eval`.
+- A repository test-selection task is `coding`, not `repo`.
+
+Other useful axes should stay as layer-specific metadata when needed:
+
+- output format
+- difficulty
+- domain
+- source model
+- lifecycle stage
+- review status
 
 ## Shared Capability Areas
 

@@ -1,25 +1,19 @@
-# Data Category Design
+# Data Category Decision
 
 Date: 2026-04-29
 
 ## Decision
 
-Use one shared top-level capability taxonomy across:
+Use one shared top-level capability classification for seed prompts, reviewed
+instruction rows, and held-out eval tasks.
 
-- seed prompts
-- reviewed instruction rows
-- held-out eval tasks
-
-Do not create separate top-level category systems for each layer. Separate
-systems would make it hard to compare seed supply, reviewed-data coverage, and
-eval coverage.
+Do not create separate top-level category systems for each layer. The point is
+to compare seed supply, reviewed-data coverage, and eval coverage by the same
+rough ability area.
 
 ## Why Categories Exist
 
-Categories exist only as data-distribution control metadata. They are not labels
-to teach the model, and they are not a quality score.
-
-Use them to answer:
+Categories exist only as data-distribution control metadata. They answer:
 
 - Which capability areas are over- or under-supplied at the seed layer?
 - Which capability areas fail to survive generation, judging, and review?
@@ -27,23 +21,21 @@ Use them to answer:
   eval coverage?
 - Which capability areas improve or regress after a LoRA run?
 
-If the project stops using category counts for seed planning, reviewed-data
-coverage, eval coverage, or post-training analysis, the category metadata should
-be removed rather than maintained as decorative labels.
+They are not labels to teach the model, and they are not quality scores. If we
+stop using category counts for planning or analysis, the metadata should be
+removed rather than maintained decoratively.
 
 ## Naming
 
-`category` is the current JSONL field name. It is broad and can mean several
-things.
-
-For design discussions, use `capability_area` to mean the shared top-level
-ability being trained or evaluated. Existing files may continue to use the
-field name `category` until a separate schema cleanup is justified.
+`category` is the current JSONL field name. In this document, the intended
+meaning is `capability_area`: the primary ability being trained or evaluated.
+Existing files may keep the `category` field until a schema cleanup is worth the
+extra churn.
 
 ## Primary Axis
 
-The top-level category axis is capability, not domain, format, lifecycle,
-difficulty, source model, or operational topic.
+The top-level axis is capability, not domain, format, lifecycle, difficulty,
+source model, or operational topic.
 
 Classify a row by asking:
 
@@ -58,14 +50,8 @@ Examples:
 - A held-out scoring-contract critique is `evaluation_critique`, not `eval`.
 - A repository test-selection task is `coding`, not `repo`.
 
-Other useful axes should stay as layer-specific metadata when needed:
-
-- output format
-- difficulty
-- domain
-- source model
-- lifecycle stage
-- review status
+Other useful axes, such as output format, difficulty, domain, source model,
+lifecycle stage, or review status, should stay as separate metadata when needed.
 
 ## Shared Capability Areas
 
@@ -81,33 +67,6 @@ Other useful axes should stay as layer-specific metadata when needed:
 | resource_cost_judgment | Reason about bounded compute/API use, cost caps, runtime limits, checkpoints, and cleanup. |
 | project_specific_policy | Local leverage-track conventions that should remain a small slice, not the dataset center. |
 
-## Layer-Specific Metadata
-
-The shared `capability_area` should be comparable across layers, but each layer
-still needs its own metadata.
-
-Seed prompts:
-
-- `purpose`
-- `output_format`
-- `constraints`
-- optional difficulty or source note
-
-Reviewed instruction rows:
-
-- `source_prompt_id`
-- `review.status`
-- `review.notes`
-- training exclusion flags when needed
-
-Held-out eval tasks:
-
-- `scoring`
-- `response_format`
-- `expected_behavior`
-- `difficulty`
-- `tags`
-
 ## Rules
 
 - Design new seed batches from `capability_area`, not from project-specific run
@@ -118,9 +77,3 @@ Held-out eval tasks:
   `capability_area`.
 - If an audit needs remapping, change the mapping rule first, then rerun the
   count. Do not manually override individual rows after seeing the result.
-
-## Relation To Growth Plan
-
-`reviewed-instruction-growth-plan.md` defines the 300-row target mix. This file
-defines the shared category semantics that should govern seed, reviewed-data,
-and eval coverage.

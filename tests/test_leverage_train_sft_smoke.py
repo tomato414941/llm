@@ -26,7 +26,7 @@ def write_config(tmp_path: Path, *, rows: int = 1, max_examples: int = 10) -> Pa
     config.write_text(
         f"""
 [model]
-student = "Qwen/Qwen3-0.6B"
+student = "Qwen/Qwen3.5-0.8B"
 
 [data]
 train_export = "{train_export}"
@@ -52,7 +52,7 @@ def test_run_smoke_dry_run_reports_training_plan(tmp_path: Path) -> None:
     lines = run_smoke(config, dry_run=True)
 
     assert any("would train 2 rows" in line for line in lines)
-    assert any("Qwen/Qwen3-0.6B" in line for line in lines)
+    assert any("Qwen/Qwen3.5-0.8B" in line for line in lines)
     assert any("adapter output" in line for line in lines)
 
 

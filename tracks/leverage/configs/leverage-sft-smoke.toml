@@ -5,8 +5,8 @@ objective = "Verify that reviewed instructions can be exported and used for a bo
 status = "planned"
 
 [model]
-student = "Qwen/Qwen3-0.6B"
-selection_reason = "Small Qwen-family student for a low-cost first weight-changing experiment."
+student = "Qwen/Qwen3.5-0.8B"
+selection_reason = "Small current Qwen-family student for low-cost smoke runs with better expected capability than Qwen3-0.6B."
 
 [data]
 reviewed-instructions = "tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl"
@@ -28,7 +28,7 @@ notes = "This is a wiring smoke, not a quality-improvement run."
 [runpod]
 required = false
 use_when = "Only when local setup cannot run the selected student model and the exact smoke objective is still worth paid GPU time."
-gpu_target = "NVIDIA GeForce RTX 4090"
+gpu_target = "NVIDIA RTX 4090 or NVIDIA A40"
 max_cost_usd = 1.00
 cleanup_required = true
 

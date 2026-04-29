@@ -19,8 +19,9 @@ by a small student model in a bounded LoRA or SFT run.
 
 ## Student Model
 
-Start with `Qwen/Qwen3-0.6B`. The first run should prefer a small student
-because the goal is wiring, not capability.
+Use `Qwen/Qwen3.5-0.8B` as the default small student. It keeps the smoke run
+near the previous 0.6B cost profile while using a newer Qwen-family model with
+better expected capability.
 
 ## Method
 
@@ -63,7 +64,7 @@ uv run python scripts/runpod/run_once.py \
   --dry-run \
   --name llm-leverage-sft-smoke \
   --secure-cloud \
-  --gpu-type 'NVIDIA A40' \
+  --gpu-type 'NVIDIA RTX 4090' \
   --template-id runpod-torch-v280 \
   --mem 24 \
   --sync tracks/leverage/configs \
@@ -92,7 +93,9 @@ The dry run must show these steps in order:
 - cleanup
 
 Do not run the same command without `--dry-run` until the dry-run plan matches
-the intended GPU, image, model, output paths, and cleanup policy. Check current
+the intended GPU, image, model, output paths, and cleanup policy. Prefer an RTX
+4090 when the selected small student fits comfortably; use an A40 when the extra
+48GB VRAM headroom is worth the slightly slower/steadier profile. Check current
 RunPod pricing before launch because the v2 CLI does not accept a create-time
 cost ceiling flag.
 

@@ -18,8 +18,8 @@ DEFAULT_TASKS = [
 ]
 DEFAULT_PREDICTIONS = Path("outputs/leverage-sft-smoke/post-training-predictions.jsonl")
 DEFAULT_REPORT = Path("tracks/leverage/runs/leverage-sft-smoke-diff.md")
-DEFAULT_BASE_MODEL = "qwen3-0.6b-base"
-DEFAULT_ADAPTER_MODEL = "qwen3-0.6b-lora-smoke"
+DEFAULT_BASE_MODEL = "qwen3.5-0.8b-base"
+DEFAULT_ADAPTER_MODEL = "qwen3.5-0.8b-lora-smoke"
 
 
 @dataclass(frozen=True)

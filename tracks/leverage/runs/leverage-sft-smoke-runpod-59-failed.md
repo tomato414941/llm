@@ -54,8 +54,22 @@ Status: failed before training
 This did not test model training quality. The failure happened before SSH,
 repo sync, CUDA smoke, dependency import, training, or adapter evaluation.
 
+## Follow-Up Transport Check
+
+Tried a minimal `runpodctl exec python` CUDA check on a separate RTX 3090 pod:
+
+- Pod created: `9bnx6ddd9d5wlv`
+- Pod name: `llm-exec-cuda-check`
+- Failure: `runpodctl exec python` stayed at `Waiting for Pod to come online...`
+  and did not execute the CUDA check.
+- Cleanup: `runpodctl remove pod 9bnx6ddd9d5wlv` succeeded.
+- Final pod check: no active pods remained.
+
+This suggests the immediate blocker is RunPod pod readiness/connectivity, not
+only the custom SSH bootstrap path.
+
 ## Next Step
 
 Fix the RunPod transport path before launching another paid attempt. The likely
-area is pod creation/connection handling, not the reviewed dataset or the SFT
-trainer.
+area is pod creation/readiness/connection handling, not the reviewed dataset or
+the SFT trainer.

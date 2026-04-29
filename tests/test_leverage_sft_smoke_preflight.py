@@ -6,12 +6,14 @@ from llm.leverage.sft_smoke_preflight import preflight
 
 
 CONFIG_PATH = Path("tracks/leverage/configs/leverage-sft-smoke.toml")
+REVIEWED_PATH = Path("tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl")
 
 
 def test_preflight_real_config_exports_bootstrap_training_rows() -> None:
     lines = preflight(CONFIG_PATH, overwrite=True)
+    expected_rows = len(REVIEWED_PATH.read_text(encoding="utf-8").splitlines())
 
-    assert any("exported training rows: 75" in line for line in lines)
+    assert any(f"exported training rows: {expected_rows}" in line for line in lines)
     assert Path("tracks/leverage/sft/bootstrap.train.jsonl").exists()
 
 

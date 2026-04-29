@@ -14,6 +14,8 @@ exports.
   next capability-seeking LoRA run.
 - `leverage-sft-smoke-runpod.md`: first weight-changing LoRA/SFT smoke run on
   RunPod, including command, metrics, and cleanup confirmation.
+- `leverage-sft-smoke-runpod-59-failed.md`: 59-row SFT smoke attempt that
+  failed before training because the RunPod SSH port was never exposed.
 - `leverage-sft-smoke-failure-triage.md`: failure classification for the first
   SFT smoke and the next concrete fix.
 - `model-spec-comparison.md`: current summary of `leverage-model-spec.jsonl`

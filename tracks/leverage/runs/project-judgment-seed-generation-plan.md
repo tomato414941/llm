@@ -77,3 +77,40 @@ After generation:
    `tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl`.
 4. Re-export SFT data.
 5. Consider a small LoRA smoke rerun only after the reviewed dataset changes.
+
+## Run Result
+
+Executed on 2026-04-29.
+
+Raw output:
+
+```text
+tracks/leverage/runs/instruction-outputs/qwen3-5-flash-openrouter-project-judgment-seeds.jsonl
+```
+
+Structural filter:
+
+- total: 13
+- `needs_judge`: 13
+- `response_too_long`: 4
+
+GPT-5.4 judge result:
+
+- `accept`: 1
+- `needs_edit`: 9
+- `reject`: 3
+
+Accepted row promoted:
+
+- `lt_seed_052` -> `instr_0011`
+
+Rejected rows were not promoted. `needs_edit` rows were not promoted because
+they require editing before they can be treated as reviewed SFT data.
+
+SFT export was regenerated:
+
+```text
+tracks/leverage/sft/bootstrap.train.jsonl
+```
+
+The reviewed dataset now contains 11 rows.

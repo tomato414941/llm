@@ -1,4 +1,4 @@
-# Next LoRA Data Targets
+# Next LoRA Run Gate
 
 Date: 2026-04-29
 
@@ -10,7 +10,7 @@ the thresholds below.
 The completed RunPod LoRA smoke proved the training path works. It did not prove
 that the current reviewed dataset improves the student model.
 
-## Minimum Targets
+## Minimum Gate
 
 Before the next LoRA run:
 

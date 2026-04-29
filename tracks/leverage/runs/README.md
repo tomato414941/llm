@@ -10,8 +10,8 @@ exports.
   prompts, reviewed instruction rows, and held-out eval tasks.
 - `reviewed-instruction-growth-plan.md`: current distribution plan for growing
   the reviewed dataset toward the next capability-seeking LoRA run.
-- `next-lora-data-targets.md`: minimum reviewed-data and eval scale before the
-  next capability-seeking LoRA run.
+- `next-lora-run-gate.md`: minimum reviewed-data and eval scale before the next
+  capability-seeking LoRA run.
 - `leverage-sft-smoke-runpod-59-qwen35-08b-success.md`: current RunPod Secure
   Cloud LoRA/SFT smoke result, including command outcome, metrics, and cleanup
   confirmation.

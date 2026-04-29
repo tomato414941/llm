@@ -53,6 +53,33 @@ Examples:
 Other useful axes, such as output format, difficulty, domain, source model,
 lifecycle stage, or review status, should stay as separate metadata when needed.
 
+## Classification Procedure
+
+Classify before looking at aggregate counts. For each row, read the user-facing
+task and choose the primary capability required to answer well.
+
+Use this question:
+
+```text
+What would this row most help us measure or train?
+```
+
+If multiple areas apply, prefer the narrowest capability that explains the main
+failure risk. Do not choose a category because the row mentions a tool, file
+type, provider, or project name.
+
+Tie breakers:
+
+1. Output shape, brevity, constraints, or "do not do X" -> `instruction_following`
+2. Direct factual answer or uncertainty handling -> `knowledge_qa`
+3. Rewrite, summarize, extract, normalize, or reformat text -> `summarization_transformation`
+4. Tradeoff, ranking, arithmetic, consistency, or decision explanation -> `reasoning_comparison`
+5. Code, tests, repository workflow, or patch judgment -> `coding`
+6. Whether to use tools, APIs, generation, evaluation, or training -> `tool_use_judgment`
+7. Scoring, baselines, leakage, held-out data, or measurement validity -> `evaluation_critique`
+8. Cost, runtime, GPU/API budget, checkpoints, cleanup, or resource limits -> `resource_cost_judgment`
+9. Local leverage-track convention with no broader capability center -> `project_specific_policy`
+
 ## Shared Capability Areas
 
 | capability_area | definition |

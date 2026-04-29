@@ -46,6 +46,7 @@ def redact(text: str, secrets: list[str]) -> str:
     for secret in secrets:
         if secret:
             redacted = redacted.replace(secret, "[REDACTED]")
+    redacted = re.sub(r"ssh-(rsa|ed25519) [^\n\"]+", "[REDACTED_SSH_PUBLIC_KEY]", redacted)
     return redacted
 
 

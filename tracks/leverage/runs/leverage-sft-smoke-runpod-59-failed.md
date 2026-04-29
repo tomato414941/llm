@@ -111,12 +111,38 @@ After moving to `runpodctl v2.1.9`, a Community Cloud pod created with
 - Final pod check: no active pods remained.
 
 The RunPod account key fingerprint and the local private key fingerprint both
-matched `SHA256:OiZTIZLaEoFwREfbVrhNS3usRFJqkMSo41uGsWgtDaQ`, so the next
-candidate fix is to use RunPod's official PyTorch template instead of direct
-image creation.
+matched, so the next candidate fix was to use RunPod's official PyTorch
+template instead of direct image creation.
+
+## v2 Official Template Attempts
+
+Using the official `runpod-torch-v280` template changed the failure mode but
+still did not reach training.
+
+First template attempt:
+
+- Pod created: `nonr7gfm6j6u7o`
+- Public SSH target was exposed.
+- Failure: SSH authentication returned `Permission denied (publickey,password)`.
+- Cleanup: `runpodctl pod delete nonr7gfm6j6u7o` succeeded.
+- Final pod check: no active pods remained.
+
+Second template attempt after adding an ED25519 RunPod SSH key and making it the
+local default key:
+
+- Pod created: `6dijw2cx1eyex0`
+- Failure: the pod stayed `RUNNING`, but `runpodctl ssh info` returned
+  `pod not ready` until the 900-second timeout.
+- Cleanup: `runpodctl pod delete 6dijw2cx1eyex0` succeeded.
+- Final pod check: no active pods remained.
+
+The trainer, CUDA import smoke, dependency import smoke, and adapter evaluation
+commands still did not run. The remaining blocker is RunPod SSH/readiness
+transport, not the LoRA/SFT code path.
 
 ## Next Step
 
-Fix the RunPod transport path before launching another paid training attempt.
-The likely fix is to use the official `runpod-torch-v280` template for the SFT
-smoke so SSH setup is owned by the template rather than direct image creation.
+Do not keep retrying the same Community Cloud SSH path. The next useful attempt
+should change one transport variable, such as trying a Secure Cloud GPU with the
+same official template, or replacing SSH orchestration with a RunPod job-style
+entrypoint that does not depend on inbound SSH readiness.

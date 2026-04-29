@@ -2,6 +2,10 @@
 
 Date: 2026-04-29
 
+Status: historical specific-run note. This file records a project-judgment seed
+generation thread. It is not the distribution plan for the 300-row reviewed
+instruction dataset.
+
 Purpose: generate teacher-model candidate answers only for the 13 training
 seeds added after the `project-judgment` eval review. These seeds target
 behaviors classified as `good_eval` in

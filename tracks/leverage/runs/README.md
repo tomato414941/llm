@@ -6,16 +6,25 @@ exports.
 
 ## Read First
 
+- `reviewed-instruction-growth-plan.md`: current distribution plan for growing
+  the reviewed dataset toward the next capability-seeking LoRA run.
+- `next-lora-data-targets.md`: minimum reviewed-data and eval scale before the
+  next capability-seeking LoRA run.
 - `leverage-sft-smoke-runpod.md`: first weight-changing LoRA/SFT smoke run on
   RunPod, including command, metrics, and cleanup confirmation.
 - `leverage-sft-smoke-failure-triage.md`: failure classification for the first
   SFT smoke and the next concrete fix.
-- `next-lora-data-targets.md`: minimum reviewed-data and eval scale before the
-  next capability-seeking LoRA run.
 - `model-spec-comparison.md`: current summary of `leverage-model-spec.jsonl`
   scoring changes and model comparison results.
 
 These files are the current human-readable run notes.
+
+## Historical Project-Judgment Notes
+
+`project-judgment-eval-review.md` and
+`project-judgment-seed-generation-plan.md` are historical notes for a specific
+failure-analysis thread. They should not be read as the reviewed instruction
+dataset distribution plan.
 
 ## Examples
 

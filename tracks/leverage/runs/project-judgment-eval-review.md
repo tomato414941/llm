@@ -2,6 +2,10 @@
 
 Date: 2026-04-29
 
+Status: historical eval-design note. This file documents a one-time review of
+`project-judgment` eval tasks. It is not the distribution plan for the 300-row
+reviewed instruction dataset.
+
 Source eval: `tracks/leverage/evals/project-judgment.jsonl`
 
 Run context: first Qwen3 0.6B LoRA/SFT smoke comparison in

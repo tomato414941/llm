@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import random
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
@@ -21,6 +22,7 @@ REQUIRED_FIELDS = {
 }
 
 ChatClient = Callable[[dict[str, Any]], ChatResult]
+ModelCandidate = tuple[str, str, float]
 
 
 @dataclass(frozen=True)
@@ -129,6 +131,40 @@ def build_payload(
     return payload
 
 
+def parse_model_candidate(value: str, *, option_name: str) -> ModelCandidate:
+    label, separator, model_and_weight = value.partition("=")
+    if not separator or not label or not model_and_weight:
+        raise ValueError(f"{option_name} must use label=model[:weight]")
+    model, weight_separator, weight_text = model_and_weight.rpartition(":")
+    if not weight_separator:
+        model = model_and_weight
+        weight = 1.0
+    else:
+        try:
+            weight = float(weight_text)
+        except ValueError as exc:
+            raise ValueError(f"{option_name} weight must be a positive number") from exc
+    if not model:
+        raise ValueError(f"{option_name} must include a model")
+    if weight <= 0:
+        raise ValueError(f"{option_name} weight must be positive")
+    return label, model, weight
+
+
+def choose_model(
+    *,
+    api_model: str,
+    model_label: str,
+    generator_candidates: list[ModelCandidate],
+    rng: random.Random,
+) -> tuple[str, str]:
+    if not generator_candidates:
+        return model_label, api_model
+    labels = [(label, model) for label, model, _weight in generator_candidates]
+    weights = [weight for _label, _model, weight in generator_candidates]
+    return rng.choices(labels, weights=weights, k=1)[0]
+
+
 def collect_outputs(
     seeds: dict[str, InstructionSeed],
     *,
@@ -136,6 +172,8 @@ def collect_outputs(
     output_path: Path,
     api_model: str,
     model_label: str,
+    generator_candidates: list[ModelCandidate] | None = None,
+    random_seed: int = 0,
     max_tokens: int,
     temperature: float,
     thinking_mode: str,
@@ -158,13 +196,21 @@ def collect_outputs(
             completed_seed_ids.add(source_prompt_id)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     mode = "a" if resume and output_path.exists() and not overwrite else "w"
+    rng = random.Random(random_seed)
+    candidates = generator_candidates or []
     with output_path.open(mode, encoding="utf-8") as output_file:
         for seed in seeds.values():
             if seed.id in completed_seed_ids:
                 continue
+            selected_label, selected_model = choose_model(
+                api_model=api_model,
+                model_label=model_label,
+                generator_candidates=candidates,
+                rng=rng,
+            )
             payload = build_payload(
                 seed,
-                model=api_model,
+                model=selected_model,
                 max_tokens=max_tokens,
                 temperature=temperature,
                 thinking_mode=thinking_mode,
@@ -177,7 +223,7 @@ def collect_outputs(
                 "source_prompt_id": seed.id,
                 "category": seed.category,
                 "purpose": seed.purpose,
-                "model": model_label,
+                "model": selected_label,
                 "messages": [
                     {"role": "system", "content": seed.system_prompt},
                     {"role": "user", "content": seed.prompt},
@@ -187,7 +233,7 @@ def collect_outputs(
                 "output_format": seed.output_format,
                 "constraints": seed.constraints,
                 "generation": {
-                    "api_model": api_model,
+                    "api_model": selected_model,
                     "max_tokens": max_tokens,
                     "temperature": temperature,
                     "finish_reason": response.finish_reason,
@@ -212,6 +258,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed-id", action="append", default=[])
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--model-label", default=DEFAULT_MODEL_LABEL)
+    parser.add_argument(
+        "--generator-candidate",
+        action="append",
+        default=[],
+        help="Eligible random generator in label=model[:weight] form. May be repeated.",
+    )
+    parser.add_argument("--random-seed", type=int, default=0)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--max-tokens", type=int, default=16384)
     parser.add_argument("--temperature", type=float, default=0.2)
@@ -247,6 +300,9 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--timeout-seconds must be positive")
     if not args.model_label:
         raise ValueError("--model-label must not be empty")
+    args.generator_candidates = [
+        parse_model_candidate(value, option_name="--generator-candidate") for value in args.generator_candidate
+    ]
 
 
 def main() -> None:
@@ -262,6 +318,8 @@ def main() -> None:
         output_path=args.output,
         api_model=args.model,
         model_label=args.model_label,
+        generator_candidates=args.generator_candidates,
+        random_seed=args.random_seed,
         max_tokens=args.max_tokens,
         temperature=args.temperature,
         thinking_mode=args.thinking_mode,

@@ -278,3 +278,38 @@ New accepted row promoted:
 
 `lt_seed_052`, `lt_seed_053`, `lt_seed_057`, and `lt_seed_058` were already
 covered by existing reviewed rows. The reviewed dataset now contains 17 rows.
+
+## Weighted Random Generator/Judge Rule
+
+Decision on 2026-04-29: generation and judging can both be randomized per row
+with explicit weights.
+
+Generator rule:
+
+- Provide a generator candidate pool as repeated `label=model[:weight]` values.
+- For each seed row, pick one generator with `--random-seed` for
+  reproducibility.
+- If no generator candidates are provided, use the existing fixed `--model` and
+  `--model-label`.
+
+Judge rule:
+
+- Provide a judge candidate pool as repeated `label=model[:weight]` values.
+- For each candidate row, remove the row's generator label from eligible judges.
+- Pick one remaining judge with the same weighted-random mechanism.
+- Weights are re-normalized after excluding the generator.
+
+Example target mix:
+
+```bash
+--generator-candidate qwen3-6-plus-openrouter=qwen/qwen3.6-plus:0.60
+--generator-candidate gpt-5-4-openrouter=openai/gpt-5.4:0.25
+--generator-candidate claude-sonnet-4-6-openrouter=anthropic/claude-sonnet-4.6:0.15
+
+--judge-candidate qwen3-6-plus-openrouter=qwen/qwen3.6-plus:0.20
+--judge-candidate gpt-5-4-openrouter=openai/gpt-5.4:0.40
+--judge-candidate claude-sonnet-4-6-openrouter=anthropic/claude-sonnet-4.6:0.40
+```
+
+This keeps both generation diversity and judge diversity while preventing
+self-evaluation.

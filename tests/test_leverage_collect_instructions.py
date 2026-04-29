@@ -136,6 +136,8 @@ def test_collect_outputs_writes_raw_review_schema(tmp_path: Path) -> None:
         output_path=output,
         api_model="provider/model",
         model_label="provider_model",
+        generator_candidates=None,
+        random_seed=0,
         max_tokens=256,
         temperature=0.1,
         thinking_mode="none",
@@ -172,6 +174,70 @@ def test_collect_outputs_writes_raw_review_schema(tmp_path: Path) -> None:
             "review": {"status": "raw"},
         }
     ]
+
+
+def test_collect_outputs_can_choose_weighted_random_generators_per_seed(tmp_path: Path) -> None:
+    output = tmp_path / "instruction_outputs.jsonl"
+    seeds = {
+        "lt_seed_001": collect_instructions.InstructionSeed(
+            id="lt_seed_001",
+            category="resource_judgment",
+            purpose="First row.",
+            system_prompt="Answer as a project lead.",
+            prompt="First prompt",
+            output_format="short_answer",
+            constraints=["mention cost"],
+        ),
+        "lt_seed_002": collect_instructions.InstructionSeed(
+            id="lt_seed_002",
+            category="resource_judgment",
+            purpose="Second row.",
+            system_prompt="Answer as a project lead.",
+            prompt="Second prompt",
+            output_format="short_answer",
+            constraints=["mention cost"],
+        ),
+    }
+    seen_models: list[str] = []
+
+    def client(payload):
+        seen_models.append(payload["model"])
+        return ChatResult("Generated answer.", "stop", {"completion_tokens": 2})
+
+    collect_instructions.collect_outputs(
+        seeds,
+        client=client,
+        output_path=output,
+        api_model="fallback/model",
+        model_label="fallback_label",
+        generator_candidates=[("generator_a", "model/a", 1.0)],
+        random_seed=123,
+        max_tokens=256,
+        temperature=0.1,
+        thinking_mode="none",
+        thinking_param="chat_template_kwargs",
+        reasoning_effort="none",
+        exclude_reasoning=True,
+        overwrite=False,
+    )
+
+    rows = read_jsonl(output)
+    assert seen_models == ["model/a", "model/a"]
+    assert [row["model"] for row in rows] == ["generator_a", "generator_a"]
+    assert [row["generation"]["api_model"] for row in rows] == ["model/a", "model/a"]
+
+
+def test_parse_model_candidate_accepts_optional_weight() -> None:
+    assert collect_instructions.parse_model_candidate(
+        "generator_a=model/a:0.25",
+        option_name="--generator-candidate",
+    ) == ("generator_a", "model/a", 0.25)
+    assert collect_instructions.parse_model_candidate(
+        "generator_a=model/a",
+        option_name="--generator-candidate",
+    ) == ("generator_a", "model/a", 1.0)
+    with pytest.raises(ValueError, match="label=model"):
+        collect_instructions.parse_model_candidate("generator_a", option_name="--generator-candidate")
 
 
 def test_real_training_seed_file_loads() -> None:
@@ -231,6 +297,8 @@ def test_collect_outputs_resume_skips_existing_seed_rows(tmp_path: Path) -> None
         output_path=output,
         api_model="provider/model",
         model_label="provider_model",
+        generator_candidates=None,
+        random_seed=0,
         max_tokens=256,
         temperature=0.1,
         thinking_mode="none",

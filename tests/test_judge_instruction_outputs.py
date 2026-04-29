@@ -204,7 +204,7 @@ def test_judge_rows_can_choose_random_non_self_judges_per_row() -> None:
         reasoning_effort="none",
         exclude_reasoning=True,
         limit=None,
-        judge_candidates=[("judge_a", "model/a"), ("judge_b", "model/b")],
+        judge_candidates=[("judge_a", "model/a", 1.0), ("judge_b", "model/b", 1.0)],
         random_seed=7,
     )
 
@@ -216,8 +216,9 @@ def test_judge_rows_can_choose_random_non_self_judges_per_row() -> None:
     assert records[2]["judge_api_model"] == "model/a"
 
 
-def test_parse_judge_candidate_requires_label_and_model() -> None:
-    assert judge.parse_judge_candidate("judge_a=model/a") == ("judge_a", "model/a")
+def test_parse_judge_candidate_accepts_optional_weight() -> None:
+    assert judge.parse_judge_candidate("judge_a=model/a:0.25") == ("judge_a", "model/a", 0.25)
+    assert judge.parse_judge_candidate("judge_a=model/a") == ("judge_a", "model/a", 1.0)
     with pytest.raises(ValueError, match="label=model"):
         judge.parse_judge_candidate("judge_a")
 

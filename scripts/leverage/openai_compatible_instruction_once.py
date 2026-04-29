@@ -50,6 +50,8 @@ def collect_command(args: argparse.Namespace) -> list[str]:
         args.model,
         "--model-label",
         args.model_label,
+        "--random-seed",
+        str(args.random_seed),
         "--output",
         str(args.output),
         "--max-tokens",
@@ -65,6 +67,8 @@ def collect_command(args: argparse.Namespace) -> list[str]:
     ]
     for seed_id in args.seed_id:
         command.extend(["--seed-id", seed_id])
+    for generator_candidate in args.generator_candidate:
+        command.extend(["--generator-candidate", generator_candidate])
     if args.resume:
         command.append("--resume")
     else:
@@ -120,6 +124,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed-id", action="append", default=[])
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--model-label", default=DEFAULT_MODEL_LABEL)
+    parser.add_argument(
+        "--generator-candidate",
+        action="append",
+        default=[],
+        help="Eligible random generator in label=model[:weight] form. May be repeated.",
+    )
+    parser.add_argument("--random-seed", type=int, default=0)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--max-tokens", type=int, default=16384)
     parser.add_argument("--temperature", type=float, default=0.2)

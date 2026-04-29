@@ -13,7 +13,7 @@ from llm.leverage.collect_openai import ChatResult, chat_completions_client
 DEFAULT_JUDGE_MODEL = "anthropic/claude-sonnet-4.6"
 DEFAULT_JUDGE_LABEL = "claude-sonnet-4-6-openrouter"
 ChatClient = Callable[[dict[str, Any]], ChatResult | str]
-JudgeCandidate = tuple[str, str]
+JudgeCandidate = tuple[str, str, float]
 
 
 def answer_id(row: dict[str, Any]) -> str:
@@ -187,10 +187,23 @@ def client_response_text(response: ChatResult | str) -> str:
 
 
 def parse_judge_candidate(value: str) -> JudgeCandidate:
-    label, separator, model = value.partition("=")
-    if not separator or not label or not model:
-        raise ValueError("--judge-candidate must use label=model")
-    return label, model
+    label, separator, model_and_weight = value.partition("=")
+    if not separator or not label or not model_and_weight:
+        raise ValueError("--judge-candidate must use label=model[:weight]")
+    model, weight_separator, weight_text = model_and_weight.rpartition(":")
+    if not weight_separator:
+        model = model_and_weight
+        weight = 1.0
+    else:
+        try:
+            weight = float(weight_text)
+        except ValueError as exc:
+            raise ValueError("--judge-candidate weight must be a positive number") from exc
+    if not model:
+        raise ValueError("--judge-candidate must include a model")
+    if weight <= 0:
+        raise ValueError("--judge-candidate weight must be positive")
+    return label, model, weight
 
 
 def choose_judge(
@@ -204,10 +217,11 @@ def choose_judge(
     if not judge_candidates:
         return judge_label, judge_model
     generator_model = generator_model_label(row)
-    eligible = [(label, model) for label, model in judge_candidates if label != generator_model]
+    eligible = [(label, model) for label, model, _weight in judge_candidates if label != generator_model]
     if not eligible:
         raise ValueError(f"no eligible judge candidate for generator model: {generator_model}")
-    return rng.choice(eligible)
+    weights = [weight for label, _model, weight in judge_candidates if label != generator_model]
+    return rng.choices(eligible, weights=weights, k=1)[0]
 
 
 def judge_rows(

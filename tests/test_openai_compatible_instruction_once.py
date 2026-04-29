@@ -31,6 +31,8 @@ def args(tmp_path: Path) -> Namespace:
         seed_id=[],
         model="qwen/qwen3.6-plus",
         model_label="qwen3-6-plus-openrouter",
+        generator_candidate=[],
+        random_seed=0,
         output=Path("tracks/leverage/runs/instruction-outputs/qwen.jsonl"),
         max_tokens=16384,
         temperature=0.2,
@@ -77,11 +79,29 @@ def test_collect_command_targets_instruction_collector(tmp_path: Path) -> None:
     assert "llm.leverage.collect_instructions" in command
     assert command[command.index("--seeds") + 1] == "tracks/leverage/prompts/leverage-training-seed-v0.jsonl"
     assert command[command.index("--model") + 1] == "qwen/qwen3.6-plus"
+    assert command[command.index("--random-seed") + 1] == "0"
     assert command[command.index("--output") + 1] == "tracks/leverage/runs/instruction-outputs/qwen.jsonl"
     assert command[command.index("--reasoning-effort") + 1] == "none"
     assert "--exclude-reasoning" in command
     assert "--overwrite" in command
     assert "--resume" not in command
+
+
+def test_collect_command_can_pass_random_generator_candidates(tmp_path: Path) -> None:
+    run_args = args(tmp_path)
+    run_args.generator_candidate = [
+        "qwen3-6-plus-openrouter=qwen/qwen3.6-plus:0.6",
+        "gpt-5-4-openrouter=openai/gpt-5.4:0.4",
+    ]
+    run_args.random_seed = 123
+
+    command = collect_command(run_args)
+
+    assert command.count("--generator-candidate") == 2
+    assert command[command.index("--generator-candidate") + 1] == (
+        "qwen3-6-plus-openrouter=qwen/qwen3.6-plus:0.6"
+    )
+    assert command[command.index("--random-seed") + 1] == "123"
 
 
 def test_collect_command_can_resume_without_overwrite(tmp_path: Path) -> None:

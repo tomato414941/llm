@@ -84,7 +84,7 @@ The dry run must show these steps in order:
 - repo, reviewed data, SFT export, and eval task sync
 - CUDA smoke
 - training-package import smoke
-- 16-row LoRA/SFT smoke command
+- 17-row LoRA/SFT smoke command
 - post-training base-vs-adapter eval command
 - artifact, metrics, and notes sync from `outputs/leverage-sft-smoke`
 - cleanup

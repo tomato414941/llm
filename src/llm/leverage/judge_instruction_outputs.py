@@ -2,6 +2,7 @@ import argparse
 import csv
 import json
 import os
+import random
 from pathlib import Path
 from typing import Any, Callable
 
@@ -12,6 +13,7 @@ from llm.leverage.collect_openai import ChatResult, chat_completions_client
 DEFAULT_JUDGE_MODEL = "anthropic/claude-sonnet-4.6"
 DEFAULT_JUDGE_LABEL = "claude-sonnet-4-6-openrouter"
 ChatClient = Callable[[dict[str, Any]], ChatResult | str]
+JudgeCandidate = tuple[str, str]
 
 
 def answer_id(row: dict[str, Any]) -> str:
@@ -184,6 +186,30 @@ def client_response_text(response: ChatResult | str) -> str:
     return response
 
 
+def parse_judge_candidate(value: str) -> JudgeCandidate:
+    label, separator, model = value.partition("=")
+    if not separator or not label or not model:
+        raise ValueError("--judge-candidate must use label=model")
+    return label, model
+
+
+def choose_judge(
+    row: dict[str, Any],
+    *,
+    judge_model: str,
+    judge_label: str,
+    judge_candidates: list[JudgeCandidate],
+    rng: random.Random,
+) -> JudgeCandidate:
+    if not judge_candidates:
+        return judge_label, judge_model
+    generator_model = generator_model_label(row)
+    eligible = [(label, model) for label, model in judge_candidates if label != generator_model]
+    if not eligible:
+        raise ValueError(f"no eligible judge candidate for generator model: {generator_model}")
+    return rng.choice(eligible)
+
+
 def judge_rows(
     rows: list[tuple[int, dict[str, Any]]],
     *,
@@ -195,6 +221,8 @@ def judge_rows(
     reasoning_effort: str,
     exclude_reasoning: bool,
     limit: int | None,
+    judge_candidates: list[JudgeCandidate] | None = None,
+    random_seed: int = 0,
     existing_records: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = list(existing_records or [])
@@ -202,14 +230,23 @@ def judge_rows(
         row["answer_id"] for row in records if isinstance(row.get("answer_id"), str) and row["answer_id"]
     }
     selected_rows = rows[:limit] if limit is not None else rows
+    rng = random.Random(random_seed)
+    candidates = judge_candidates or []
     for _line_number, row in selected_rows:
         if answer_id(row) in completed_answer_ids:
             continue
+        selected_judge_label, selected_judge_model = choose_judge(
+            row,
+            judge_model=judge_model,
+            judge_label=judge_label,
+            judge_candidates=candidates,
+            rng=rng,
+        )
         response = client_response_text(
             client(
                 build_payload(
                     row,
-                    judge_model=judge_model,
+                    judge_model=selected_judge_model,
                     max_tokens=max_tokens,
                     temperature=temperature,
                     reasoning_effort=reasoning_effort,
@@ -218,12 +255,17 @@ def judge_rows(
             )
         )
         try:
-            record = judgment_record(row, judge_model=judge_model, judge_label=judge_label, judge_response=response)
+            record = judgment_record(
+                row,
+                judge_model=selected_judge_model,
+                judge_label=selected_judge_label,
+                judge_response=response,
+            )
         except (json.JSONDecodeError, ValueError) as exc:
             record = failed_judgment_record(
                 row,
-                judge_model=judge_model,
-                judge_label=judge_label,
+                judge_model=selected_judge_model,
+                judge_label=selected_judge_label,
                 judge_response=response,
                 error=exc,
             )
@@ -302,6 +344,7 @@ def summary_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
     decision_counts: dict[str, int] = {}
     generator_counts: dict[str, int] = {}
+    judge_counts: dict[str, int] = {}
     score_totals = {
         "correctness": 0,
         "instruction_following": 0,
@@ -315,6 +358,9 @@ def summary_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         generator_model = row.get("generator_model")
         if isinstance(generator_model, str):
             generator_counts[generator_model] = generator_counts.get(generator_model, 0) + 1
+        judge_model = row.get("judge_model")
+        if isinstance(judge_model, str):
+            judge_counts[judge_model] = judge_counts.get(judge_model, 0) + 1
         scores = row.get("scores")
         if isinstance(scores, dict):
             for name in score_totals:
@@ -322,7 +368,11 @@ def summary_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 if isinstance(value, int):
                     score_totals[name] += value
 
-    for scope, counts in (("decision", decision_counts), ("generator_model", generator_counts)):
+    for scope, counts in (
+        ("decision", decision_counts),
+        ("generator_model", generator_counts),
+        ("judge_model", judge_counts),
+    ):
         for name, count in sorted(counts.items()):
             rate = count / total if total else 0.0
             summary.append({"scope": scope, "name": name, "value": count, "rate": f"{rate:.3f}"})
@@ -357,6 +407,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--summary-output", type=Path)
     parser.add_argument("--judge-model", default=DEFAULT_JUDGE_MODEL)
     parser.add_argument("--judge-label", default=DEFAULT_JUDGE_LABEL)
+    parser.add_argument(
+        "--judge-candidate",
+        action="append",
+        default=[],
+        help="Eligible random judge in label=model form. May be repeated.",
+    )
+    parser.add_argument("--random-seed", type=int, default=0)
     parser.add_argument("--max-tokens", type=int, default=512)
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument(
@@ -383,6 +440,7 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--limit must be positive")
     if not args.judge_label:
         raise ValueError("--judge-label must not be empty")
+    args.judge_candidates = [parse_judge_candidate(value) for value in args.judge_candidate]
 
 
 def main() -> int:
@@ -398,6 +456,8 @@ def main() -> int:
         client=client,
         judge_model=args.judge_model,
         judge_label=args.judge_label,
+        judge_candidates=args.judge_candidates,
+        random_seed=args.random_seed,
         max_tokens=args.max_tokens,
         temperature=args.temperature,
         reasoning_effort=args.reasoning_effort,

@@ -183,6 +183,45 @@ def test_judge_rows_records_parse_errors_and_continues() -> None:
     assert [record["decision"] for record in records] == ["parse_error", "accept"]
 
 
+def test_judge_rows_can_choose_random_non_self_judges_per_row() -> None:
+    calls: list[dict[str, object]] = []
+
+    def client(payload):
+        calls.append(payload)
+        return judge_json("accept")
+
+    records = judge.judge_rows(
+        [
+            (1, raw_row(source_prompt_id="a", model="generator_a")),
+            (2, raw_row(source_prompt_id="b", model="judge_a")),
+            (3, raw_row(source_prompt_id="c", model="judge_b")),
+        ],
+        client=client,
+        judge_model="fallback/model",
+        judge_label="fallback",
+        max_tokens=256,
+        temperature=0.0,
+        reasoning_effort="none",
+        exclude_reasoning=True,
+        limit=None,
+        judge_candidates=[("judge_a", "model/a"), ("judge_b", "model/b")],
+        random_seed=7,
+    )
+
+    assert len(records) == 3
+    assert calls[0]["model"] in {"model/a", "model/b"}
+    assert records[1]["judge_model"] == "judge_b"
+    assert records[1]["judge_api_model"] == "model/b"
+    assert records[2]["judge_model"] == "judge_a"
+    assert records[2]["judge_api_model"] == "model/a"
+
+
+def test_parse_judge_candidate_requires_label_and_model() -> None:
+    assert judge.parse_judge_candidate("judge_a=model/a") == ("judge_a", "model/a")
+    with pytest.raises(ValueError, match="label=model"):
+        judge.parse_judge_candidate("judge_a")
+
+
 def test_judge_rows_accepts_chat_result_client_response() -> None:
     records = judge.judge_rows(
         [(1, raw_row())],
@@ -257,6 +296,7 @@ def test_summary_rows_counts_decisions_and_scores() -> None:
     assert {"scope": "overall", "name": "total", "value": 2, "rate": "1.000"} in rows
     assert {"scope": "decision", "name": "accept", "value": 1, "rate": "0.500"} in rows
     assert {"scope": "decision", "name": "parse_error", "value": 1, "rate": "0.500"} in rows
+    assert {"scope": "judge_model", "name": "judge_label", "value": 2, "rate": "1.000"} in rows
     assert {"scope": "avg_score", "name": "correctness", "value": "1.000", "rate": ""} in rows
 
 

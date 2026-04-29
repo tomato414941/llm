@@ -37,6 +37,8 @@ def args(tmp_path: Path) -> Namespace:
         summary_output=Path("tracks/leverage/runs/instruction-outputs/judgments-summary.csv"),
         judge_model="judge/model",
         judge_label="judge_label",
+        judge_candidate=[],
+        random_seed=0,
         max_tokens=512,
         temperature=0.0,
         reasoning_effort="none",
@@ -71,6 +73,7 @@ def test_judge_command_targets_judge_module(tmp_path: Path) -> None:
 
     assert "llm.leverage.judge_instruction_outputs" in command
     assert command[command.index("--judge-model") + 1] == "judge/model"
+    assert command[command.index("--random-seed") + 1] == "0"
     assert command[command.index("--summary-output") + 1] == (
         "tracks/leverage/runs/instruction-outputs/judgments-summary.csv"
     )
@@ -79,6 +82,18 @@ def test_judge_command_targets_judge_module(tmp_path: Path) -> None:
     assert command[command.index("--limit") + 1] == "2"
     assert "--overwrite" in command
     assert "--resume" not in command
+
+
+def test_judge_command_can_pass_random_judge_candidates(tmp_path: Path) -> None:
+    run_args = args(tmp_path)
+    run_args.judge_candidate = ["judge_a=model/a", "judge_b=model/b"]
+    run_args.random_seed = 123
+
+    command = judge_command(run_args)
+
+    assert command.count("--judge-candidate") == 2
+    assert command[command.index("--judge-candidate") + 1] == "judge_a=model/a"
+    assert command[command.index("--random-seed") + 1] == "123"
 
 
 def test_judge_command_can_resume_without_overwrite(tmp_path: Path) -> None:

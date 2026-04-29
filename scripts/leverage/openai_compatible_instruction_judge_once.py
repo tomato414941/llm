@@ -60,6 +60,8 @@ def judge_command(args: argparse.Namespace) -> list[str]:
         args.judge_model,
         "--judge-label",
         args.judge_label,
+        "--random-seed",
+        str(args.random_seed),
         "--max-tokens",
         str(args.max_tokens),
         "--temperature",
@@ -79,6 +81,8 @@ def judge_command(args: argparse.Namespace) -> list[str]:
         command.append("--no-exclude-reasoning")
     if args.limit is not None:
         command.extend(["--limit", str(args.limit)])
+    for judge_candidate in args.judge_candidate:
+        command.extend(["--judge-candidate", judge_candidate])
     return command
 
 
@@ -128,6 +132,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--summary-output", type=Path, default=DEFAULT_SUMMARY_OUTPUT)
     parser.add_argument("--judge-model", default=DEFAULT_JUDGE_MODEL)
     parser.add_argument("--judge-label", default=DEFAULT_JUDGE_LABEL)
+    parser.add_argument(
+        "--judge-candidate",
+        action="append",
+        default=[],
+        help="Eligible random judge in label=model form. May be repeated.",
+    )
+    parser.add_argument("--random-seed", type=int, default=0)
     parser.add_argument("--max-tokens", type=int, default=512)
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument(

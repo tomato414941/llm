@@ -218,3 +218,63 @@ Accepted rows:
 Compared with Qwen3.5 Flash's 1/13 accept rate, Qwen3.6 Plus improved to 4/13
 and produced one new unique reviewed instruction row. The reviewed dataset now
 contains 16 rows.
+
+## Per-Candidate Random Judge Rule
+
+Decision on 2026-04-29: judge assignment should be random per candidate row,
+not one random judge for all rows from the same generator.
+
+Rule:
+
+- Provide a judge candidate pool as repeated `label=model` values.
+- For each candidate row, remove the generator's own label from the eligible
+  judges.
+- Pick one eligible judge with a fixed `--random-seed` for reproducibility.
+
+This keeps cost bounded at one judge call per candidate while reducing the
+chance that a whole generator's score is an artifact of one judge model.
+
+Executed on 2026-04-29 for the Qwen3.6 Plus project-judgment candidates with
+random seed `20260429`.
+
+Judge pool:
+
+- `qwen3-6-plus-openrouter` (`qwen/qwen3.6-plus`)
+- `gpt-5-4-openrouter` (`openai/gpt-5.4`)
+- `claude-sonnet-4-6-openrouter` (`anthropic/claude-sonnet-4.6`)
+
+Qwen3.6 Plus generated every row, so Qwen was excluded and each row was judged
+by either GPT-5.4 or Claude Sonnet 4.6.
+
+Assignment/result:
+
+| seed | judge | decision |
+| --- | --- | --- |
+| `lt_seed_051` | `gpt-5-4-openrouter` | `accept` |
+| `lt_seed_052` | `claude-sonnet-4-6-openrouter` | `accept` |
+| `lt_seed_053` | `claude-sonnet-4-6-openrouter` | `accept` |
+| `lt_seed_054` | `gpt-5-4-openrouter` | `needs_edit` |
+| `lt_seed_055` | `claude-sonnet-4-6-openrouter` | `reject` |
+| `lt_seed_056` | `claude-sonnet-4-6-openrouter` | `needs_edit` |
+| `lt_seed_057` | `gpt-5-4-openrouter` | `accept` |
+| `lt_seed_058` | `gpt-5-4-openrouter` | `accept` |
+| `lt_seed_059` | `gpt-5-4-openrouter` | `needs_edit` |
+| `lt_seed_060` | `claude-sonnet-4-6-openrouter` | `needs_edit` |
+| `lt_seed_061` | `claude-sonnet-4-6-openrouter` | `reject` |
+| `lt_seed_062` | `gpt-5-4-openrouter` | `needs_edit` |
+| `lt_seed_063` | `gpt-5-4-openrouter` | `reject` |
+
+Summary:
+
+- `accept`: 5
+- `needs_edit`: 5
+- `reject`: 3
+- `gpt-5-4-openrouter` judged 7 rows
+- `claude-sonnet-4-6-openrouter` judged 6 rows
+
+New accepted row promoted:
+
+- `lt_seed_051` -> `instr_0017`
+
+`lt_seed_052`, `lt_seed_053`, `lt_seed_057`, and `lt_seed_058` were already
+covered by existing reviewed rows. The reviewed dataset now contains 17 rows.

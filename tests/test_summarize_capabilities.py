@@ -160,3 +160,58 @@ def test_write_task_shape_csv_writes_stable_columns(tmp_path: Path) -> None:
 
     with output.open(newline="", encoding="utf-8") as input_file:
         assert list(csv.DictReader(input_file)) == rows
+
+
+def test_near_duplicate_rows_sorts_by_prompt_similarity(tmp_path: Path) -> None:
+    reviewed = tmp_path / "reviewed.jsonl"
+    write_jsonl(
+        reviewed,
+        [
+            {
+                "id": "row-1",
+                "capability": "reasoning",
+                "task_shape": "decision",
+                "messages": [{}, {"content": "Should the team run tests before deployment?"}],
+            },
+            {
+                "id": "row-2",
+                "capability": "reasoning",
+                "task_shape": "decision",
+                "messages": [{}, {"content": "Should the team run tests before release?"}],
+            },
+            {
+                "id": "row-3",
+                "capability": "knowledge_qa",
+                "task_shape": "direct_answer",
+                "messages": [{}, {"content": "Who wrote Pride and Prejudice?"}],
+            },
+        ],
+    )
+
+    rows = summarize_capabilities.near_duplicate_rows(reviewed, limit=1)
+
+    assert rows[0]["left_id"] == "row-1"
+    assert rows[0]["right_id"] == "row-2"
+    assert rows[0]["similarity"] == "0.750"
+
+
+def test_write_near_duplicate_csv_writes_stable_columns(tmp_path: Path) -> None:
+    output = tmp_path / "near_duplicates.csv"
+    rows = [
+        {
+            "left_id": "row-1",
+            "right_id": "row-2",
+            "similarity": "0.625",
+            "left_capability": "reasoning",
+            "right_capability": "reasoning",
+            "left_task_shape": "decision",
+            "right_task_shape": "decision",
+            "left_prompt": "Should the team run tests before deployment?",
+            "right_prompt": "Should the team run tests before release?",
+        }
+    ]
+
+    summarize_capabilities.write_near_duplicate_csv(output, rows)
+
+    with output.open(newline="", encoding="utf-8") as input_file:
+        assert list(csv.DictReader(input_file)) == rows

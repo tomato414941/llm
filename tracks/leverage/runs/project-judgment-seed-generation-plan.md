@@ -114,3 +114,49 @@ tracks/leverage/sft/bootstrap.train.jsonl
 ```
 
 The reviewed dataset now contains 11 rows.
+
+## Mutual Generation And Random Non-Self Judging
+
+Executed on 2026-04-29 to reduce generator bias without paying for a full
+all-pairs judge matrix.
+
+Generator pool:
+
+- `qwen3-5-flash-openrouter` (`qwen/qwen3.5-flash-02-23`)
+- `gpt-5-4-openrouter` (`openai/gpt-5.4`)
+- `claude-sonnet-4-6-openrouter` (`anthropic/claude-sonnet-4.6`)
+
+Judge assignment rule:
+
+- Pick one judge per generator.
+- The judge must not be the generator.
+- Random seed: `20260429`
+
+Assignments:
+
+| generator | judge |
+| --- | --- |
+| `qwen3-5-flash-openrouter` | `gpt-5-4-openrouter` |
+| `gpt-5-4-openrouter` | `claude-sonnet-4-6-openrouter` |
+| `claude-sonnet-4-6-openrouter` | `gpt-5-4-openrouter` |
+
+Results:
+
+| generator | judge | accept | needs_edit | reject |
+| --- | --- | ---: | ---: | ---: |
+| `qwen3-5-flash-openrouter` | `gpt-5-4-openrouter` | 1 | 9 | 3 |
+| `gpt-5-4-openrouter` | `claude-sonnet-4-6-openrouter` | 3 | 8 | 2 |
+| `claude-sonnet-4-6-openrouter` | `gpt-5-4-openrouter` | 2 | 8 | 3 |
+
+New accepted rows promoted from this mutual pass:
+
+- `lt_seed_054` -> `instr_0012`
+- `lt_seed_057` -> `instr_0013`
+- `lt_seed_058` -> `instr_0014`
+- `lt_seed_060` -> `instr_0015`
+
+`lt_seed_052` was also accepted from Claude generation, but it was already
+covered by `instr_0011`, so it was not duplicated.
+
+The reviewed dataset now contains 15 rows. SFT export was regenerated with 15
+rows.

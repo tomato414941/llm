@@ -117,3 +117,34 @@ tool_use,77,35,0
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-009-judgments.jsonl`
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-009-judgments.csv`
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-009-judgments-summary.csv`
+
+## Parse-Error Rejudge
+
+After adding `error_type` classification to the judge pipeline, rejudged the
+three batch-009 rows that originally had `decision=parse_error`:
+
+- `lt_seed_781`
+- `lt_seed_789`
+- `lt_seed_822`
+
+The rejudge used the default random judge pool with self-judge exclusion.
+
+Result:
+
+- rejudged rows: 3
+- accept: 3
+- needs_edit: 0
+- reject: 0
+- parse_error: 0
+- promoted rows: 3
+- reviewed dataset size after rejudge promotion: 576 rows
+
+This indicates the original failures were judge execution failures, not
+candidate-quality failures.
+
+Rejudge artifacts:
+
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-009-parse-error-candidates.jsonl`
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-009-parse-error-rejudge.jsonl`
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-009-parse-error-rejudge.csv`
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-009-parse-error-rejudge-summary.csv`

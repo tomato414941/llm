@@ -14,9 +14,9 @@ knowledge_qa,direct_answer,45
 knowledge_qa,explanation,17
 reasoning,comparison,23
 reasoning,debugging,1
-reasoning,decision,55
+reasoning,decision,56
 reasoning,direct_answer,46
-reasoning,explanation,35
+reasoning,explanation,36
 reasoning,planning,1
 summarization_transformation,direct_answer,1
 summarization_transformation,extraction_transformation,17
@@ -25,4 +25,4 @@ tool_use,debugging,5
 tool_use,decision,49
 tool_use,direct_answer,3
 tool_use,explanation,2
-tool_use,planning,18
+tool_use,planning,19

@@ -6,8 +6,8 @@ knowledge_qa,edited_candidate,1
 knowledge_qa,judge_accepted_candidate,62
 reasoning,edited_candidate,7
 reasoning,historical_reviewed,5
-reasoning,judge_accepted_candidate,149
+reasoning,judge_accepted_candidate,151
 summarization_transformation,judge_accepted_candidate,47
 tool_use,edited_candidate,1
 tool_use,historical_reviewed,6
-tool_use,judge_accepted_candidate,70
+tool_use,judge_accepted_candidate,71

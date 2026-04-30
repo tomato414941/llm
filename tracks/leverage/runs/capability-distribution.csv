@@ -1,7 +1,7 @@
 capability,seed_count,reviewed_count,eval_count,reviewed_target,reviewed_deficit
-coding,61,35,5,50,15
-instruction_following,73,58,5,80,22
-knowledge_qa,29,22,3,30,8
-reasoning,103,45,27,80,35
-summarization_transformation,23,18,2,25,7
-tool_use,81,27,6,35,8
+coding,101,43,5,50,7
+instruction_following,118,101,5,80,0
+knowledge_qa,49,28,3,30,2
+reasoning,158,56,27,80,24
+summarization_transformation,33,23,2,25,2
+tool_use,111,33,6,35,2

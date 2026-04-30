@@ -80,6 +80,13 @@ The next scale improvement should be a simple pre-promotion duplicate gate
 against existing reviewed prompts. That is more valuable than manually repairing
 the 35 `needs_edit` rows.
 
+Follow-up:
+
+- Added a reviewed-dataset validation gate for exact duplicate user prompts.
+- The current 205-row reviewed dataset passes this gate.
+- Future bulk promotion should run `validate_reviewed_instructions` before
+  export; exact prompt reuse will fail validation instead of reaching SFT export.
+
 ## Artifacts
 
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-006-raw.jsonl`
@@ -89,4 +96,3 @@ the 35 `needs_edit` rows.
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-006-judgments.jsonl`
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-006-judgments.csv`
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-006-judgments-summary.csv`
-

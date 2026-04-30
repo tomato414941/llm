@@ -80,6 +80,7 @@ def validate_row(
     row: dict[str, Any],
     *,
     seen_ids: set[str],
+    seen_user_prompts: dict[str, str],
     held_out_prompts: set[str],
 ) -> list[str]:
     errors: list[str] = []
@@ -129,6 +130,12 @@ def validate_row(
             user_prompt = messages[1].get("content")
             if isinstance(user_prompt, str) and user_prompt in held_out_prompts:
                 errors.append("user prompt duplicates a held-out eval prompt")
+            if isinstance(user_prompt, str):
+                previous_id = seen_user_prompts.get(user_prompt)
+                if previous_id is not None:
+                    errors.append(f"user prompt duplicates reviewed row {previous_id}")
+                elif isinstance(row_id, str) and row_id:
+                    seen_user_prompts[user_prompt] = row_id
 
     review = row.get("review")
     if not isinstance(review, dict):
@@ -165,12 +172,18 @@ def validate_row(
 def validate_file(path: Path, *, eval_dir: Path) -> list[str]:
     errors: list[str] = []
     seen_ids: set[str] = set()
+    seen_user_prompts: dict[str, str] = {}
     held_out_prompts = eval_prompts(eval_dir)
     rows = load_jsonl(path)
     if not rows:
         errors.append(f"{path}: file must contain at least one row")
     for line_number, row in rows:
-        for error in validate_row(row, seen_ids=seen_ids, held_out_prompts=held_out_prompts):
+        for error in validate_row(
+            row,
+            seen_ids=seen_ids,
+            seen_user_prompts=seen_user_prompts,
+            held_out_prompts=held_out_prompts,
+        ):
             errors.append(f"{path}:{line_number}: {error}")
     return errors
 

@@ -43,6 +43,31 @@ def test_validate_file_reports_duplicate_ids(tmp_path: Path) -> None:
     assert any("duplicate id" in error for error in errors)
 
 
+def test_validate_file_rejects_duplicate_user_prompts(tmp_path: Path) -> None:
+    dataset = tmp_path / "reviewed_instructions.jsonl"
+    eval_dir = tmp_path / "evals"
+    eval_dir.mkdir()
+    write_jsonl(
+        dataset,
+        [
+            valid_row(id="instr_test_001"),
+            valid_row(
+                id="instr_test_002",
+                source_prompt_id="lt_seed_other",
+                messages=[
+                    {"role": "system", "content": "Answer briefly."},
+                    {"role": "user", "content": "Explain when to use hosted inference."},
+                    {"role": "assistant", "content": "Use it for cheap evaluation."},
+                ],
+            ),
+        ],
+    )
+
+    errors = validate_file(dataset, eval_dir=eval_dir)
+
+    assert any("user prompt duplicates reviewed row instr_test_001" in error for error in errors)
+
+
 def test_validate_file_rejects_eval_prompt_reuse(tmp_path: Path) -> None:
     dataset = tmp_path / "reviewed_instructions.jsonl"
     eval_dir = tmp_path / "evals"

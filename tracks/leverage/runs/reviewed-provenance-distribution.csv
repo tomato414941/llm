@@ -1,7 +1,7 @@
 capability,source,count
 coding,edited_candidate,8
-coding,judge_accepted_candidate,10
-instruction_following,judge_accepted_candidate,27
+coding,judge_accepted_candidate,11
+instruction_following,judge_accepted_candidate,29
 knowledge_qa,edited_candidate,1
 knowledge_qa,judge_accepted_candidate,10
 reasoning,edited_candidate,7

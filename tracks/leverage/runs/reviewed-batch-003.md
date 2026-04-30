@@ -160,3 +160,27 @@ Follow-up artifacts:
 - `tracks/leverage/runs/instruction-outputs/lt-seed-227-json-fence-check-judgments.jsonl`
 - `tracks/leverage/runs/instruction-outputs/lt-seed-227-json-fence-check-judgments.csv`
 - `tracks/leverage/runs/instruction-outputs/lt-seed-227-json-fence-check-judgments-summary.csv`
+
+## Follow-up: Promotion
+
+Date: 2026-04-30
+
+Promoted only the follow-up candidates that were directly usable as reviewed
+training rows:
+
+- `lt_seed_225` -> `instr_0106`
+- regenerated `lt_seed_227` -> `instr_0107`
+- `lt_seed_229` -> `instr_0108`
+
+Skipped the originally accepted but format-invalid candidates:
+
+- `lt_seed_227` original output: fenced JSON, replaced by the regenerated raw
+  JSON candidate.
+- `lt_seed_228`: included punctuation despite a `no punctuation` constraint.
+
+Reviewed dataset size after promotion: 107 rows.
+
+The near-duplicate summary did not show a strong duplicate for the promoted
+rows. The highest prompt-level similarity involving them was 0.500
+(`instr_0069` / `instr_0108`), which is a similar tone-constrained reschedule
+task but not a copy.

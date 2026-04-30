@@ -102,6 +102,53 @@ Accepted but not promoted:
 
 Reviewed dataset size after promotion: 115 rows.
 
+## Follow-up: Prompt Tightening
+
+Date: 2026-04-30
+
+The first batch-004 pass showed that several failures were caused by weak
+generator-visible prompts rather than unusable seed intent. The affected prompts
+were tightened without changing the intended tasks:
+
+- added one-sentence or short-bullet requirements where `short_answer` outputs
+  were too verbose,
+- made required phrases visible in the user prompt,
+- clarified that zero and negative timeout values are both invalid for
+  `lt_seed_244`,
+- clarified that current cloud GPU pricing should be answered with `No` before
+  explaining the need for current verification.
+
+Regenerated only the tightened seeds with `qwen3-6-plus-openrouter`:
+
+- regenerated rows: 13
+- structural filter: 13 `needs_judge`, 0 rejects
+- judge model: `gpt-5-4-openrouter`
+- parse_error: 0
+- accept: 10
+- needs_edit: 3
+
+Promoted the 10 directly usable accepted rows:
+
+- `lt_seed_231` -> `instr_0117`
+- `lt_seed_232` -> `instr_0118`
+- `lt_seed_233` -> `instr_0119`
+- `lt_seed_236` -> `instr_0120`
+- `lt_seed_237` -> `instr_0121`
+- `lt_seed_238` -> `instr_0122`
+- `lt_seed_239` -> `instr_0123`
+- `lt_seed_241` -> `instr_0124`
+- `lt_seed_242` -> `instr_0125`
+- `lt_seed_249` -> `instr_0126`
+
+Not promoted:
+
+- `lt_seed_235`: did not explicitly answer `No`.
+- `lt_seed_240`: did not explicitly state that reviewed data must not contain
+  secrets.
+- `lt_seed_244`: did not clearly mention a clear error before downstream use.
+
+Reviewed dataset size after follow-up promotion: 125 rows.
+
 ## Artifacts
 
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-004-raw.jsonl`
@@ -114,4 +161,10 @@ Reviewed dataset size after promotion: 115 rows.
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-004-judgments-v2.jsonl`
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-004-judgments-v2.csv`
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-004-judgments-v2-summary.csv`
-
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-004-followup-raw.jsonl`
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-004-followup-filter.csv`
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-004-followup-filter-summary.csv`
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-004-followup-candidates.jsonl`
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-004-followup-judgments.jsonl`
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-004-followup-judgments.csv`
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-004-followup-judgments-summary.csv`

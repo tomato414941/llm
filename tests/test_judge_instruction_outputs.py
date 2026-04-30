@@ -62,6 +62,8 @@ def test_build_payload_contains_rubric_and_candidate_answer() -> None:
     assert "Use hosted inference before renting GPUs." in user_message
     assert '"safety": 2' in user_message
     assert 'Do not use synonyms such as "safe".' in user_message
+    assert "Do not apply it as a requirement for the candidate answer." in user_message
+    assert "Judge the candidate answer only against the source prompt" in user_message
     assert "decision must be one of accept, needs_edit, reject" in user_message
 
 

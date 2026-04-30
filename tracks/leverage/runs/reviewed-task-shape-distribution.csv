@@ -1,11 +1,11 @@
 capability,task_shape,count
-coding,debugging,11
-coding,decision,7
-coding,implementation,1
+coding,debugging,12
+coding,decision,8
+coding,implementation,2
 instruction_following,decision,1
-instruction_following,direct_answer,16
+instruction_following,direct_answer,18
 instruction_following,explanation,4
-instruction_following,extraction_transformation,6
+instruction_following,extraction_transformation,7
 instruction_following,rewrite,3
 knowledge_qa,decision,1
 knowledge_qa,direct_answer,8
@@ -13,7 +13,7 @@ knowledge_qa,explanation,2
 reasoning,comparison,2
 reasoning,debugging,1
 reasoning,decision,11
-reasoning,direct_answer,6
+reasoning,direct_answer,7
 reasoning,explanation,5
 reasoning,planning,1
 summarization_transformation,direct_answer,1

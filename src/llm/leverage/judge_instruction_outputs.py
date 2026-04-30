@@ -57,6 +57,8 @@ def build_judge_prompt(row: dict[str, Any]) -> str:
     constraints_text = "\n".join(f"- {item}" for item in constraints if isinstance(item, str))
     return (
         "Evaluate this candidate instruction answer for possible training-data use.\n"
+        "The JSON shape below is only the format for your judgment response. "
+        "Do not apply it as a requirement for the candidate answer.\n"
         "Return exactly one JSON object in this shape:\n"
         "{\n"
         '  "scores": {\n'
@@ -73,6 +75,7 @@ def build_judge_prompt(row: dict[str, Any]) -> str:
         'Do not use synonyms such as "safe".\n'
         "Score values must be integers from 0 to 2.\n"
         "decision must be one of accept, needs_edit, reject.\n\n"
+        "Judge the candidate answer only against the source prompt, output_format, and constraints below.\n"
         f"source_prompt_id: {row.get('source_prompt_id', '')}\n"
         f"output_format: {row.get('output_format', '')}\n"
         f"constraints:\n{constraints_text}\n\n"

@@ -62,6 +62,21 @@ This is small enough to handle with the existing strict parser and parse-error
 recording. Do not add schema repair yet; rerun or skip parse-error rows when
 promoting reviewed data.
 
+## Follow-up With JSON Example
+
+The judge prompt was then tightened by adding an explicit JSON example and a
+direct instruction not to use synonyms such as `safe` for the `safety` score key.
+The same 20-row check was rerun with the same random seed and judge pool.
+
+- judged rows: 20
+- Gemini judge rows: 0
+- accept: 11
+- needs_edit: 9
+- parse_error: 0
+
+This supports the small prompt-only fix. The next batch can keep the strict
+parser; no schema repair or structured-output integration is needed yet.
+
 ## Artifacts
 
 These are local run artifacts under the ignored instruction-output directory:
@@ -72,3 +87,6 @@ These are local run artifacts under the ignored instruction-output directory:
 - `tracks/leverage/runs/instruction-outputs/judge-pool-smoke-gemini-excluded-20-judgments.jsonl`
 - `tracks/leverage/runs/instruction-outputs/judge-pool-smoke-gemini-excluded-20-judgments.csv`
 - `tracks/leverage/runs/instruction-outputs/judge-pool-smoke-gemini-excluded-20-summary.csv`
+- `tracks/leverage/runs/instruction-outputs/judge-pool-smoke-json-example-20-judgments.jsonl`
+- `tracks/leverage/runs/instruction-outputs/judge-pool-smoke-json-example-20-judgments.csv`
+- `tracks/leverage/runs/instruction-outputs/judge-pool-smoke-json-example-20-summary.csv`

@@ -60,6 +60,8 @@ def test_build_payload_contains_rubric_and_candidate_answer() -> None:
     user_message = payload["messages"][1]["content"]
     assert "candidate_answer" in user_message
     assert "Use hosted inference before renting GPUs." in user_message
+    assert '"safety": 2' in user_message
+    assert 'Do not use synonyms such as "safe".' in user_message
     assert "decision must be one of accept, needs_edit, reject" in user_message
 
 

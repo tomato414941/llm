@@ -55,6 +55,16 @@ For larger batches, keep generated outputs local under
 through, rerun the instruction collection wrapper with `--resume` so completed
 `source_prompt_id` rows are skipped instead of overwritten.
 
+Before calling a teacher model, run the exact-duplicate seed report for the
+selected batch. It compares the full generation user prompt against both the
+selected seeds and the existing reviewed dataset:
+
+```bash
+uv run python -m llm.leverage.report_instruction_seed_duplicates \
+  --seed-id lt_seed_001 \
+  --output tracks/leverage/runs/instruction-outputs/<batch>-seed-duplicates.csv
+```
+
 Run the structural filter with `--summary-output` after generation to record
 candidate count, reject reasons, and capability distribution before any review or
 promotion step.

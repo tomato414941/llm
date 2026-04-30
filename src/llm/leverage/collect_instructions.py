@@ -114,11 +114,18 @@ def build_payload(
     reasoning_effort: str,
     exclude_reasoning: bool,
 ) -> dict[str, Any]:
+    constraints = "\n".join(f"- {constraint}" for constraint in seed.constraints)
+    user_content = (
+        f"{seed.prompt}\n\n"
+        f"Output format: {seed.output_format}\n"
+        "Constraints:\n"
+        f"{constraints}"
+    )
     payload: dict[str, Any] = {
         "model": model,
         "messages": [
             {"role": "system", "content": seed.system_prompt},
-            {"role": "user", "content": seed.prompt},
+            {"role": "user", "content": user_content},
         ],
         "max_tokens": max_tokens,
         "temperature": temperature,

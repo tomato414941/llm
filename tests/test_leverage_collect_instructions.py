@@ -104,7 +104,15 @@ def test_build_payload_uses_seed_system_prompt_and_user_prompt() -> None:
         "model": "provider/model",
         "messages": [
             {"role": "system", "content": "Answer as a project lead."},
-            {"role": "user", "content": "When should we use hosted inference?"},
+            {
+                "role": "user",
+                "content": (
+                    "When should we use hosted inference?\n\n"
+                    "Output format: short_answer\n"
+                    "Constraints:\n"
+                    "- mention cost"
+                ),
+            },
         ],
         "max_tokens": 256,
         "temperature": 0.1,
@@ -311,5 +319,7 @@ def test_collect_outputs_resume_skips_existing_seed_rows(tmp_path: Path) -> None
     rows = read_jsonl(output)
     assert [row["source_prompt_id"] for row in rows] == ["lt_seed_001", "lt_seed_002"]
     assert rows[0]["raw_response"] == "Existing answer."
-    assert rows[1]["raw_response"] == "Generated for Second prompt"
+    assert rows[1]["raw_response"].startswith("Generated for Second prompt")
+    assert "Output format: short_answer" in rows[1]["raw_response"]
+    assert "- mention cost" in rows[1]["raw_response"]
     assert rows[1]["generation"]["finish_reason"] == "stop"

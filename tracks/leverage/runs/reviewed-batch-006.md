@@ -86,6 +86,10 @@ Follow-up:
 - The current 205-row reviewed dataset passes this gate.
 - Future bulk promotion should run `validate_reviewed_instructions` before
   export; exact prompt reuse will fail validation instead of reaching SFT export.
+- The high `needs_edit` count was mostly caused by required details and short
+  answer constraints that the judge saw but the generator did not. Generation now
+  includes each seed's `output_format` and `constraints` in the user message, so
+  the next batch should measure whether this raises the accept rate.
 
 ## Artifacts
 

@@ -76,3 +76,46 @@ Do not use the expanded pool blindly for judging. Keep the broad pool for
 generation, but either restrict judging to models with stable JSON responses or
 add stricter per-call timeout/checkpoint behavior before the next large judged
 batch.
+
+## Follow-up: Remaining 10 Rows
+
+Date: 2026-04-30
+
+After adding an explicit JSON example to the judge prompt, the 10 previously
+unjudged candidates (`lt_seed_221` through `lt_seed_230`) were judged with the
+restricted judge pool:
+
+- `qwen3-6-plus-openrouter` / `qwen/qwen3.6-plus` / 0.70
+- `gpt-5-4-openrouter` / `openai/gpt-5.4` / 0.30
+
+Result:
+
+- judged rows: 10
+- Gemini judge rows: 0
+- parse_error: 0
+- accept: 4
+- needs_edit: 4
+- reject: 2
+
+All 10 rows were judged by `qwen3-6-plus-openrouter` after non-self exclusion
+and weighted sampling.
+
+The 4 accepted rows still require promotion review:
+
+- `lt_seed_225`: usable candidate; two-sentence coding review answer.
+- `lt_seed_227`: not directly promotable; answer is fenced JSON despite a
+  `valid JSON only` constraint.
+- `lt_seed_228`: not directly promotable; answer has punctuation despite a
+  `no punctuation` constraint.
+- `lt_seed_229`: usable candidate; one-sentence neutral reschedule answer.
+
+This confirms the judge path is operational after the prompt fix, but it also
+shows that judge `accept` is not enough for automatic promotion. Deterministic
+format constraints still need direct inspection or checks before adding reviewed
+rows.
+
+Follow-up artifacts:
+
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-003-unjudged-json-example-judgments.jsonl`
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-003-unjudged-json-example-judgments.csv`
+- `tracks/leverage/runs/instruction-outputs/readiness-batch-003-unjudged-json-example-summary.csv`

@@ -54,3 +54,11 @@ def test_training_seed_prompts_cover_current_decision_areas() -> None:
     assert len(rows) >= 50
     assert capabilities <= ALLOWED_CAPABILITIES
     assert {"instruction_following", "reasoning", "coding", "tool_use"} <= capabilities
+
+
+def test_json_object_seed_prompts_forbid_markdown_code_fences() -> None:
+    rows = load_jsonl(Path("tracks/leverage/prompts/instruction-seeds.jsonl"))
+
+    for row in rows:
+        if row["output_format"] == "json_object":
+            assert "do not wrap JSON in Markdown code fences" in row["constraints"]

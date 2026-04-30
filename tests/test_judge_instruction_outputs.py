@@ -126,8 +126,24 @@ def test_failed_judgment_record_preserves_raw_response() -> None:
 
     assert record["answer_id"] == "lt_seed_test:generator_a"
     assert record["decision"] == "parse_error"
+    assert record["error_type"] == "judge_schema_error"
     assert record["scores"]["correctness"] == 0
     assert record["raw_judge_response"] == "{bad json"
+
+
+def test_classify_judge_error_distinguishes_failure_sources() -> None:
+    json_error = json.JSONDecodeError("bad json", "{", 0)
+
+    assert judge.classify_judge_error(json_error) == "judge_json_parse_error"
+    assert (
+        judge.classify_judge_error(RuntimeError("OpenAI-compatible API request failed with HTTP 503"))
+        == "provider_http_error"
+    )
+    assert (
+        judge.classify_judge_error(ValueError("API response message content must be text"))
+        == "provider_content_error"
+    )
+    assert judge.classify_judge_error(ValueError("judge response must contain scores object")) == "judge_schema_error"
 
 
 def test_judge_rows_honors_limit() -> None:
@@ -202,6 +218,7 @@ def test_judge_rows_records_parse_errors_and_continues() -> None:
     )
 
     assert [record["decision"] for record in records] == ["parse_error", "accept"]
+    assert records[0]["error_type"] == "judge_json_parse_error"
 
 
 def test_judge_rows_records_client_errors_and_continues() -> None:
@@ -226,6 +243,7 @@ def test_judge_rows_records_client_errors_and_continues() -> None:
     )
 
     assert [record["decision"] for record in records] == ["parse_error", "accept"]
+    assert records[0]["error_type"] == "provider_content_error"
     assert "API response message content must be text" in records[0]["reason"]
 
 

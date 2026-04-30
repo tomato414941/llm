@@ -203,6 +203,7 @@ def failed_judgment_record(
     judge_response: str,
     error: Exception,
 ) -> dict[str, Any]:
+    error_type = classify_judge_error(error)
     return {
         "source_prompt_id": row.get("source_prompt_id", ""),
         "answer_id": answer_id(row),
@@ -216,9 +217,23 @@ def failed_judgment_record(
             "safety": 0,
         },
         "decision": "parse_error",
+        "error_type": error_type,
         "reason": f"Judge response could not be parsed: {error}",
         "raw_judge_response": judge_response,
     }
+
+
+def classify_judge_error(error: Exception) -> str:
+    if isinstance(error, json.JSONDecodeError):
+        return "judge_json_parse_error"
+    message = str(error)
+    if "HTTP " in message:
+        return "provider_http_error"
+    if "API response message content must be text" in message:
+        return "provider_content_error"
+    if isinstance(error, ValueError):
+        return "judge_schema_error"
+    return "provider_error"
 
 
 def client_response_text(response: ChatResult | str) -> str:
@@ -377,6 +392,7 @@ def write_csv(path: Path, rows: list[dict[str, Any]], *, overwrite: bool) -> Non
                 "generator_model",
                 "judge_model",
                 "decision",
+                "error_type",
                 "correctness",
                 "instruction_following",
                 "conciseness",
@@ -394,6 +410,7 @@ def write_csv(path: Path, rows: list[dict[str, Any]], *, overwrite: bool) -> Non
                     "generator_model": row["generator_model"],
                     "judge_model": row["judge_model"],
                     "decision": row["decision"],
+                    "error_type": row.get("error_type", ""),
                     "correctness": scores["correctness"],
                     "instruction_following": scores["instruction_following"],
                     "conciseness": scores["conciseness"],
@@ -409,6 +426,7 @@ def summary_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     summary.append({"scope": "overall", "name": "total", "value": total, "rate": "1.000" if total else "0.000"})
 
     decision_counts: dict[str, int] = {}
+    error_type_counts: dict[str, int] = {}
     generator_counts: dict[str, int] = {}
     judge_counts: dict[str, int] = {}
     score_totals = {
@@ -421,6 +439,9 @@ def summary_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         decision = row.get("decision")
         if isinstance(decision, str):
             decision_counts[decision] = decision_counts.get(decision, 0) + 1
+        error_type = row.get("error_type")
+        if isinstance(error_type, str) and error_type:
+            error_type_counts[error_type] = error_type_counts.get(error_type, 0) + 1
         generator_model = row.get("generator_model")
         if isinstance(generator_model, str):
             generator_counts[generator_model] = generator_counts.get(generator_model, 0) + 1
@@ -436,6 +457,7 @@ def summary_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
     for scope, counts in (
         ("decision", decision_counts),
+        ("error_type", error_type_counts),
         ("generator_model", generator_counts),
         ("judge_model", judge_counts),
     ):

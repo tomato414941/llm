@@ -1,6 +1,8 @@
 import argparse
 import csv
 import json
+import re
+import string
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -11,6 +13,19 @@ from llm.leverage.validate_reviewed_instructions import secret_markers_in_text
 
 REQUIRED_ROLES = ["system", "user", "assistant"]
 DEFAULT_MAX_RESPONSE_CHARS = 2200
+WORD_COUNT_PATTERN = re.compile(r"\b(exactly|at most)\s+(\w+|\d+)\s+words?\b", re.IGNORECASE)
+NUMBER_WORDS = {
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+}
 
 
 @dataclass(frozen=True)
@@ -49,6 +64,56 @@ def row_text(row: dict[str, Any]) -> str:
                     if isinstance(content, str):
                         parts.append(content)
     return "\n".join(parts)
+
+
+def _word_count(text: str) -> int:
+    return len(re.findall(r"\b[\w'-]+\b", text))
+
+
+def _parse_word_count_constraint(constraint: str) -> tuple[str, int] | None:
+    match = WORD_COUNT_PATTERN.search(constraint)
+    if match is None:
+        return None
+    limit_text = match.group(2).lower()
+    limit = int(limit_text) if limit_text.isdigit() else NUMBER_WORDS.get(limit_text)
+    if limit is None:
+        return None
+    return match.group(1).lower(), limit
+
+
+def deterministic_response_issues(seed: InstructionSeed, response: str) -> list[str]:
+    issues: list[str] = []
+    constraints = [constraint.lower() for constraint in seed.constraints]
+
+    if seed.output_format == "json_object":
+        stripped = response.strip()
+        if stripped.startswith("```") or stripped.endswith("```"):
+            issues.append("json_markdown_fence")
+        try:
+            parsed = json.loads(response)
+        except json.JSONDecodeError:
+            issues.append("invalid_json")
+        else:
+            if not isinstance(parsed, dict):
+                issues.append("json_not_object")
+
+    if any("no punctuation" in constraint for constraint in constraints):
+        punctuation = set(string.punctuation)
+        if any(char in punctuation for char in response):
+            issues.append("punctuation_forbidden")
+
+    count = _word_count(response)
+    for constraint in seed.constraints:
+        parsed_count = _parse_word_count_constraint(constraint)
+        if parsed_count is None:
+            continue
+        kind, limit = parsed_count
+        if kind == "exactly" and count != limit:
+            issues.append(f"word_count_not_{limit}")
+        elif kind == "at most" and count > limit:
+            issues.append(f"word_count_over_{limit}")
+
+    return issues
 
 
 def filter_row(
@@ -96,6 +161,8 @@ def filter_row(
         issues.append("assistant_raw_response_mismatch")
     if len(response) > max_response_chars:
         issues.append("response_too_long")
+    if seed is not None and response:
+        issues.extend(deterministic_response_issues(seed, response))
 
     text = row_text(row)
     for marker in secret_markers_in_text(text):

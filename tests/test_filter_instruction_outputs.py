@@ -24,6 +24,30 @@ def seed() -> InstructionSeed:
     )
 
 
+def json_seed() -> InstructionSeed:
+    return InstructionSeed(
+        id="lt_seed_json",
+        capability="instruction_following",
+        purpose="Generate a strict JSON answer.",
+        system_prompt="Return valid JSON only.",
+        prompt="Return JSON with keys enabled and retries.",
+        output_format="json_object",
+        constraints=["valid JSON only", "do not wrap JSON in Markdown code fences"],
+    )
+
+
+def exact_text_seed() -> InstructionSeed:
+    return InstructionSeed(
+        id="lt_seed_exact",
+        capability="instruction_following",
+        purpose="Generate an exact count answer.",
+        system_prompt="Follow the requested count exactly.",
+        prompt="Write exactly four words including careful and planning. Do not use punctuation.",
+        output_format="exact_text",
+        constraints=["exactly four words", "no punctuation"],
+    )
+
+
 def raw_row(**overrides: object) -> dict[str, object]:
     row: dict[str, object] = {
         "source_prompt_id": "lt_seed_test",
@@ -132,6 +156,79 @@ def test_filter_row_rejects_secret_like_openai_key() -> None:
 
     assert result.decision == "reject"
     assert any(issue.startswith("secret_marker:") for issue in result.issues)
+
+
+def test_filter_row_rejects_fenced_json_object() -> None:
+    response = '```json\n{"enabled": false, "retries": 2}\n```'
+    result = filter_row(
+        raw_row(
+            source_prompt_id="lt_seed_json",
+            capability="instruction_following",
+            output_format="json_object",
+            constraints=["valid JSON only", "do not wrap JSON in Markdown code fences"],
+            messages=[
+                {"role": "system", "content": "Return valid JSON only."},
+                {"role": "user", "content": "Return JSON with keys enabled and retries."},
+                {"role": "assistant", "content": response},
+            ],
+            raw_response=response,
+        ),
+        seeds={"lt_seed_json": json_seed()},
+        max_response_chars=200,
+    )
+
+    assert result.decision == "reject"
+    assert "json_markdown_fence" in result.issues
+    assert "invalid_json" in result.issues
+
+
+def test_filter_row_rejects_invalid_json_object() -> None:
+    result = filter_row(
+        raw_row(
+            source_prompt_id="lt_seed_json",
+            capability="instruction_following",
+            output_format="json_object",
+            constraints=["valid JSON only", "do not wrap JSON in Markdown code fences"],
+            messages=[
+                {"role": "system", "content": "Return valid JSON only."},
+                {"role": "user", "content": "Return JSON with keys enabled and retries."},
+                {"role": "assistant", "content": "enabled=false"},
+            ],
+            raw_response="enabled=false",
+        ),
+        seeds={"lt_seed_json": json_seed()},
+        max_response_chars=200,
+    )
+
+    assert result.decision == "reject"
+    assert "invalid_json" in result.issues
+
+
+def test_filter_row_rejects_punctuation_and_wrong_word_count() -> None:
+    response = "Careful planning works."
+    result = filter_row(
+        raw_row(
+            source_prompt_id="lt_seed_exact",
+            capability="instruction_following",
+            output_format="exact_text",
+            constraints=["exactly four words", "no punctuation"],
+            messages=[
+                {"role": "system", "content": "Follow the requested count exactly."},
+                {
+                    "role": "user",
+                    "content": "Write exactly four words including careful and planning. Do not use punctuation.",
+                },
+                {"role": "assistant", "content": response},
+            ],
+            raw_response=response,
+        ),
+        seeds={"lt_seed_exact": exact_text_seed()},
+        max_response_chars=200,
+    )
+
+    assert result.decision == "reject"
+    assert "punctuation_forbidden" in result.issues
+    assert "word_count_not_4" in result.issues
 
 
 def test_write_csv_and_candidate_jsonl(tmp_path: Path) -> None:

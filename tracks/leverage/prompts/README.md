@@ -21,6 +21,12 @@ Required fields:
 - `output_format`: expected answer shape
 - `constraints`: list of required answer properties
 
+Generation and judging must use the same source instruction contract:
+`system_prompt`, plus the user prompt with `output_format` and `constraints`.
+Do not hand-build the user-side contract text separately in different pipeline
+stages; use the shared contract builder so the generator and judge cannot
+silently diverge.
+
 This is intentionally separate from `tracks/leverage/evals/`. Eval files define scored tests.
 Prompt files define generation inputs.
 

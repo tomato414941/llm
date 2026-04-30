@@ -5,6 +5,7 @@ import pytest
 
 from llm.leverage.collect_openai import ChatResult
 from llm.leverage import collect_instructions
+from llm.leverage.instruction_contract import build_instruction_contract
 
 
 def read_jsonl(path: Path) -> list[dict[str, object]]:
@@ -100,19 +101,17 @@ def test_build_payload_uses_seed_system_prompt_and_user_prompt() -> None:
         exclude_reasoning=True,
     )
 
+    contract = build_instruction_contract(
+        prompt="When should we use hosted inference?",
+        output_format="short_answer",
+        constraints=["mention cost"],
+    )
+
     assert payload == {
         "model": "provider/model",
         "messages": [
             {"role": "system", "content": "Answer as a project lead."},
-            {
-                "role": "user",
-                "content": (
-                    "When should we use hosted inference?\n\n"
-                    "Output format: short_answer\n"
-                    "Constraints:\n"
-                    "- mention cost"
-                ),
-            },
+            {"role": "user", "content": contract},
         ],
         "max_tokens": 256,
         "temperature": 0.1,

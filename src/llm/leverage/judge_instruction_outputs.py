@@ -8,6 +8,7 @@ from typing import Any, Callable
 
 from llm.leverage.collect_instructions import load_jsonl
 from llm.leverage.collect_openai import ChatResult, chat_completions_client
+from llm.leverage.instruction_contract import build_instruction_contract
 
 
 DEFAULT_JUDGE_MODEL = "anthropic/claude-sonnet-4.6"
@@ -52,9 +53,26 @@ def user_prompt(row: dict[str, Any]) -> str:
     return ""
 
 
+def system_prompt(row: dict[str, Any]) -> str:
+    messages = row.get("messages")
+    if isinstance(messages, list):
+        for message in messages:
+            if isinstance(message, dict) and message.get("role") == "system":
+                content = message.get("content")
+                if isinstance(content, str):
+                    return content
+    return ""
+
+
 def build_judge_prompt(row: dict[str, Any]) -> str:
     constraints = row.get("constraints")
-    constraints_text = "\n".join(f"- {item}" for item in constraints if isinstance(item, str))
+    if not isinstance(constraints, list):
+        constraints = []
+    instruction_contract = build_instruction_contract(
+        prompt=user_prompt(row),
+        output_format=str(row.get("output_format", "")),
+        constraints=[item for item in constraints if isinstance(item, str)],
+    )
     return (
         "Evaluate this candidate instruction answer for possible training-data use.\n"
         "The JSON shape below is only the format for your judgment response. "
@@ -75,11 +93,10 @@ def build_judge_prompt(row: dict[str, Any]) -> str:
         'Do not use synonyms such as "safe".\n'
         "Score values must be integers from 0 to 2.\n"
         "decision must be one of accept, needs_edit, reject.\n\n"
-        "Judge the candidate answer only against the source prompt, output_format, and constraints below.\n"
+        "Judge the candidate answer only against the source instruction contract below.\n"
         f"source_prompt_id: {row.get('source_prompt_id', '')}\n"
-        f"output_format: {row.get('output_format', '')}\n"
-        f"constraints:\n{constraints_text}\n\n"
-        f"user_prompt:\n{user_prompt(row)}\n\n"
+        f"source_system_prompt:\n{system_prompt(row)}\n\n"
+        f"instruction_contract:\n{instruction_contract}\n\n"
         f"candidate_answer:\n{assistant_content(row)}"
     )
 

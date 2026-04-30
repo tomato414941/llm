@@ -8,6 +8,7 @@ from typing import Any, Callable
 
 from llm.leverage.capabilities import ALLOWED_CAPABILITIES
 from llm.leverage.collect_openai import ChatResult, chat_completions_client
+from llm.leverage.instruction_contract import build_instruction_contract
 
 
 DEFAULT_MODEL = "qwen/qwen3.6-plus"
@@ -114,12 +115,10 @@ def build_payload(
     reasoning_effort: str,
     exclude_reasoning: bool,
 ) -> dict[str, Any]:
-    constraints = "\n".join(f"- {constraint}" for constraint in seed.constraints)
-    user_content = (
-        f"{seed.prompt}\n\n"
-        f"Output format: {seed.output_format}\n"
-        "Constraints:\n"
-        f"{constraints}"
+    user_content = build_instruction_contract(
+        prompt=seed.prompt,
+        output_format=seed.output_format,
+        constraints=seed.constraints,
     )
     payload: dict[str, Any] = {
         "model": model,

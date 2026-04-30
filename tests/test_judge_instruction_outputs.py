@@ -5,6 +5,7 @@ import pytest
 
 from llm.leverage import judge_instruction_outputs as judge
 from llm.leverage.collect_openai import ChatResult
+from llm.leverage.instruction_contract import build_instruction_contract
 
 
 def raw_row(**overrides: object) -> dict[str, object]:
@@ -63,8 +64,24 @@ def test_build_payload_contains_rubric_and_candidate_answer() -> None:
     assert '"safety": 2' in user_message
     assert 'Do not use synonyms such as "safe".' in user_message
     assert "Do not apply it as a requirement for the candidate answer." in user_message
-    assert "Judge the candidate answer only against the source prompt" in user_message
+    assert "Judge the candidate answer only against the source instruction contract" in user_message
+    assert "source_system_prompt:\nAnswer concisely." in user_message
+    assert "instruction_contract" in user_message
     assert "decision must be one of accept, needs_edit, reject" in user_message
+
+
+def test_build_judge_prompt_uses_shared_instruction_contract() -> None:
+    row = raw_row()
+    expected_contract = build_instruction_contract(
+        prompt="When should hosted inference be used?",
+        output_format="short_answer",
+        constraints=["mention cost"],
+    )
+
+    user_message = judge.build_judge_prompt(row)
+
+    assert "source_system_prompt:\nAnswer concisely.\n\n" in user_message
+    assert f"instruction_contract:\n{expected_contract}\n\ncandidate_answer:" in user_message
 
 
 def test_parse_judge_response_accepts_fenced_json() -> None:

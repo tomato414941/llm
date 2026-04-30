@@ -83,7 +83,7 @@ requires a non-duplicate source prompt, no secret or environment leakage, and a
 human-readable answer that is concise enough for the reviewed instruction
 dataset. If an accepted answer is trimmed, note that in the reviewed row.
 
-Default candidate pool for the next generation/judge batches:
+Default generation pool for the next candidate batches:
 
 | label | OpenRouter model | weight |
 | --- | --- | ---: |
@@ -95,11 +95,25 @@ Default candidate pool for the next generation/judge batches:
 | `deepseek-v4-pro-openrouter` | `deepseek/deepseek-v4-pro` | 0.10 |
 | `glm-5-1-openrouter` | `z-ai/glm-5.1` | 0.10 |
 
-Use the same pool for generation and judging unless a run note states a specific
-reason to deviate. Because non-self judging removes the generator label before
-sampling, realized judge percentages can differ from these raw weights.
+Default judge pool for promotion review:
+
+| label | OpenRouter model | weight |
+| --- | --- | ---: |
+| `qwen3-6-plus-openrouter` | `qwen/qwen3.6-plus` | 0.70 |
+| `gpt-5-4-openrouter` | `openai/gpt-5.4` | 0.30 |
+
+Keep generation broader than judging. Generation benefits from model diversity,
+but judging needs stable JSON, predictable latency, and consistent rubric
+following. Because non-self judging removes the generator label before sampling,
+realized judge percentages can differ from these raw weights.
 
 Do not include reasoning-mandatory endpoints in the default pool for now. The
 training dataset should remain final-answer instruction data; hidden or required
 reasoning behavior is out of scope until the project explicitly targets
 reasoning-model training.
+
+`google/gemini-3.1-pro-preview` is specifically excluded from the default judge
+pool because the endpoint requires reasoning to be enabled, which conflicts with
+the default `reasoning_effort=none` and `exclude_reasoning=true` policy. Other
+models may be added to the judge pool only after a small suitability check shows
+valid JSON responses, acceptable latency, and no client content-shape errors.

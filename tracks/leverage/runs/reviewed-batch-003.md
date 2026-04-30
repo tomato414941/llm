@@ -119,3 +119,44 @@ Follow-up artifacts:
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-003-unjudged-json-example-judgments.jsonl`
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-003-unjudged-json-example-judgments.csv`
 - `tracks/leverage/runs/instruction-outputs/readiness-batch-003-unjudged-json-example-summary.csv`
+
+## Follow-up: JSON Fence Regeneration Check
+
+Date: 2026-04-30
+
+After adding `do not wrap JSON in Markdown code fences` to `json_object` seed
+constraints, `lt_seed_227` was regenerated once with
+`qwen3-6-plus-openrouter`.
+
+Result:
+
+- generated rows: 1
+- finish_reason: `stop`
+- Markdown code fence: no
+- direct `json.loads` parse: ok
+- structural filter: `needs_judge`
+- non-self judge: `gpt-5-4-openrouter`
+- judge decision: `accept`
+- judge parse_error: 0
+
+The regenerated answer was raw JSON:
+
+```json
+{
+  "enabled": false,
+  "retries": 2
+}
+```
+
+This confirms the narrow JSON-only seed constraint fixed the observed fenced
+JSON issue for the failing seed without broadening the rule to non-JSON tasks.
+
+Follow-up artifacts:
+
+- `tracks/leverage/runs/instruction-outputs/lt-seed-227-json-fence-check-raw.jsonl`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-227-json-fence-check-filter-v2.csv`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-227-json-fence-check-filter-v2-summary.csv`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-227-json-fence-check-candidates-v2.jsonl`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-227-json-fence-check-judgments.jsonl`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-227-json-fence-check-judgments.csv`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-227-json-fence-check-judgments-summary.csv`

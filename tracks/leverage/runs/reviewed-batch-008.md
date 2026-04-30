@@ -37,6 +37,11 @@ existing filter, judge, and promotion gates.
 
 ## Generation
 
+This batch was run with fixed generator and judge models. That made the seed
+duplicate comparison cleaner, but it is not the normal policy for future
+batches. Normal candidate generation should use the random generator and judge
+pools documented in `tracks/leverage/prompts/README.md`.
+
 - generator: `qwen3-6-plus-openrouter` / `qwen/qwen3.6-plus`
 - temperature: 0.1
 - max tokens: 512

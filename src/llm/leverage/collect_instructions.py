@@ -13,6 +13,15 @@ from llm.leverage.instruction_contract import build_instruction_contract
 
 DEFAULT_MODEL = "qwen/qwen3.6-plus"
 DEFAULT_MODEL_LABEL = "qwen3-6-plus-openrouter"
+DEFAULT_GENERATOR_CANDIDATES = [
+    "qwen3-6-plus-openrouter=qwen/qwen3.6-plus:0.40",
+    "gpt-5-4-openrouter=openai/gpt-5.4:0.10",
+    "claude-sonnet-4-6-openrouter=anthropic/claude-sonnet-4.6:0.10",
+    "gpt-5-5-openrouter=openai/gpt-5.5:0.10",
+    "kimi-k2-6-openrouter=moonshotai/kimi-k2.6:0.10",
+    "deepseek-v4-pro-openrouter=deepseek/deepseek-v4-pro:0.10",
+    "glm-5-1-openrouter=z-ai/glm-5.1:0.10",
+]
 REQUIRED_FIELDS = {
     "id",
     "capability",
@@ -272,7 +281,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--generator-candidate",
         action="append",
-        default=[],
+        default=None,
         help="Eligible random generator in label=model[:weight] form. May be repeated.",
     )
     parser.add_argument("--random-seed", type=int, default=0)
@@ -311,8 +320,10 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--timeout-seconds must be positive")
     if not args.model_label:
         raise ValueError("--model-label must not be empty")
+    generator_candidate_values = args.generator_candidate or DEFAULT_GENERATOR_CANDIDATES
     args.generator_candidates = [
-        parse_model_candidate(value, option_name="--generator-candidate") for value in args.generator_candidate
+        parse_model_candidate(value, option_name="--generator-candidate")
+        for value in generator_candidate_values
     ]
 
 

@@ -269,6 +269,26 @@ def test_parse_judge_candidate_accepts_optional_weight() -> None:
         judge.parse_judge_candidate("judge_a")
 
 
+def test_parse_args_defaults_to_random_judge_pool(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "judge_instruction_outputs",
+            "--input",
+            "candidates.jsonl",
+            "--output",
+            "judgments.jsonl",
+        ],
+    )
+
+    args = judge.parse_args()
+    judge.validate_args(args)
+
+    assert args.judge_candidates == [
+        judge.parse_judge_candidate(value) for value in judge.DEFAULT_JUDGE_CANDIDATES
+    ]
+
+
 def test_judge_rows_accepts_chat_result_client_response() -> None:
     records = judge.judge_rows(
         [(1, raw_row())],

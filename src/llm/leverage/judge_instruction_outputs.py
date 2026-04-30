@@ -13,6 +13,10 @@ from llm.leverage.instruction_contract import build_instruction_contract
 
 DEFAULT_JUDGE_MODEL = "anthropic/claude-sonnet-4.6"
 DEFAULT_JUDGE_LABEL = "claude-sonnet-4-6-openrouter"
+DEFAULT_JUDGE_CANDIDATES = [
+    "qwen3-6-plus-openrouter=qwen/qwen3.6-plus:0.70",
+    "gpt-5-4-openrouter=openai/gpt-5.4:0.30",
+]
 ChatClient = Callable[[dict[str, Any]], ChatResult | str]
 JudgeCandidate = tuple[str, str, float]
 
@@ -467,7 +471,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--judge-candidate",
         action="append",
-        default=[],
+        default=None,
         help="Eligible random judge in label=model form. May be repeated.",
     )
     parser.add_argument("--random-seed", type=int, default=0)
@@ -497,7 +501,8 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--limit must be positive")
     if not args.judge_label:
         raise ValueError("--judge-label must not be empty")
-    args.judge_candidates = [parse_judge_candidate(value) for value in args.judge_candidate]
+    judge_candidate_values = args.judge_candidate or DEFAULT_JUDGE_CANDIDATES
+    args.judge_candidates = [parse_judge_candidate(value) for value in judge_candidate_values]
 
 
 def main() -> int:

@@ -247,6 +247,27 @@ def test_parse_model_candidate_accepts_optional_weight() -> None:
         collect_instructions.parse_model_candidate("generator_a", option_name="--generator-candidate")
 
 
+def test_parse_args_defaults_to_random_generator_pool(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "collect_instructions",
+            "--seeds",
+            "seeds.jsonl",
+            "--output",
+            "outputs.jsonl",
+        ],
+    )
+
+    args = collect_instructions.parse_args()
+    collect_instructions.validate_args(args)
+
+    assert args.generator_candidates == [
+        collect_instructions.parse_model_candidate(value, option_name="--generator-candidate")
+        for value in collect_instructions.DEFAULT_GENERATOR_CANDIDATES
+    ]
+
+
 def test_real_training_seed_file_loads() -> None:
     seeds = collect_instructions.load_seeds(Path("tracks/leverage/prompts/instruction-seeds.jsonl"))
 

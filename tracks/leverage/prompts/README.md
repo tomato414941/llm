@@ -81,6 +81,10 @@ For normal candidate generation, prefer one generated answer and one judge call
 per seed. Use weighted random model selection only to mix model behavior and
 control cost, not to create repeated votes for the same row.
 
+The collection and judging CLIs default to the pools below. Do not pass
+`--model`, `--model-label`, `--judge-model`, or `--judge-label` for normal
+batches unless the run is explicitly documented as a fixed-model comparison.
+
 Required run records:
 
 - random seed

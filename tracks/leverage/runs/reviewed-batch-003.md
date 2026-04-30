@@ -184,3 +184,48 @@ The near-duplicate summary did not show a strong duplicate for the promoted
 rows. The highest prompt-level similarity involving them was 0.500
 (`instr_0069` / `instr_0108`), which is a similar tone-constrained reschedule
 task but not a copy.
+
+## Follow-up: Punctuation Regeneration Check
+
+Date: 2026-04-30
+
+After making the punctuation and required-word constraints explicit in
+`lt_seed_228`, the seed was regenerated with `qwen3-6-plus-openrouter`.
+
+The first regeneration removed punctuation but did not include the explicit
+`careful planning` wording. The prompt was narrowed to require both words, then
+the second regeneration produced:
+
+```text
+Careful planning yields success
+```
+
+Result:
+
+- generated rows: 1 usable row after the prompt tightening
+- finish_reason: `stop`
+- word count: 4
+- punctuation: none
+- includes `careful`: yes
+- includes `planning`: yes
+- structural filter: `needs_judge`
+- non-self judge: `gpt-5-4-openrouter`
+- judge decision: `accept`
+- judge parse_error: 0
+
+Promoted regenerated `lt_seed_228` as `instr_0109`.
+
+Reviewed dataset size after promotion: 108 rows.
+
+Follow-up artifacts:
+
+- `tracks/leverage/runs/instruction-outputs/lt-seed-228-punctuation-check-raw.jsonl`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-228-punctuation-check-filter.csv`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-228-punctuation-check-filter-summary.csv`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-228-punctuation-check-v2-raw.jsonl`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-228-punctuation-check-v2-filter.csv`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-228-punctuation-check-v2-filter-summary.csv`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-228-punctuation-check-v2-candidates.jsonl`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-228-punctuation-check-v2-judgments.jsonl`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-228-punctuation-check-v2-judgments.csv`
+- `tracks/leverage/runs/instruction-outputs/lt-seed-228-punctuation-check-v2-judgments-summary.csv`

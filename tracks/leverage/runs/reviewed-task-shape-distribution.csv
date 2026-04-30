@@ -3,7 +3,7 @@ coding,debugging,11
 coding,decision,7
 coding,implementation,1
 instruction_following,decision,1
-instruction_following,direct_answer,15
+instruction_following,direct_answer,16
 instruction_following,explanation,4
 instruction_following,extraction_transformation,6
 instruction_following,rewrite,3

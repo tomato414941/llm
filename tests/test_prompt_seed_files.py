@@ -62,3 +62,14 @@ def test_json_object_seed_prompts_forbid_markdown_code_fences() -> None:
     for row in rows:
         if row["output_format"] == "json_object":
             assert "do not wrap JSON in Markdown code fences" in row["constraints"]
+
+
+def test_punctuation_forbidden_seed_prompts_state_that_constraint() -> None:
+    rows = load_jsonl(Path("tracks/leverage/prompts/instruction-seeds.jsonl"))
+
+    for row in rows:
+        constraints = row["constraints"]
+        forbids_punctuation = any("punctuation" in item for item in constraints)
+        if forbids_punctuation:
+            generator_text = f"{row['system_prompt']} {row['prompt']}".lower()
+            assert "punctuation" in generator_text

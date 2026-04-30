@@ -146,6 +146,13 @@ def test_classify_judge_error_distinguishes_failure_sources() -> None:
     assert judge.classify_judge_error(ValueError("judge response must contain scores object")) == "judge_schema_error"
 
 
+def test_is_retryable_judge_error_only_allows_execution_failures() -> None:
+    assert judge.is_retryable_judge_error(json.JSONDecodeError("bad json", "{", 0))
+    assert judge.is_retryable_judge_error(RuntimeError("OpenAI-compatible API request failed with HTTP 503"))
+    assert judge.is_retryable_judge_error(ValueError("API response message content must be text"))
+    assert not judge.is_retryable_judge_error(ValueError("judge response must contain scores object"))
+
+
 def test_judge_rows_honors_limit() -> None:
     calls: list[dict[str, object]] = []
 
@@ -202,11 +209,11 @@ def test_judge_rows_resume_skips_existing_answer_ids() -> None:
     assert records[1]["decision"] == "needs_edit"
 
 
-def test_judge_rows_records_parse_errors_and_continues() -> None:
+def test_judge_rows_retries_json_parse_errors_once() -> None:
     responses = iter(["not json", judge_json("accept")])
 
     records = judge.judge_rows(
-        [(1, raw_row(source_prompt_id="a")), (2, raw_row(source_prompt_id="b"))],
+        [(1, raw_row(source_prompt_id="a"))],
         client=lambda _payload: next(responses),
         judge_model="judge/model",
         judge_label="judge_label",
@@ -217,11 +224,12 @@ def test_judge_rows_records_parse_errors_and_continues() -> None:
         limit=None,
     )
 
-    assert [record["decision"] for record in records] == ["parse_error", "accept"]
-    assert records[0]["error_type"] == "judge_json_parse_error"
+    assert records[0]["decision"] == "accept"
+    assert records[0]["retry_count"] == 1
+    assert records[0]["first_error_type"] == "judge_json_parse_error"
 
 
-def test_judge_rows_records_client_errors_and_continues() -> None:
+def test_judge_rows_retries_client_errors_once() -> None:
     calls = iter([ValueError("API response message content must be text"), judge_json("accept")])
 
     def client(_payload):
@@ -242,9 +250,56 @@ def test_judge_rows_records_client_errors_and_continues() -> None:
         limit=None,
     )
 
-    assert [record["decision"] for record in records] == ["parse_error", "accept"]
-    assert records[0]["error_type"] == "provider_content_error"
-    assert "API response message content must be text" in records[0]["reason"]
+    assert records[0]["decision"] == "accept"
+    assert records[0]["retry_count"] == 1
+    assert records[0]["first_error_type"] == "provider_content_error"
+    assert "API response message content must be text" in records[0]["first_error_reason"]
+
+
+def test_judge_rows_keeps_retry_error_when_retry_also_fails() -> None:
+    responses = iter(["not json", "still not json"])
+
+    records = judge.judge_rows(
+        [(1, raw_row(source_prompt_id="a"))],
+        client=lambda _payload: next(responses),
+        judge_model="judge/model",
+        judge_label="judge_label",
+        max_tokens=256,
+        temperature=0.0,
+        reasoning_effort="none",
+        exclude_reasoning=True,
+        limit=None,
+    )
+
+    assert records[0]["decision"] == "parse_error"
+    assert records[0]["error_type"] == "judge_json_parse_error"
+    assert records[0]["retry_count"] == 1
+    assert records[0]["first_error_type"] == "judge_json_parse_error"
+
+
+def test_judge_rows_does_not_retry_schema_errors() -> None:
+    calls = 0
+
+    def client(_payload):
+        nonlocal calls
+        calls += 1
+        return json.dumps({"scores": {}})
+
+    records = judge.judge_rows(
+        [(1, raw_row(source_prompt_id="a"))],
+        client=client,
+        judge_model="judge/model",
+        judge_label="judge_label",
+        max_tokens=256,
+        temperature=0.0,
+        reasoning_effort="none",
+        exclude_reasoning=True,
+        limit=None,
+    )
+
+    assert calls == 1
+    assert records[0]["decision"] == "parse_error"
+    assert records[0]["error_type"] == "judge_schema_error"
 
 
 def test_judge_rows_can_choose_random_non_self_judges_per_row() -> None:

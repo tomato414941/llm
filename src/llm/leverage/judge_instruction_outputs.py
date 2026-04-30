@@ -24,6 +24,11 @@ DEFAULT_JUDGE_CANDIDATES = [
 ]
 ChatClient = Callable[[dict[str, Any]], ChatResult | str]
 JudgeCandidate = tuple[str, str, float]
+RETRYABLE_ERROR_TYPES = {
+    "judge_json_parse_error",
+    "provider_http_error",
+    "provider_content_error",
+}
 
 
 def answer_id(row: dict[str, Any]) -> str:
@@ -236,6 +241,10 @@ def classify_judge_error(error: Exception) -> str:
     return "provider_error"
 
 
+def is_retryable_judge_error(error: Exception) -> bool:
+    return classify_judge_error(error) in RETRYABLE_ERROR_TYPES
+
+
 def client_response_text(response: ChatResult | str) -> str:
     if isinstance(response, ChatResult):
         return response.text
@@ -280,6 +289,96 @@ def choose_judge(
     return rng.choices(eligible, weights=weights, k=1)[0]
 
 
+def judge_row_once(
+    row: dict[str, Any],
+    *,
+    client: ChatClient,
+    judge_model: str,
+    judge_label: str,
+    max_tokens: int,
+    temperature: float,
+    reasoning_effort: str,
+    exclude_reasoning: bool,
+) -> dict[str, Any]:
+    try:
+        response = client_response_text(
+            client(
+                build_payload(
+                    row,
+                    judge_model=judge_model,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    reasoning_effort=reasoning_effort,
+                    exclude_reasoning=exclude_reasoning,
+                )
+            )
+        )
+    except Exception as exc:
+        return failed_judgment_record(
+            row,
+            judge_model=judge_model,
+            judge_label=judge_label,
+            judge_response="",
+            error=exc,
+        )
+    try:
+        return judgment_record(
+            row,
+            judge_model=judge_model,
+            judge_label=judge_label,
+            judge_response=response,
+        )
+    except (json.JSONDecodeError, ValueError) as exc:
+        return failed_judgment_record(
+            row,
+            judge_model=judge_model,
+            judge_label=judge_label,
+            judge_response=response,
+            error=exc,
+        )
+
+
+def judge_row_with_retry(
+    row: dict[str, Any],
+    *,
+    client: ChatClient,
+    judge_model: str,
+    judge_label: str,
+    max_tokens: int,
+    temperature: float,
+    reasoning_effort: str,
+    exclude_reasoning: bool,
+) -> dict[str, Any]:
+    record = judge_row_once(
+        row,
+        client=client,
+        judge_model=judge_model,
+        judge_label=judge_label,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        reasoning_effort=reasoning_effort,
+        exclude_reasoning=exclude_reasoning,
+    )
+    error_type = record.get("error_type")
+    if record.get("decision") != "parse_error" or error_type not in RETRYABLE_ERROR_TYPES:
+        return record
+    retry_record = judge_row_once(
+        row,
+        client=client,
+        judge_model=judge_model,
+        judge_label=judge_label,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        reasoning_effort=reasoning_effort,
+        exclude_reasoning=exclude_reasoning,
+    )
+    retry_record["retry_count"] = 1
+    retry_record["first_error_type"] = error_type
+    if record.get("reason"):
+        retry_record["first_error_reason"] = record["reason"]
+    return retry_record
+
+
 def judge_rows(
     rows: list[tuple[int, dict[str, Any]]],
     *,
@@ -312,44 +411,16 @@ def judge_rows(
             judge_candidates=candidates,
             rng=rng,
         )
-        try:
-            response = client_response_text(
-                client(
-                    build_payload(
-                        row,
-                        judge_model=selected_judge_model,
-                        max_tokens=max_tokens,
-                        temperature=temperature,
-                        reasoning_effort=reasoning_effort,
-                        exclude_reasoning=exclude_reasoning,
-                    )
-                )
-            )
-        except Exception as exc:
-            record = failed_judgment_record(
-                row,
-                judge_model=selected_judge_model,
-                judge_label=selected_judge_label,
-                judge_response="",
-                error=exc,
-            )
-            records.append(record)
-            continue
-        try:
-            record = judgment_record(
-                row,
-                judge_model=selected_judge_model,
-                judge_label=selected_judge_label,
-                judge_response=response,
-            )
-        except (json.JSONDecodeError, ValueError) as exc:
-            record = failed_judgment_record(
-                row,
-                judge_model=selected_judge_model,
-                judge_label=selected_judge_label,
-                judge_response=response,
-                error=exc,
-            )
+        record = judge_row_with_retry(
+            row,
+            client=client,
+            judge_model=selected_judge_model,
+            judge_label=selected_judge_label,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            reasoning_effort=reasoning_effort,
+            exclude_reasoning=exclude_reasoning,
+        )
         records.append(record)
     return records
 

@@ -119,13 +119,18 @@ Default judge pool for promotion review:
 
 | label | OpenRouter model | weight |
 | --- | --- | ---: |
-| `qwen3-6-plus-openrouter` | `qwen/qwen3.6-plus` | 0.70 |
-| `gpt-5-4-openrouter` | `openai/gpt-5.4` | 0.30 |
+| `qwen3-6-plus-openrouter` | `qwen/qwen3.6-plus` | 0.40 |
+| `gpt-5-4-openrouter` | `openai/gpt-5.4` | 0.10 |
+| `claude-sonnet-4-6-openrouter` | `anthropic/claude-sonnet-4.6` | 0.10 |
+| `gpt-5-5-openrouter` | `openai/gpt-5.5` | 0.05 |
+| `kimi-k2-6-openrouter` | `moonshotai/kimi-k2.6` | 0.15 |
+| `deepseek-v4-pro-openrouter` | `deepseek/deepseek-v4-pro` | 0.10 |
+| `glm-5-1-openrouter` | `z-ai/glm-5.1` | 0.10 |
 
-Keep generation broader than judging. Generation benefits from model diversity,
-but judging needs stable JSON, predictable latency, and consistent rubric
-following. Because non-self judging removes the generator label before sampling,
-realized judge percentages can differ from these raw weights.
+Keep both generation and judging diverse. Treat teacher generation and promotion
+review as probabilistic sampling over capable models, not as a hand-picked
+single-model oracle. Because non-self judging removes the generator label before
+sampling, realized judge percentages can differ from these raw weights.
 
 Do not include reasoning-mandatory endpoints in the default pool for now. The
 training dataset should remain final-answer instruction data; hidden or required

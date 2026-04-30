@@ -268,6 +268,24 @@ def test_parse_args_defaults_to_random_generator_pool(monkeypatch: pytest.Monkey
     ]
 
 
+def test_default_generator_pool_is_diverse_and_weighted() -> None:
+    candidates = [
+        collect_instructions.parse_model_candidate(value, option_name="--generator-candidate")
+        for value in collect_instructions.DEFAULT_GENERATOR_CANDIDATES
+    ]
+    labels = {label for label, _model, _weight in candidates}
+    total_weight = sum(weight for _label, _model, weight in candidates)
+
+    assert len(candidates) >= 6
+    assert "qwen3-6-plus-openrouter" in labels
+    assert "gpt-5-4-openrouter" in labels
+    assert "claude-sonnet-4-6-openrouter" in labels
+    assert "kimi-k2-6-openrouter" in labels
+    assert "deepseek-v4-pro-openrouter" in labels
+    assert "glm-5-1-openrouter" in labels
+    assert round(total_weight, 6) == 1.0
+
+
 def test_real_training_seed_file_loads() -> None:
     seeds = collect_instructions.load_seeds(Path("tracks/leverage/prompts/instruction-seeds.jsonl"))
 

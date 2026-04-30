@@ -289,6 +289,21 @@ def test_parse_args_defaults_to_random_judge_pool(monkeypatch: pytest.MonkeyPatc
     ]
 
 
+def test_default_judge_pool_is_diverse_and_weighted() -> None:
+    candidates = [judge.parse_judge_candidate(value) for value in judge.DEFAULT_JUDGE_CANDIDATES]
+    labels = {label for label, _model, _weight in candidates}
+    total_weight = sum(weight for _label, _model, weight in candidates)
+
+    assert len(candidates) >= 6
+    assert "qwen3-6-plus-openrouter" in labels
+    assert "gpt-5-4-openrouter" in labels
+    assert "claude-sonnet-4-6-openrouter" in labels
+    assert "kimi-k2-6-openrouter" in labels
+    assert "deepseek-v4-pro-openrouter" in labels
+    assert "glm-5-1-openrouter" in labels
+    assert round(total_weight, 6) == 1.0
+
+
 def test_judge_rows_accepts_chat_result_client_response() -> None:
     records = judge.judge_rows(
         [(1, raw_row())],

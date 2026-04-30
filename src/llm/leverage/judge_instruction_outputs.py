@@ -14,8 +14,13 @@ from llm.leverage.instruction_contract import build_instruction_contract
 DEFAULT_JUDGE_MODEL = "anthropic/claude-sonnet-4.6"
 DEFAULT_JUDGE_LABEL = "claude-sonnet-4-6-openrouter"
 DEFAULT_JUDGE_CANDIDATES = [
-    "qwen3-6-plus-openrouter=qwen/qwen3.6-plus:0.70",
-    "gpt-5-4-openrouter=openai/gpt-5.4:0.30",
+    "qwen3-6-plus-openrouter=qwen/qwen3.6-plus:0.40",
+    "gpt-5-4-openrouter=openai/gpt-5.4:0.10",
+    "claude-sonnet-4-6-openrouter=anthropic/claude-sonnet-4.6:0.10",
+    "gpt-5-5-openrouter=openai/gpt-5.5:0.05",
+    "kimi-k2-6-openrouter=moonshotai/kimi-k2.6:0.15",
+    "deepseek-v4-pro-openrouter=deepseek/deepseek-v4-pro:0.10",
+    "glm-5-1-openrouter=z-ai/glm-5.1:0.10",
 ]
 ChatClient = Callable[[dict[str, Any]], ChatResult | str]
 JudgeCandidate = tuple[str, str, float]

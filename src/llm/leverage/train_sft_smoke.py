@@ -1,5 +1,6 @@
 import argparse
 import csv
+import time
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +48,13 @@ def int_value(value: Any, label: str) -> int:
     return value
 
 
+def positive_int_value(value: Any, label: str) -> int:
+    value = int_value(value, label)
+    if value <= 0:
+        raise ValueError(f"{label} must be positive")
+    return value
+
+
 def string_value(value: Any, label: str) -> str:
     if not isinstance(value, str) or not value:
         raise ValueError(f"{label} must be a non-empty string")
@@ -86,7 +94,8 @@ def train_lora_smoke(
     student_model: str,
     adapter_dir: Path,
     max_epochs: int,
-) -> list[float]:
+    batch_size: int,
+) -> dict[str, float]:
     torch = modules["torch"]
     transformers = modules["transformers"]
     peft = modules["peft"]
@@ -109,19 +118,34 @@ def train_lora_smoke(
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=2e-4)
     losses: list[float] = []
+    token_count = 0
+    texts = [render_messages(row, tokenizer) for row in rows]
+
+    def collate_texts(batch: list[str]) -> dict[str, Any]:
+        encoded = tokenizer(
+            batch,
+            return_tensors="pt",
+            truncation=True,
+            max_length=1024,
+            padding=True,
+        )
+        labels = encoded["input_ids"].clone()
+        labels[encoded["attention_mask"] == 0] = -100
+        encoded["labels"] = labels
+        return encoded
+
+    dataloader = torch.utils.data.DataLoader(
+        texts,
+        batch_size=batch_size,
+        shuffle=False,
+        collate_fn=collate_texts,
+    )
+    started = time.monotonic()
     for _epoch in range(max_epochs):
-        for row in rows:
-            text = render_messages(row, tokenizer)
-            encoded = tokenizer(
-                text,
-                return_tensors="pt",
-                truncation=True,
-                max_length=1024,
-                padding=False,
-            )
+        for encoded in dataloader:
             encoded = {key: value.to("cuda") for key, value in encoded.items()}
-            labels = encoded["input_ids"].clone()
-            outputs = model(**encoded, labels=labels)
+            token_count += int(encoded["attention_mask"].sum().detach().cpu())
+            outputs = model(**encoded)
             loss = outputs.loss
             loss.backward()
             optimizer.step()
@@ -132,7 +156,14 @@ def train_lora_smoke(
     adapter_dir.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(adapter_dir)
     tokenizer.save_pretrained(adapter_dir)
-    return losses
+    train_seconds = time.monotonic() - started
+    return {
+        "steps": float(len(losses)),
+        "final_loss": losses[-1] if losses else 0.0,
+        "train_seconds": train_seconds,
+        "tokens": float(token_count),
+        "tokens_per_second": token_count / train_seconds if train_seconds else 0.0,
+    }
 
 
 def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
@@ -148,7 +179,8 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
     metrics_path = path_value(outputs.get("metrics"), "outputs.metrics")
     notes_path = path_value(outputs.get("notes"), "outputs.notes")
     max_examples = int_value(method.get("max_train_examples"), "method.max_train_examples")
-    max_epochs = int_value(method.get("max_epochs"), "method.max_epochs")
+    max_epochs = positive_int_value(method.get("max_epochs"), "method.max_epochs")
+    batch_size = positive_int_value(method.get("batch_size", 1), "method.batch_size")
     student_model = string_value(model.get("student"), "model.student")
 
     rows = load_training_rows(train_export, max_examples)
@@ -156,6 +188,7 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
         return [
             f"would train {len(rows)} rows from {train_export}",
             f"student model: {student_model}",
+            f"batch size: {batch_size}",
             f"adapter output: {adapter_dir}",
             f"metrics output: {metrics_path}",
         ]
@@ -167,12 +200,13 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
 
     logs_dir.mkdir(parents=True, exist_ok=True)
     notes_path.parent.mkdir(parents=True, exist_ok=True)
-    losses = train_lora_smoke(
+    metrics = train_lora_smoke(
         modules=modules,
         rows=rows,
         student_model=student_model,
         adapter_dir=adapter_dir,
         max_epochs=max_epochs,
+        batch_size=batch_size,
     )
     write_metrics(
         metrics_path,
@@ -180,8 +214,13 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
             {"metric": "rows", "value": str(len(rows))},
             {"metric": "student_model", "value": student_model},
             {"metric": "cuda_device", "value": torch.cuda.get_device_name(0)},
-            {"metric": "steps", "value": str(len(losses))},
-            {"metric": "final_loss", "value": f"{losses[-1]:.6f}" if losses else ""},
+            {"metric": "epochs", "value": str(max_epochs)},
+            {"metric": "batch_size", "value": str(batch_size)},
+            {"metric": "steps", "value": str(int(metrics["steps"]))},
+            {"metric": "tokens", "value": str(int(metrics["tokens"]))},
+            {"metric": "train_seconds", "value": f"{metrics['train_seconds']:.3f}"},
+            {"metric": "tokens_per_second", "value": f"{metrics['tokens_per_second']:.3f}"},
+            {"metric": "final_loss", "value": f"{metrics['final_loss']:.6f}"},
             {"metric": "status", "value": "completed"},
         ],
     )
@@ -192,9 +231,12 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
                 "",
                 f"Rows: {len(rows)}",
                 f"Epochs: {max_epochs}",
+                f"Batch size: {batch_size}",
                 f"Student model: `{student_model}`",
                 f"CUDA device: `{torch.cuda.get_device_name(0)}`",
-                f"Final loss: `{losses[-1]:.6f}`" if losses else "Final loss: unavailable",
+                f"Train seconds: `{metrics['train_seconds']:.3f}`",
+                f"Tokens/sec: `{metrics['tokens_per_second']:.3f}`",
+                f"Final loss: `{metrics['final_loss']:.6f}`",
             ]
         )
         + "\n",
@@ -203,6 +245,7 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
     return [
         f"loaded {len(rows)} training rows",
         f"cuda device: {torch.cuda.get_device_name(0)}",
+        f"batch size: {batch_size}",
         f"saved adapter: {adapter_dir}",
         f"wrote metrics: {metrics_path}",
         f"wrote notes: {notes_path}",

@@ -112,10 +112,10 @@ the intended GPU, image, model, output paths, and cleanup policy. Prefer an RTX
 RunPod pricing before launch because the v2 CLI does not accept a create-time
 cost ceiling flag.
 
-The smoke config uses one epoch and a 60-minute runtime ceiling. A first RunPod
-setup can spend most of a 30-minute window downloading CUDA/PyTorch wheels, so a
-60-minute ceiling keeps the run bounded while staying under the current $1 smoke
-cost cap on a $0.69/h RTX 4090.
+The smoke config uses one epoch, batched PyTorch training, and a 60-minute
+runtime ceiling. A first RunPod setup can spend most of a 30-minute window
+downloading CUDA/PyTorch wheels, so a 60-minute ceiling keeps the run bounded
+while staying under the current $1 smoke cost cap on a $0.69/h RTX 4090.
 
 The preferred RunPod template is `runpod-torch-v280`. It uses
 `runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404` and includes RunPod's standard

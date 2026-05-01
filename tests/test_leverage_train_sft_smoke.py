@@ -34,6 +34,7 @@ train_export = "{train_export}"
 [method]
 max_train_examples = {max_examples}
 max_epochs = 3
+batch_size = 2
 
 [outputs]
 adapter_dir = "{tmp_path / "outputs" / "lora-adapter"}"
@@ -53,6 +54,7 @@ def test_run_smoke_dry_run_reports_training_plan(tmp_path: Path) -> None:
 
     assert any("would train 2 rows" in line for line in lines)
     assert any("Qwen/Qwen3.5-0.8B" in line for line in lines)
+    assert any("batch size: 2" in line for line in lines)
     assert any("adapter output" in line for line in lines)
 
 

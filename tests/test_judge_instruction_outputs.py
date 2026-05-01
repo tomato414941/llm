@@ -443,7 +443,7 @@ def test_judge_rows_to_jsonl_flushes_each_record(tmp_path: Path) -> None:
     assert written[1]["error_type"] == "provider_error"
 
 
-def test_judge_rows_to_jsonl_resume_appends_missing_records(tmp_path: Path) -> None:
+def test_judge_rows_to_jsonl_resume_appends_missing_answer_rows(tmp_path: Path) -> None:
     output = tmp_path / "judgments.jsonl"
     existing = judge.judgment_record(
         raw_row(source_prompt_id="a"),

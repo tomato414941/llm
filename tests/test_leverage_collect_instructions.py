@@ -351,7 +351,7 @@ def test_real_training_seed_file_loads() -> None:
     assert "lt_seed_079" in seeds
 
 
-def test_collect_outputs_resume_skips_existing_seed_rows(tmp_path: Path) -> None:
+def test_collect_outputs_resume_appends_missing_seed_rows(tmp_path: Path) -> None:
     output = tmp_path / "instruction_outputs.jsonl"
     existing = {
         "source_prompt_id": "lt_seed_001",
@@ -389,13 +389,17 @@ def test_collect_outputs_resume_skips_existing_seed_rows(tmp_path: Path) -> None
             constraints=["mention cost"],
         ),
     }
+    calls: list[str] = []
 
     collect_instructions.collect_outputs(
         seeds,
-        client=lambda payload: ChatResult(
-            f"Generated for {payload['messages'][1]['content']}",
-            "stop",
-            {"completion_tokens": 6},
+        client=lambda payload: (
+            calls.append(payload["messages"][1]["content"])
+            or ChatResult(
+                f"Generated for {payload['messages'][1]['content']}",
+                "stop",
+                {"completion_tokens": 6},
+            )
         ),
         output_path=output,
         api_model="provider/model",
@@ -413,6 +417,13 @@ def test_collect_outputs_resume_skips_existing_seed_rows(tmp_path: Path) -> None
     )
 
     rows = read_jsonl(output)
+    assert calls == [
+        build_instruction_contract(
+            prompt="Second prompt",
+            output_format="short_answer",
+            constraints=["mention cost"],
+        )
+    ]
     assert [row["source_prompt_id"] for row in rows] == ["lt_seed_001", "lt_seed_002"]
     assert rows[0]["raw_response"] == "Existing answer."
     assert rows[1]["raw_response"].startswith("Generated for Second prompt")

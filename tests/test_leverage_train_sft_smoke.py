@@ -73,7 +73,7 @@ def test_qwen35_9b_config_dry_run_uses_exported_rows() -> None:
 
     assert any("would train 1083 rows" in line for line in lines)
     assert any("Qwen/Qwen3.5-9B" in line for line in lines)
-    assert any("batch size: 1" in line for line in lines)
+    assert any("batch size: 2" in line for line in lines)
     assert any("max length: 512" in line for line in lines)
     assert any("gradient checkpointing: True" in line for line in lines)
     assert any("gradient accumulation steps: 4" in line for line in lines)

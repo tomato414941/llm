@@ -70,7 +70,7 @@ def test_qwen35_9b_sft_config_is_bounded_baseline() -> None:
     assert train_export.suffix == ".jsonl"
     assert method["max_train_examples"] == 1200
     assert method["max_epochs"] == 1
-    assert method["batch_size"] == 1
+    assert method["batch_size"] == 2
     assert method["max_length"] == 512
     assert method["gradient_checkpointing"] is True
     assert method["gradient_accumulation_steps"] == 4

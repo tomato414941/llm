@@ -7,7 +7,7 @@ status = "planned"
 [model]
 student = "Qwen/Qwen3.5-9B"
 torch_dtype = "bfloat16"
-selection_reason = "Qwen3.5-9B is the intended baseline after 0.8B smoke, 9B load, one-step train, and 32-row mini train passed."
+selection_reason = "Qwen3.5-9B is the intended baseline after 0.8B smoke, 9B load, one-step train, 32-row mini train, and 200-row batch measurements passed."
 
 [data]
 reviewed-instructions = "tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl"
@@ -22,14 +22,14 @@ first_choice = "lora"
 fallback = "stop"
 max_train_examples = 1200
 max_epochs = 1
-batch_size = 1
+batch_size = 2
 max_length = 512
 gradient_checkpointing = true
 gradient_accumulation_steps = 4
 log_every_steps = 10
 eval_max_new_tokens = 128
 max_runtime_minutes = 60
-notes = "This is the first full reviewed-data Qwen3.5-9B baseline run."
+notes = "This is the full reviewed-data Qwen3.5-9B baseline run using batch2 after full batch4 ran out of VRAM."
 
 [runpod]
 required = false

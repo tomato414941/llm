@@ -94,3 +94,75 @@ The run also exposed a real KISS issue: the trainer prints no per-step progress
 and writes metrics only after completion. That made a successful 29-minute
 training run look stalled for most of its runtime. The next improvement should
 be minimal progress logging or periodic metrics, not another abstraction layer.
+
+## Batch Size Follow-Up
+
+After the 200-row measurements, the full baseline was tested again with larger
+batch settings.
+
+### Full Batch4 Attempt
+
+- Pod: `llm-leverage-sft-qwen35-9b-full-batch4-20260501-185745`
+- GPU: `NVIDIA GeForce RTX 4090`
+- Image: `runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404`
+- Rows: 1083
+- Batch size: 4
+- Result: failed with CUDA OOM around `step=130`
+- Peak observed VRAM before failure: `21.886GB`
+- Cleanup: completed automatically
+
+Interpretation: the 200-row batch4 measurement was useful for throughput, but
+it was not enough to prove full-data stability. Later full-data batches required
+another `1.62GiB` allocation while only about `289MiB` was free.
+
+### Full Batch2 Run
+
+- Pod: `llm-leverage-sft-qwen35-9b-full-batch2-20260501-190538`
+- Pod id: `aae6hh59fuyat1`
+- RunPod reported cost rate: `$0.69/h`
+- Approximate billable wall time: 1344.578 seconds, about 0.374 hours
+- Approximate cost: `$0.26`
+- Machine location: `RO`
+- GPU: `NVIDIA GeForce RTX 4090`
+- Image: `runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404`
+- Container disk: 120GB
+- Volume: 80GB mounted at `/workspace`
+- CUDA smoke: passed with `torch=2.8.0+cu128`
+- Output sync: completed
+- Cleanup: completed automatically
+
+From `outputs/leverage-sft-qwen35-9b/runpod-timings.json`:
+
+- Status: `passed`
+- Total wall time: 1344.578 seconds
+- SSH info wait: 188.213 seconds
+- Setup: 43.849 seconds
+- CUDA smoke: 31.915 seconds
+- Dependency command: 10.144 seconds
+- Train step: 1047.505 seconds
+- Output sync: 7.640 seconds
+
+From `outputs/leverage-sft-qwen35-9b/metrics.csv`:
+
+- Rows: 1083
+- Steps: 542
+- Optimizer steps: 136
+- Epochs: 1
+- Batch size: 2
+- Max length: 512
+- Gradient checkpointing: `True`
+- Gradient accumulation steps: 4
+- Tokens: 104115
+- Total seconds: 941.115
+- Train seconds: 882.073
+- Tokens/sec: 118.034
+- Peak VRAM: 20.067GB
+- GPU utilization average: 19.519%
+- GPU utilization max: 53.000%
+- Final loss: 0.113780
+- Status: `completed`
+
+Current decision: use `batch_size=2` for the full Qwen3.5-9B reviewed-data
+baseline on RTX 4090. It is slower than the 200-row batch4 measurement, but it
+is the simplest setting that completed the full dataset with usable VRAM
+headroom.

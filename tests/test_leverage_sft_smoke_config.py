@@ -63,7 +63,9 @@ def test_qwen35_9b_sft_config_is_bounded_baseline() -> None:
     assert model["student"] == "Qwen/Qwen3.5-9B"
     assert model["torch_dtype"] == "bfloat16"
     assert Path(data["reviewed-instructions"]).exists()
-    assert Path(data["train_export"]).exists()
+    train_export = Path(data["train_export"])
+    assert train_export.parent.exists()
+    assert train_export.suffix == ".jsonl"
     assert method["max_train_examples"] == 1200
     assert method["max_epochs"] == 1
     assert method["batch_size"] == 1

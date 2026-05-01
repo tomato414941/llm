@@ -37,7 +37,7 @@ from runpod_common import (
 )
 
 
-DEFAULT_IMAGE = "runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404"
+DEFAULT_IMAGE = "runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404"
 DEFAULT_SYNC = ("src", "tests", "pyproject.toml", "uv.lock", "README.md", "AGENTS.md", "LICENSE")
 DEFAULT_SETUP_COMMAND = (
     "set -euo pipefail; "

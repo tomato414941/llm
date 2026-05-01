@@ -105,11 +105,14 @@ def train_lora_smoke(
     rows: list[dict[str, Any]],
     student_model: str,
     adapter_dir: Path,
+    progress_path: Path,
     max_epochs: int,
     batch_size: int,
     max_length: int,
     torch_dtype: str | None,
     gradient_checkpointing: bool,
+    gradient_accumulation_steps: int,
+    log_every_steps: int,
 ) -> dict[str, float]:
     torch = modules["torch"]
     transformers = modules["transformers"]
@@ -165,24 +168,59 @@ def train_lora_smoke(
     )
     torch.cuda.reset_peak_memory_stats()
     started = time.monotonic()
-    for _epoch in range(max_epochs):
-        for encoded in dataloader:
-            encoded = {key: value.to("cuda") for key, value in encoded.items()}
-            token_count += int(encoded["attention_mask"].sum().detach().cpu())
-            outputs = model(**encoded)
-            loss = outputs.loss
-            loss.backward()
+    optimizer.zero_grad(set_to_none=True)
+    progress_path.parent.mkdir(parents=True, exist_ok=True)
+    progress_file = progress_path.open("w", encoding="utf-8", newline="")
+    progress_writer = csv.DictWriter(
+        progress_file,
+        fieldnames=["step", "optimizer_steps", "tokens", "loss", "tokens_per_second", "peak_vram_gb"],
+    )
+    progress_writer.writeheader()
+    optimizer_steps = 0
+    try:
+        for _epoch in range(max_epochs):
+            for step, encoded in enumerate(dataloader, start=len(losses) + 1):
+                encoded = {key: value.to("cuda") for key, value in encoded.items()}
+                token_count += int(encoded["attention_mask"].sum().detach().cpu())
+                outputs = model(**encoded)
+                loss = outputs.loss
+                if not torch.isfinite(loss):
+                    raise RuntimeError("training loss became NaN or inf")
+                (loss / gradient_accumulation_steps).backward()
+                losses.append(float(loss.detach().cpu()))
+                if step % gradient_accumulation_steps == 0:
+                    optimizer.step()
+                    optimizer.zero_grad(set_to_none=True)
+                    optimizer_steps += 1
+                if step % log_every_steps == 0:
+                    elapsed = time.monotonic() - started
+                    progress_row = {
+                        "step": str(step),
+                        "optimizer_steps": str(optimizer_steps),
+                        "tokens": str(token_count),
+                        "loss": f"{losses[-1]:.6f}",
+                        "tokens_per_second": f"{token_count / elapsed if elapsed else 0.0:.3f}",
+                        "peak_vram_gb": f"{torch.cuda.max_memory_allocated() / 1024**3:.3f}",
+                    }
+                    progress_writer.writerow(progress_row)
+                    progress_file.flush()
+                    print(
+                        " ".join(f"{key}={value}" for key, value in progress_row.items()),
+                        flush=True,
+                    )
+        if losses and len(losses) % gradient_accumulation_steps != 0:
             optimizer.step()
             optimizer.zero_grad(set_to_none=True)
-            losses.append(float(loss.detach().cpu()))
-            if not torch.isfinite(loss):
-                raise RuntimeError("training loss became NaN or inf")
+            optimizer_steps += 1
+    finally:
+        progress_file.close()
     adapter_dir.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(adapter_dir)
     tokenizer.save_pretrained(adapter_dir)
     train_seconds = time.monotonic() - started
     return {
         "steps": float(len(losses)),
+        "optimizer_steps": float(optimizer_steps),
         "final_loss": losses[-1] if losses else 0.0,
         "train_seconds": train_seconds,
         "tokens": float(token_count),
@@ -207,6 +245,11 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
     max_epochs = positive_int_value(method.get("max_epochs"), "method.max_epochs")
     batch_size = positive_int_value(method.get("batch_size", 1), "method.batch_size")
     max_length = positive_int_value(method.get("max_length", 1024), "method.max_length")
+    gradient_accumulation_steps = positive_int_value(
+        method.get("gradient_accumulation_steps", 1),
+        "method.gradient_accumulation_steps",
+    )
+    log_every_steps = positive_int_value(method.get("log_every_steps", 50), "method.log_every_steps")
     gradient_checkpointing = bool_value(
         method.get("gradient_checkpointing", False),
         "method.gradient_checkpointing",
@@ -222,6 +265,8 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
             f"batch size: {batch_size}",
             f"max length: {max_length}",
             f"gradient checkpointing: {gradient_checkpointing}",
+            f"gradient accumulation steps: {gradient_accumulation_steps}",
+            f"log every steps: {log_every_steps}",
             f"adapter output: {adapter_dir}",
             f"metrics output: {metrics_path}",
         ]
@@ -238,11 +283,14 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
         rows=rows,
         student_model=student_model,
         adapter_dir=adapter_dir,
+        progress_path=logs_dir / "progress.csv",
         max_epochs=max_epochs,
         batch_size=batch_size,
         max_length=max_length,
         torch_dtype=torch_dtype,
         gradient_checkpointing=gradient_checkpointing,
+        gradient_accumulation_steps=gradient_accumulation_steps,
+        log_every_steps=log_every_steps,
     )
     write_metrics(
         metrics_path,
@@ -254,7 +302,10 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
             {"metric": "batch_size", "value": str(batch_size)},
             {"metric": "max_length", "value": str(max_length)},
             {"metric": "gradient_checkpointing", "value": str(gradient_checkpointing)},
+            {"metric": "gradient_accumulation_steps", "value": str(gradient_accumulation_steps)},
+            {"metric": "log_every_steps", "value": str(log_every_steps)},
             {"metric": "steps", "value": str(int(metrics["steps"]))},
+            {"metric": "optimizer_steps", "value": str(int(metrics["optimizer_steps"]))},
             {"metric": "tokens", "value": str(int(metrics["tokens"]))},
             {"metric": "train_seconds", "value": f"{metrics['train_seconds']:.3f}"},
             {"metric": "tokens_per_second", "value": f"{metrics['tokens_per_second']:.3f}"},
@@ -273,6 +324,8 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
                 f"Batch size: {batch_size}",
                 f"Max length: `{max_length}`",
                 f"Gradient checkpointing: `{gradient_checkpointing}`",
+                f"Gradient accumulation steps: `{gradient_accumulation_steps}`",
+                f"Log every steps: `{log_every_steps}`",
                 f"Student model: `{student_model}`",
                 f"CUDA device: `{torch.cuda.get_device_name(0)}`",
                 f"Train seconds: `{metrics['train_seconds']:.3f}`",
@@ -288,6 +341,7 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
         f"loaded {len(rows)} training rows",
         f"cuda device: {torch.cuda.get_device_name(0)}",
         f"batch size: {batch_size}",
+        f"gradient accumulation steps: {gradient_accumulation_steps}",
         f"saved adapter: {adapter_dir}",
         f"wrote metrics: {metrics_path}",
         f"wrote notes: {notes_path}",

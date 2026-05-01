@@ -71,6 +71,8 @@ def test_qwen35_9b_sft_config_is_bounded_baseline() -> None:
     assert method["batch_size"] == 1
     assert method["max_length"] == 512
     assert method["gradient_checkpointing"] is True
+    assert method["gradient_accumulation_steps"] == 4
+    assert method["log_every_steps"] == 10
     assert method["max_runtime_minutes"] <= 60
     assert runpod["required"] is False
     assert runpod["cleanup_required"] is True

@@ -58,10 +58,19 @@ def preflight(config_path: Path, *, overwrite: bool) -> list[str]:
     max_train_examples = require_int(method.get("max_train_examples"), "method.max_train_examples")
     max_runtime_minutes = require_int(method.get("max_runtime_minutes"), "method.max_runtime_minutes")
     batch_size = require_int(method.get("batch_size"), "method.batch_size")
+    gradient_accumulation_steps = require_int(
+        method.get("gradient_accumulation_steps", 1),
+        "method.gradient_accumulation_steps",
+    )
+    log_every_steps = require_int(method.get("log_every_steps", 50), "method.log_every_steps")
     if max_train_examples <= 0:
         raise ValueError("method.max_train_examples must be positive")
     if batch_size <= 0:
         raise ValueError("method.batch_size must be positive")
+    if gradient_accumulation_steps <= 0:
+        raise ValueError("method.gradient_accumulation_steps must be positive")
+    if log_every_steps <= 0:
+        raise ValueError("method.log_every_steps must be positive")
     if max_runtime_minutes > 60:
         raise ValueError("method.max_runtime_minutes must be <= 60 for the smoke run")
 

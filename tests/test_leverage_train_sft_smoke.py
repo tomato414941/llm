@@ -55,7 +55,17 @@ def test_run_smoke_dry_run_reports_training_plan(tmp_path: Path) -> None:
     assert any("would train 2 rows" in line for line in lines)
     assert any("Qwen/Qwen3.5-0.8B" in line for line in lines)
     assert any("batch size: 2" in line for line in lines)
+    assert any("max length: 1024" in line for line in lines)
     assert any("adapter output" in line for line in lines)
+
+
+def test_qwen35_9b_config_dry_run_uses_exported_rows() -> None:
+    lines = run_smoke(Path("tracks/leverage/configs/leverage-sft-qwen35-9b.toml"), dry_run=True)
+
+    assert any("would train 1083 rows" in line for line in lines)
+    assert any("Qwen/Qwen3.5-9B" in line for line in lines)
+    assert any("batch size: 1" in line for line in lines)
+    assert any("max length: 512" in line for line in lines)
 
 
 def test_load_training_rows_rejects_too_many_rows(tmp_path: Path) -> None:

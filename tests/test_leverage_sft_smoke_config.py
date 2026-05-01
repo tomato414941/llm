@@ -3,6 +3,7 @@ import tomllib
 
 
 CONFIG_PATH = Path("tracks/leverage/configs/leverage-sft-smoke.toml")
+QWEN35_9B_CONFIG_PATH = Path("tracks/leverage/configs/leverage-sft-qwen35-9b.toml")
 
 
 def load_config() -> dict[str, object]:
@@ -44,6 +45,33 @@ def test_leverage_sft_smoke_config_keeps_paid_run_bounded() -> None:
     assert runpod["cleanup_required"] is True
     assert any("cost cap" in condition for condition in stop["conditions"])
     assert any("training export" in criterion for criterion in success["criteria"])
+
+
+def test_qwen35_9b_sft_config_is_bounded_baseline() -> None:
+    config = tomllib.loads(QWEN35_9B_CONFIG_PATH.read_text(encoding="utf-8"))
+    model = config["model"]
+    data = config["data"]
+    method = config["method"]
+    runpod = config["runpod"]
+    outputs = config["outputs"]
+    assert isinstance(model, dict)
+    assert isinstance(data, dict)
+    assert isinstance(method, dict)
+    assert isinstance(runpod, dict)
+    assert isinstance(outputs, dict)
+
+    assert model["student"] == "Qwen/Qwen3.5-9B"
+    assert model["torch_dtype"] == "bfloat16"
+    assert Path(data["reviewed-instructions"]).exists()
+    assert Path(data["train_export"]).exists()
+    assert method["max_train_examples"] == 1200
+    assert method["max_epochs"] == 1
+    assert method["batch_size"] == 1
+    assert method["max_length"] == 512
+    assert method["max_runtime_minutes"] <= 60
+    assert runpod["required"] is False
+    assert runpod["cleanup_required"] is True
+    assert outputs["root"] == "outputs/leverage-sft-qwen35-9b"
 
 
 def test_leverage_sft_smoke_doc_exists() -> None:

@@ -61,6 +61,12 @@ def string_value(value: Any, label: str) -> str:
     return value
 
 
+def optional_string_value(value: Any, label: str) -> str | None:
+    if value is None:
+        return None
+    return string_value(value, label)
+
+
 def load_training_rows(path: Path, max_examples: int) -> list[dict[str, Any]]:
     rows = [row for _line_number, row in load_jsonl(path)]
     if len(rows) > max_examples:
@@ -95,6 +101,8 @@ def train_lora_smoke(
     adapter_dir: Path,
     max_epochs: int,
     batch_size: int,
+    max_length: int,
+    torch_dtype: str | None,
 ) -> dict[str, float]:
     torch = modules["torch"]
     transformers = modules["transformers"]
@@ -103,7 +111,10 @@ def train_lora_smoke(
     tokenizer = transformers.AutoTokenizer.from_pretrained(student_model, trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = transformers.AutoModelForCausalLM.from_pretrained(student_model, trust_remote_code=True)
+    model_kwargs: dict[str, Any] = {"trust_remote_code": True}
+    if torch_dtype:
+        model_kwargs["torch_dtype"] = getattr(torch, torch_dtype)
+    model = transformers.AutoModelForCausalLM.from_pretrained(student_model, **model_kwargs)
     lora_config = peft.LoraConfig(
         r=8,
         lora_alpha=16,
@@ -126,7 +137,7 @@ def train_lora_smoke(
             batch,
             return_tensors="pt",
             truncation=True,
-            max_length=1024,
+            max_length=max_length,
             padding=True,
         )
         labels = encoded["input_ids"].clone()
@@ -140,6 +151,7 @@ def train_lora_smoke(
         shuffle=False,
         collate_fn=collate_texts,
     )
+    torch.cuda.reset_peak_memory_stats()
     started = time.monotonic()
     for _epoch in range(max_epochs):
         for encoded in dataloader:
@@ -163,6 +175,7 @@ def train_lora_smoke(
         "train_seconds": train_seconds,
         "tokens": float(token_count),
         "tokens_per_second": token_count / train_seconds if train_seconds else 0.0,
+        "max_memory_allocated_gb": torch.cuda.max_memory_allocated() / 1024**3,
     }
 
 
@@ -181,7 +194,9 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
     max_examples = int_value(method.get("max_train_examples"), "method.max_train_examples")
     max_epochs = positive_int_value(method.get("max_epochs"), "method.max_epochs")
     batch_size = positive_int_value(method.get("batch_size", 1), "method.batch_size")
+    max_length = positive_int_value(method.get("max_length", 1024), "method.max_length")
     student_model = string_value(model.get("student"), "model.student")
+    torch_dtype = optional_string_value(model.get("torch_dtype"), "model.torch_dtype")
 
     rows = load_training_rows(train_export, max_examples)
     if dry_run:
@@ -189,6 +204,7 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
             f"would train {len(rows)} rows from {train_export}",
             f"student model: {student_model}",
             f"batch size: {batch_size}",
+            f"max length: {max_length}",
             f"adapter output: {adapter_dir}",
             f"metrics output: {metrics_path}",
         ]
@@ -207,6 +223,8 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
         adapter_dir=adapter_dir,
         max_epochs=max_epochs,
         batch_size=batch_size,
+        max_length=max_length,
+        torch_dtype=torch_dtype,
     )
     write_metrics(
         metrics_path,
@@ -216,10 +234,12 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
             {"metric": "cuda_device", "value": torch.cuda.get_device_name(0)},
             {"metric": "epochs", "value": str(max_epochs)},
             {"metric": "batch_size", "value": str(batch_size)},
+            {"metric": "max_length", "value": str(max_length)},
             {"metric": "steps", "value": str(int(metrics["steps"]))},
             {"metric": "tokens", "value": str(int(metrics["tokens"]))},
             {"metric": "train_seconds", "value": f"{metrics['train_seconds']:.3f}"},
             {"metric": "tokens_per_second", "value": f"{metrics['tokens_per_second']:.3f}"},
+            {"metric": "max_memory_allocated_gb", "value": f"{metrics['max_memory_allocated_gb']:.3f}"},
             {"metric": "final_loss", "value": f"{metrics['final_loss']:.6f}"},
             {"metric": "status", "value": "completed"},
         ],
@@ -232,10 +252,12 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
                 f"Rows: {len(rows)}",
                 f"Epochs: {max_epochs}",
                 f"Batch size: {batch_size}",
+                f"Max length: `{max_length}`",
                 f"Student model: `{student_model}`",
                 f"CUDA device: `{torch.cuda.get_device_name(0)}`",
                 f"Train seconds: `{metrics['train_seconds']:.3f}`",
                 f"Tokens/sec: `{metrics['tokens_per_second']:.3f}`",
+                f"Peak VRAM GB: `{metrics['max_memory_allocated_gb']:.3f}`",
                 f"Final loss: `{metrics['final_loss']:.6f}`",
             ]
         )

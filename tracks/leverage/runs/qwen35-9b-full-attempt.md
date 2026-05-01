@@ -50,3 +50,35 @@ the run never reached the remote shell.
 
 The useful result is that the runner diagnostics captured the full readiness
 failure: 80 polls over 15 minutes with stable `RUNNING / pod not ready` state.
+
+## Retry
+
+A second attempt was made with the same config and image:
+
+- Pod: `llm-leverage-sft-qwen35-9b-20260501-131440`
+- Pod id: `t1bhofrw8ihuir`
+- Machine location: `US`
+
+This retry also failed before SSH became ready.
+
+From the overwritten local
+`outputs/leverage-sft-qwen35-9b/runpod-timings.json`:
+
+- Status: `failed`
+- Total wall time: 904.159 seconds
+- SSH info wait: 901.745 seconds
+- SSH poll count: 81
+- First poll: `RUNNING`, `22/tcp`, `pod not ready`
+- Last poll: `RUNNING`, `22/tcp`, `pod not ready`
+
+Cleanup completed for the retry pod:
+
+```text
+runpodctl pod delete t1bhofrw8ihuir
+runpodctl pod list -o json
+[]
+```
+
+After two consecutive 15-minute SSH readiness failures on fresh US RTX 4090
+pods, further immediate paid retries are not useful without changing a RunPod
+variable such as GPU type, cloud type, image, or SSH/bootstrap path.

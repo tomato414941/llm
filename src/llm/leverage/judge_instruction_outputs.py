@@ -425,6 +425,63 @@ def judge_rows(
     return records
 
 
+def judge_rows_to_jsonl(
+    rows: list[tuple[int, dict[str, Any]]],
+    *,
+    client: ChatClient,
+    output_path: Path,
+    judge_model: str,
+    judge_label: str,
+    max_tokens: int,
+    temperature: float,
+    reasoning_effort: str,
+    exclude_reasoning: bool,
+    limit: int | None,
+    judge_candidates: list[JudgeCandidate] | None = None,
+    random_seed: int = 0,
+    overwrite: bool = False,
+    resume: bool = False,
+) -> list[dict[str, Any]]:
+    if output_path.exists() and not overwrite and not resume:
+        raise FileExistsError(f"output already exists: {output_path}")
+    existing_records = load_existing_records(output_path) if output_path.exists() and resume and not overwrite else []
+    records: list[dict[str, Any]] = list(existing_records)
+    completed_answer_ids = {
+        row["answer_id"] for row in records if isinstance(row.get("answer_id"), str) and row["answer_id"]
+    }
+    selected_rows = rows[:limit] if limit is not None else rows
+    rng = random.Random(random_seed)
+    candidates = judge_candidates or []
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    mode = "a" if output_path.exists() and resume and not overwrite else "w"
+    with output_path.open(mode, encoding="utf-8") as output_file:
+        for _line_number, row in selected_rows:
+            if answer_id(row) in completed_answer_ids:
+                continue
+            selected_judge_label, selected_judge_model = choose_judge(
+                row,
+                judge_model=judge_model,
+                judge_label=judge_label,
+                judge_candidates=candidates,
+                rng=rng,
+            )
+            record = judge_row_with_retry(
+                row,
+                client=client,
+                judge_model=selected_judge_model,
+                judge_label=selected_judge_label,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                reasoning_effort=reasoning_effort,
+                exclude_reasoning=exclude_reasoning,
+            )
+            records.append(record)
+            completed_answer_ids.add(record["answer_id"])
+            output_file.write(json.dumps(record, ensure_ascii=False) + "\n")
+            output_file.flush()
+    return records
+
+
 def load_existing_records(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
@@ -607,13 +664,13 @@ def main() -> int:
     args = parse_args()
     validate_args(args)
     rows = load_jsonl(args.input)
-    existing_records = load_existing_records(args.output) if args.resume and not args.overwrite else None
     base_url = environment_value("OPENAI_BASE_URL")
     api_key = environment_value("OPENAI_API_KEY")
     client = chat_completions_client(base_url, api_key, args.timeout_seconds)
-    judgments = judge_rows(
+    judgments = judge_rows_to_jsonl(
         rows,
         client=client,
+        output_path=args.output,
         judge_model=args.judge_model,
         judge_label=args.judge_label,
         judge_candidates=args.judge_candidates,
@@ -623,13 +680,14 @@ def main() -> int:
         reasoning_effort=args.reasoning_effort,
         exclude_reasoning=args.exclude_reasoning,
         limit=args.limit,
-        existing_records=existing_records,
+        overwrite=args.overwrite,
+        resume=args.resume,
     )
-    write_jsonl(args.output, judgments, overwrite=args.overwrite)
+    derived_overwrite = args.overwrite or args.resume
     if args.csv_output is not None:
-        write_csv(args.csv_output, judgments, overwrite=args.overwrite)
+        write_csv(args.csv_output, judgments, overwrite=derived_overwrite)
     if args.summary_output is not None:
-        write_summary_csv(args.summary_output, judgments, overwrite=args.overwrite)
+        write_summary_csv(args.summary_output, judgments, overwrite=derived_overwrite)
     print(f"judged {len(judgments)} rows to {args.output}")
     return 0
 

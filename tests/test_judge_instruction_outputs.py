@@ -410,6 +410,76 @@ def test_load_existing_records_rejects_duplicate_answer_ids(tmp_path: Path) -> N
         judge.load_existing_records(path)
 
 
+def test_judge_rows_to_jsonl_flushes_each_record(tmp_path: Path) -> None:
+    output = tmp_path / "judgments.jsonl"
+    calls = 0
+
+    def client(_payload):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise RuntimeError("provider failed")
+        return judge_json("accept")
+
+    records = judge.judge_rows_to_jsonl(
+        [(1, raw_row(source_prompt_id="a")), (2, raw_row(source_prompt_id="b"))],
+        client=client,
+        output_path=output,
+        judge_model="judge/model",
+        judge_label="judge_label",
+        max_tokens=256,
+        temperature=0.0,
+        reasoning_effort="none",
+        exclude_reasoning=True,
+        limit=None,
+        overwrite=False,
+    )
+
+    written = [json.loads(line) for line in output.read_text(encoding="utf-8").splitlines()]
+    assert records == written
+    assert [row["answer_id"] for row in written] == ["a:generator_a", "b:generator_a"]
+    assert written[0]["decision"] == "accept"
+    assert written[1]["decision"] == "parse_error"
+    assert written[1]["error_type"] == "provider_error"
+
+
+def test_judge_rows_to_jsonl_resume_appends_missing_records(tmp_path: Path) -> None:
+    output = tmp_path / "judgments.jsonl"
+    existing = judge.judgment_record(
+        raw_row(source_prompt_id="a"),
+        judge_model="judge/api-model",
+        judge_label="judge_label",
+        judge_response=judge_json(),
+    )
+    output.write_text(json.dumps(existing) + "\n", encoding="utf-8")
+    calls: list[dict[str, object]] = []
+
+    def client(payload):
+        calls.append(payload)
+        return judge_json("needs_edit")
+
+    records = judge.judge_rows_to_jsonl(
+        [(1, raw_row(source_prompt_id="a")), (2, raw_row(source_prompt_id="b"))],
+        client=client,
+        output_path=output,
+        judge_model="judge/model",
+        judge_label="judge_label",
+        max_tokens=256,
+        temperature=0.0,
+        reasoning_effort="none",
+        exclude_reasoning=True,
+        limit=None,
+        overwrite=False,
+        resume=True,
+    )
+
+    written = [json.loads(line) for line in output.read_text(encoding="utf-8").splitlines()]
+    assert len(calls) == 1
+    assert [row["answer_id"] for row in written] == ["a:generator_a", "b:generator_a"]
+    assert records == written
+    assert written[1]["decision"] == "needs_edit"
+
+
 def test_write_outputs(tmp_path: Path) -> None:
     records = [
         judge.judgment_record(

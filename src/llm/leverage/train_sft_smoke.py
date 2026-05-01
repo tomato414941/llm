@@ -124,14 +124,22 @@ def train_lora_smoke(
     torch = modules["torch"]
     transformers = modules["transformers"]
     peft = modules["peft"]
+    total_started = time.monotonic()
 
+    tokenizer_started = time.monotonic()
     tokenizer = transformers.AutoTokenizer.from_pretrained(student_model, trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
+    tokenizer_load_seconds = time.monotonic() - tokenizer_started
+
     model_kwargs: dict[str, Any] = {"trust_remote_code": True}
     if torch_dtype:
         model_kwargs["torch_dtype"] = getattr(torch, torch_dtype)
+    model_started = time.monotonic()
     model = transformers.AutoModelForCausalLM.from_pretrained(student_model, **model_kwargs)
+    model_load_seconds = time.monotonic() - model_started
+
+    adapter_started = time.monotonic()
     if gradient_checkpointing:
         model.config.use_cache = False
         model.gradient_checkpointing_enable()
@@ -146,13 +154,19 @@ def train_lora_smoke(
         task_type="CAUSAL_LM",
     )
     model = peft.get_peft_model(model, lora_config)
+    adapter_setup_seconds = time.monotonic() - adapter_started
+
+    cuda_started = time.monotonic()
     model.to("cuda")
     model.train()
+    cuda_transfer_seconds = time.monotonic() - cuda_started
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=2e-4)
     losses: list[float] = []
     token_count = 0
+    render_started = time.monotonic()
     texts = [render_messages(row, tokenizer) for row in rows]
+    render_seconds = time.monotonic() - render_started
 
     def collate_texts(batch: list[str]) -> dict[str, Any]:
         encoded = tokenizer(
@@ -234,10 +248,18 @@ def train_lora_smoke(
     model.save_pretrained(adapter_dir)
     tokenizer.save_pretrained(adapter_dir)
     train_seconds = time.monotonic() - started
+    total_seconds = time.monotonic() - total_started
     return {
         "steps": float(len(losses)),
         "optimizer_steps": float(optimizer_steps),
         "final_loss": losses[-1] if losses else 0.0,
+        "total_seconds": total_seconds,
+        "tokenizer_load_seconds": tokenizer_load_seconds,
+        "model_load_seconds": model_load_seconds,
+        "adapter_setup_seconds": adapter_setup_seconds,
+        "cuda_transfer_seconds": cuda_transfer_seconds,
+        "render_seconds": render_seconds,
+        "pre_train_seconds": total_seconds - train_seconds,
         "train_seconds": train_seconds,
         "tokens": float(token_count),
         "tokens_per_second": token_count / train_seconds if train_seconds else 0.0,
@@ -323,6 +345,13 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
             {"metric": "steps", "value": str(int(metrics["steps"]))},
             {"metric": "optimizer_steps", "value": str(int(metrics["optimizer_steps"]))},
             {"metric": "tokens", "value": str(int(metrics["tokens"]))},
+            {"metric": "total_seconds", "value": f"{metrics['total_seconds']:.3f}"},
+            {"metric": "pre_train_seconds", "value": f"{metrics['pre_train_seconds']:.3f}"},
+            {"metric": "tokenizer_load_seconds", "value": f"{metrics['tokenizer_load_seconds']:.3f}"},
+            {"metric": "model_load_seconds", "value": f"{metrics['model_load_seconds']:.3f}"},
+            {"metric": "adapter_setup_seconds", "value": f"{metrics['adapter_setup_seconds']:.3f}"},
+            {"metric": "cuda_transfer_seconds", "value": f"{metrics['cuda_transfer_seconds']:.3f}"},
+            {"metric": "render_seconds", "value": f"{metrics['render_seconds']:.3f}"},
             {"metric": "train_seconds", "value": f"{metrics['train_seconds']:.3f}"},
             {"metric": "tokens_per_second", "value": f"{metrics['tokens_per_second']:.3f}"},
             {"metric": "max_memory_allocated_gb", "value": f"{metrics['max_memory_allocated_gb']:.3f}"},
@@ -344,6 +373,11 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
                 f"Log every steps: `{log_every_steps}`",
                 f"Student model: `{student_model}`",
                 f"CUDA device: `{torch.cuda.get_device_name(0)}`",
+                f"Total seconds: `{metrics['total_seconds']:.3f}`",
+                f"Pre-train seconds: `{metrics['pre_train_seconds']:.3f}`",
+                f"Tokenizer load seconds: `{metrics['tokenizer_load_seconds']:.3f}`",
+                f"Model load seconds: `{metrics['model_load_seconds']:.3f}`",
+                f"CUDA transfer seconds: `{metrics['cuda_transfer_seconds']:.3f}`",
                 f"Train seconds: `{metrics['train_seconds']:.3f}`",
                 f"Tokens/sec: `{metrics['tokens_per_second']:.3f}`",
                 f"Peak VRAM GB: `{metrics['max_memory_allocated_gb']:.3f}`",

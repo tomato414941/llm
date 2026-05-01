@@ -62,8 +62,10 @@ Reference docs:
 - `tracks/leverage/prompts/README.md`: generation seed prompts.
 - `tracks/leverage/docs/sft-smoke.md`: first LoRA/SFT smoke plan.
 - `tracks/leverage/runs/README.md`: which run records to read first.
-- `tracks/leverage/runs/leverage-sft-smoke-runpod-59-qwen35-08b-timing.md`:
-  current RunPod SFT smoke result.
+- `tracks/leverage/runs/leverage-sft-smoke-runpod-1083-qwen35-08b-batched.md`:
+  current 0.8B RunPod SFT smoke result.
+- `tracks/leverage/runs/qwen35-9b-load-smoke-image103.md`: current 9B load
+  smoke result.
 
 ## From-Scratch Quickstart
 
@@ -91,7 +93,7 @@ uv run python scripts/runpod/run_once.py --dry-run \
   --name llm-leverage-sft-smoke \
   --secure-cloud \
   --gpu-type 'NVIDIA GeForce RTX 4090' \
-  --template-id runpod-torch-v280 \
+  --image runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404 \
   --mem 24 \
   --sync tracks/leverage/configs \
   --sync tracks/leverage/datasets \

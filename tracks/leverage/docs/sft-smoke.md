@@ -78,7 +78,7 @@ uv run python scripts/runpod/run_once.py \
   --name llm-leverage-sft-smoke \
   --secure-cloud \
   --gpu-type 'NVIDIA GeForce RTX 4090' \
-  --template-id runpod-torch-v280 \
+  --image runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404 \
   --mem 24 \
   --sync tracks/leverage/configs \
   --sync tracks/leverage/datasets \
@@ -117,9 +117,12 @@ runtime ceiling. A first RunPod setup can spend most of a 30-minute window
 downloading CUDA/PyTorch wheels, so a 60-minute ceiling keeps the run bounded
 while staying under the current $1 smoke cost cap on a $0.69/h RTX 4090.
 
-The preferred RunPod template is `runpod-torch-v280`. It uses
-`runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404` and includes RunPod's standard
-SSH setup for the same PyTorch/CUDA base.
+Prefer the current official RunPod PyTorch image directly:
+`runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404`. The older
+`runpod-torch-v280` template succeeded for 0.8B smoke runs, but one later pod
+stayed `RUNNING` while `runpodctl ssh info` kept returning `pod not ready`.
+Using the newer image directly removed template indirection and successfully
+loaded `Qwen/Qwen3.5-9B`.
 
 ## Success Criteria
 

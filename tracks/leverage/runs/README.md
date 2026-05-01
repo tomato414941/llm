@@ -12,11 +12,12 @@ exports.
   capability-seeking LoRA run.
 - `next-lora-run-gate.md`: minimum reviewed-data and eval scale before the next
   capability-seeking LoRA run.
-- `leverage-sft-smoke-runpod-59-qwen35-08b-timing.md`: current RunPod Secure
-  Cloud LoRA/SFT smoke result, including step timing, metrics, and cleanup
-  confirmation.
-- `reviewed-batch-001.md`: first committed reviewed-data growth batch toward
-  the 300-row Qwen3.5-9B readiness gate.
+- `leverage-sft-smoke-runpod-1083-qwen35-08b-batched.md`: current 0.8B RunPod
+  LoRA/SFT smoke result, including timing, metrics, and cleanup confirmation.
+- `qwen35-9b-load-smoke-image103.md`: current 9B load-only result on the newer
+  official RunPod PyTorch image.
+- `reviewed-batch-013.md`: reviewed-data growth batch that took the dataset
+  past 1000 rows.
 - `model-spec-comparison.md`: current summary of `leverage-model-spec.jsonl`
   scoring changes and model comparison results.
 

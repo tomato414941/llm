@@ -3,7 +3,12 @@ from pathlib import Path
 import pytest
 
 from llm.leverage import train_sft_smoke
-from llm.leverage.train_sft_smoke import load_training_rows, require_training_packages, run_smoke
+from llm.leverage.train_sft_smoke import (
+    cuda_utilization_percent,
+    load_training_rows,
+    require_training_packages,
+    run_smoke,
+)
 
 
 def write_train_export(path: Path, rows: int = 1) -> None:
@@ -95,3 +100,14 @@ def test_require_training_packages_reports_missing_optional_dependencies(monkeyp
 
     with pytest.raises(RuntimeError, match="missing optional SFT training packages"):
         require_training_packages()
+
+
+def test_cuda_utilization_percent_falls_back_to_empty_string() -> None:
+    class BrokenCuda:
+        def utilization(self) -> int:
+            raise RuntimeError("nvidia-smi unavailable")
+
+    class BrokenTorch:
+        cuda = BrokenCuda()
+
+    assert cuda_utilization_percent(BrokenTorch) == ""

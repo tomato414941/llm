@@ -99,6 +99,13 @@ def render_messages(row: dict[str, Any], tokenizer: Any) -> str:
     return "\n".join(f"{message['role']}: {message['content']}" for message in messages)
 
 
+def cuda_utilization_percent(torch: Any) -> str:
+    try:
+        return str(torch.cuda.utilization())
+    except Exception:
+        return ""
+
+
 def train_lora_smoke(
     *,
     modules: dict[str, Any],
@@ -173,7 +180,15 @@ def train_lora_smoke(
     progress_file = progress_path.open("w", encoding="utf-8", newline="")
     progress_writer = csv.DictWriter(
         progress_file,
-        fieldnames=["step", "optimizer_steps", "tokens", "loss", "tokens_per_second", "peak_vram_gb"],
+        fieldnames=[
+            "step",
+            "optimizer_steps",
+            "tokens",
+            "loss",
+            "tokens_per_second",
+            "peak_vram_gb",
+            "gpu_utilization_percent",
+        ],
     )
     progress_writer.writeheader()
     optimizer_steps = 0
@@ -201,6 +216,7 @@ def train_lora_smoke(
                         "loss": f"{losses[-1]:.6f}",
                         "tokens_per_second": f"{token_count / elapsed if elapsed else 0.0:.3f}",
                         "peak_vram_gb": f"{torch.cuda.max_memory_allocated() / 1024**3:.3f}",
+                        "gpu_utilization_percent": cuda_utilization_percent(torch),
                     }
                     progress_writer.writerow(progress_row)
                     progress_file.flush()

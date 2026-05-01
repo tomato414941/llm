@@ -30,7 +30,7 @@ from runpod_common import (
     q,
     remote_transport_setup_command,
     run_with_deadline,
-    runpodctl_create_command,
+    runpod_create_command,
     rsync_ssh,
     ssh_command,
     timestamped_name,
@@ -264,6 +264,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-cost", type=float, default=1.0)
     parser.add_argument("--template-id")
     parser.add_argument("--image", default=DEFAULT_IMAGE)
+    parser.add_argument("--allowed-cuda-version", action="append", default=[])
     parser.add_argument("--container-disk-size", type=int, default=80)
     parser.add_argument("--volume-size", type=int, default=80)
     parser.add_argument("--remote-volume", default="/workspace")
@@ -331,7 +332,7 @@ def main() -> int:
             pods_before_create = list_pods(runner, args)
         create_completed = timings.run(
             runner,
-            runpodctl_create_command(args),
+            runpod_create_command(args, api_key=api_key, public_key=public_key),
             cwd=args.repo_root,
             deadline=deadline,
             name="pod_create",

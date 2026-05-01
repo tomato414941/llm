@@ -1,5 +1,6 @@
 from argparse import Namespace
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
@@ -29,7 +30,8 @@ remote_cuda_smoke_command = runpod_run_once.remote_cuda_smoke_command
 remote_user_command = runpod_run_once.remote_user_command
 rsync_from_remote_command = runpod_run_once.rsync_from_remote_command
 rsync_to_remote_command = runpod_run_once.rsync_to_remote_command
-runpodctl_create_command = runpod_run_once.runpodctl_create_command
+runpodctl_create_command = runpod_common.runpodctl_create_command
+runpod_create_command = runpod_common.runpod_create_command
 split_shell_command = runpod_run_once.split_shell_command
 step_name = runpod_run_once.step_name
 wait_for_connection = runpod_common.wait_for_connection
@@ -57,6 +59,7 @@ def args(tmp_path: Path) -> Namespace:
         max_cost=0.8,
         template_id=None,
         image="runpod/pytorch:test",
+        allowed_cuda_version=[],
         container_disk_size=80,
         volume_size=80,
         remote_volume="/workspace",
@@ -127,6 +130,26 @@ def test_runpodctl_create_command_can_use_template_instead_of_image(tmp_path: Pa
 
     assert command[command.index("--template-id") + 1] == "runpod-torch-v280"
     assert "--image" not in command
+
+
+def test_runpod_create_command_uses_rest_api_for_cuda_filter(tmp_path: Path) -> None:
+    write_repo_shape(tmp_path)
+    run_args = args(tmp_path)
+    run_args.allowed_cuda_version = ["12.8", "12.9"]
+    run_args.secure_cloud = True
+
+    command = runpod_create_command(run_args, api_key="api-key", public_key="ssh-ed25519 public-key")
+    payload = json.loads(command[command.index("--data") + 1])
+
+    assert command[:4] == ["curl", "--fail-with-body", "--silent", "--show-error"]
+    assert "https://rest.runpod.io/v1/pods" in command
+    assert "Authorization: Bearer api-key" in command
+    assert payload["allowedCudaVersions"] == ["12.8", "12.9"]
+    assert payload["imageName"] == "runpod/pytorch:test"
+    assert payload["gpuTypeIds"] == ["NVIDIA GeForce RTX 3090"]
+    assert payload["ports"] == ["22/tcp"]
+    assert payload["env"] == {"PUBLIC_KEY": "ssh-ed25519 public-key"}
+    assert payload["cloudType"] == "SECURE"
 
 
 def test_rsync_to_remote_syncs_default_and_explicit_sources(tmp_path: Path) -> None:

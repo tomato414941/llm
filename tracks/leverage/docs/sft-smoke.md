@@ -79,6 +79,9 @@ uv run python scripts/runpod/run_once.py \
   --secure-cloud \
   --gpu-type 'NVIDIA GeForce RTX 4090' \
   --image runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404 \
+  --allowed-cuda-version 12.8 \
+  --allowed-cuda-version 12.9 \
+  --allowed-cuda-version 13.0 \
   --mem 24 \
   --sync tracks/leverage/configs \
   --sync tracks/leverage/datasets \
@@ -124,8 +127,8 @@ driver. The CUDA 12.8 image
 because `nvidia-container-cli` reported `unsatisfied condition: cuda>=12.8`.
 If a pod stays `RUNNING` with `pod not ready`, inspect the RunPod console log
 before treating it as a trainer or model failure. Prefer a readiness-only
-`nvidia-smi` probe, or use an earlier CUDA image when host-driver compatibility
-matters more than using the newest image.
+`nvidia-smi` probe with `--allowed-cuda-version 12.8`, or use an earlier CUDA
+image when host-driver compatibility matters more than using the newest image.
 
 ## Success Criteria
 

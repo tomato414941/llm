@@ -72,7 +72,7 @@ class Runner:
         print(f"$ {redact(shell_join(command), self.secrets)}")
         if self.dry_run:
             return subprocess.CompletedProcess(command, 0, "", "")
-        capture_output = Path(command[0]).name == "runpodctl" if capture is None else capture
+        capture_output = Path(command[0]).name in {"runpodctl", "curl"} if capture is None else capture
         env = os.environ | self.env
         completed = subprocess.run(
             command,
@@ -126,6 +126,48 @@ def runpodctl_create_command(args: argparse.Namespace) -> list[str]:
     if args.bootstrap_sshd:
         command.append("--ssh")
     return command
+
+
+def runpod_create_command(args: argparse.Namespace, *, api_key: str, public_key: str) -> list[str]:
+    allowed_cuda_versions = getattr(args, "allowed_cuda_version", None) or []
+    if not allowed_cuda_versions:
+        return runpodctl_create_command(args)
+    payload = {
+        "name": args.pod_name,
+        "gpuTypeIds": [args.gpu_type],
+        "gpuCount": args.gpu_count,
+        "containerDiskInGb": args.container_disk_size,
+        "volumeInGb": args.volume_size,
+        "volumeMountPath": args.remote_volume,
+        "ports": ["22/tcp"],
+        "cloudType": "SECURE" if args.secure_cloud else "COMMUNITY",
+        "allowedCudaVersions": allowed_cuda_versions,
+    }
+    template_id = getattr(args, "template_id", None)
+    if template_id:
+        payload["templateId"] = template_id
+    else:
+        payload["imageName"] = args.image
+    if public_key:
+        payload["env"] = {"PUBLIC_KEY": public_key}
+    if not args.secure_cloud:
+        payload["supportPublicIp"] = True
+    return [
+        "curl",
+        "--fail-with-body",
+        "--silent",
+        "--show-error",
+        "--request",
+        "POST",
+        "--url",
+        "https://rest.runpod.io/v1/pods",
+        "--header",
+        f"Authorization: Bearer {api_key}",
+        "--header",
+        "Content-Type: application/json",
+        "--data",
+        json.dumps(payload, separators=(",", ":")),
+    ]
 
 
 def parse_json_output(output: str) -> object:

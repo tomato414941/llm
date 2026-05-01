@@ -94,6 +94,9 @@ uv run python scripts/runpod/run_once.py --dry-run \
   --secure-cloud \
   --gpu-type 'NVIDIA GeForce RTX 4090' \
   --image runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404 \
+  --allowed-cuda-version 12.8 \
+  --allowed-cuda-version 12.9 \
+  --allowed-cuda-version 13.0 \
   --mem 24 \
   --sync tracks/leverage/configs \
   --sync tracks/leverage/datasets \
@@ -107,10 +110,10 @@ uv run python scripts/runpod/run_once.py --dry-run \
 ```
 
 The runner expects `runpodctl` v2 and uses `runpodctl pod ...` commands.
-Use `--dry-run` first. The CUDA 12.8 image shown above can fail on RunPod hosts
-with older NVIDIA drivers; if SSH never becomes ready, check the RunPod console
-log before treating it as a model or trainer failure. After any real RunPod job,
-verify no active pods remain:
+Use `--dry-run` first. The CUDA filter keeps CUDA 12.8 images away from hosts
+with older NVIDIA drivers. If SSH still never becomes ready, check the RunPod
+console log before treating it as a model or trainer failure. After any real
+RunPod job, verify no active pods remain:
 
 ```bash
 /home/dev/bin/runpodctl pod list -o json

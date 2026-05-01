@@ -107,7 +107,10 @@ uv run python scripts/runpod/run_once.py --dry-run \
 ```
 
 The runner expects `runpodctl` v2 and uses `runpodctl pod ...` commands.
-Use `--dry-run` first. After any real RunPod job, verify no active pods remain:
+Use `--dry-run` first. The CUDA 12.8 image shown above can fail on RunPod hosts
+with older NVIDIA drivers; if SSH never becomes ready, check the RunPod console
+log before treating it as a model or trainer failure. After any real RunPod job,
+verify no active pods remain:
 
 ```bash
 /home/dev/bin/runpodctl pod list -o json

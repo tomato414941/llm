@@ -117,12 +117,15 @@ runtime ceiling. A first RunPod setup can spend most of a 30-minute window
 downloading CUDA/PyTorch wheels, so a 60-minute ceiling keeps the run bounded
 while staying under the current $1 smoke cost cap on a $0.69/h RTX 4090.
 
-Prefer the current official RunPod PyTorch image directly:
-`runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404`. The older
-`runpod-torch-v280` template succeeded for 0.8B smoke runs, but one later pod
-stayed `RUNNING` while `runpodctl ssh info` kept returning `pod not ready`.
-Using the newer image directly removed template indirection and successfully
-loaded `Qwen/Qwen3.5-9B`.
+Use a RunPod PyTorch image whose CUDA requirement fits the allocated host
+driver. The CUDA 12.8 image
+`runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404` has successfully loaded
+`Qwen/Qwen3.5-9B`, but another RTX 4090 host failed to start that same image
+because `nvidia-container-cli` reported `unsatisfied condition: cuda>=12.8`.
+If a pod stays `RUNNING` with `pod not ready`, inspect the RunPod console log
+before treating it as a trainer or model failure. Prefer a readiness-only
+`nvidia-smi` probe, or use an earlier CUDA image when host-driver compatibility
+matters more than using the newest image.
 
 ## Success Criteria
 

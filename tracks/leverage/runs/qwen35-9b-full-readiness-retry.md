@@ -51,15 +51,30 @@ runpodctl pod list -o json
 
 ## Interpretation
 
-This is a RunPod SSH readiness failure, not a Qwen3.5-9B model-load or trainer
-failure. The run never reached the remote shell.
+This is a RunPod container-start failure surfaced as an SSH readiness failure,
+not a Qwen3.5-9B model-load or trainer failure. The run never reached the
+remote shell.
 
 The useful new signal is that the created pod metadata was captured in the
 timing file. This failed on a US RTX 4090 pod with the current image and a
 normal `/workspace` volume, while a prior minimal US RTX 4090 probe with the
 same image and volume became SSH-ready in about 35 seconds.
 
-The current evidence supports intermittent RunPod provisioning/readiness
-behavior. More full-training retries are low value until the readiness layer is
-handled separately, for example by running a readiness-only probe first and
-launching training only after a pod has demonstrated SSH availability.
+The RunPod console log explains why this pod never became SSH-ready:
+
+```text
+nvidia-container-cli: requirement error: unsatisfied condition: cuda>=12.8,
+please update your driver to a newer version, or use an earlier cuda container
+```
+
+The image `runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404` requires a host
+driver that satisfies CUDA 12.8+. This allocated machine did not satisfy that
+requirement, so Docker repeatedly failed during the NVIDIA prestart hook. That
+also explains why `uptimeSeconds` stayed at 0 and why SSH never became ready:
+the container never started.
+
+The current evidence supports heterogeneous RunPod host-driver compatibility,
+not a training issue. More full-training retries with the CUDA 12.8 image are
+low value unless the runner first verifies that the allocated host can start
+that image, or the project switches to an earlier CUDA image with broader host
+driver compatibility.

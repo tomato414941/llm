@@ -88,6 +88,31 @@ Against the prior 200-row `batch_size=2` measurement:
 large, so a larger batch should be treated as an experiment rather than the new
 default.
 
-`gpu_utilization_percent` remained blank, so the current
-`torch.cuda.utilization()` path is still not a reliable utilization signal in
-this RunPod image.
+## GPU Utilization Rerun
+
+After replacing the progress logger's `torch.cuda.utilization()` path with
+`nvidia-smi` sampling, the same batch4 200-row run was executed again.
+
+- Pod: `llm-leverage-sft-qwen35-9b-batch4-200-gpuutil-20260501-182832`
+- Pod id: `buqij94r6lkqbt`
+- Total wall time: 200.592 seconds
+- Train command: 109.128 seconds
+- Train seconds: 68.771
+- Tokens/sec: 220.501
+- Peak VRAM: 21.886GB
+- Cleanup: completed automatically
+
+The progress log now records GPU utilization and driver-reported memory:
+
+```text
+step,optimizer_steps,tokens,loss,tokens_per_second,peak_vram_gb,gpu_utilization_percent,gpu_memory_used_mb,gpu_memory_total_mb
+10,2,3419,1.421450,249.703,18.979,24,21034,24564
+20,5,6892,2.270327,245.775,21.886,29,23854,24564
+30,7,9847,1.770413,241.267,21.886,32,23854,24564
+40,10,12742,1.460791,234.733,21.886,22,23854,24564
+50,12,15164,0.652468,225.530,21.886,26,23858,24564
+```
+
+Interpretation: GPU utilization samples were low, in the 22-32% range, while
+memory was nearly full at about 23.9GB of 24.6GB. For this setup, the immediate
+constraint is VRAM headroom rather than utilization alone.

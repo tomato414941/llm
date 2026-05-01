@@ -4,8 +4,8 @@ import pytest
 
 from llm.leverage import train_sft_smoke
 from llm.leverage.train_sft_smoke import (
-    cuda_utilization_percent,
     load_training_rows,
+    nvidia_smi_sample,
     require_training_packages,
     run_smoke,
 )
@@ -102,12 +102,31 @@ def test_require_training_packages_reports_missing_optional_dependencies(monkeyp
         require_training_packages()
 
 
-def test_cuda_utilization_percent_falls_back_to_empty_string() -> None:
-    class BrokenCuda:
-        def utilization(self) -> int:
-            raise RuntimeError("nvidia-smi unavailable")
+def test_nvidia_smi_sample_parses_gpu_utilization(monkeypatch) -> None:
+    def fake_run(*_args, **_kwargs):
+        return train_sft_smoke.subprocess.CompletedProcess(
+            args=["nvidia-smi"],
+            returncode=0,
+            stdout="87, 22411, 24564\n",
+        )
 
-    class BrokenTorch:
-        cuda = BrokenCuda()
+    monkeypatch.setattr(train_sft_smoke.subprocess, "run", fake_run)
 
-    assert cuda_utilization_percent(BrokenTorch) == ""
+    assert nvidia_smi_sample() == {
+        "gpu_utilization_percent": "87",
+        "gpu_memory_used_mb": "22411",
+        "gpu_memory_total_mb": "24564",
+    }
+
+
+def test_nvidia_smi_sample_falls_back_to_empty_strings(monkeypatch) -> None:
+    def fake_run(*_args, **_kwargs):
+        raise FileNotFoundError("nvidia-smi unavailable")
+
+    monkeypatch.setattr(train_sft_smoke.subprocess, "run", fake_run)
+
+    assert nvidia_smi_sample() == {
+        "gpu_utilization_percent": "",
+        "gpu_memory_used_mb": "",
+        "gpu_memory_total_mb": "",
+    }

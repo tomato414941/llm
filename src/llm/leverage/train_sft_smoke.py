@@ -1,5 +1,6 @@
 import argparse
 import csv
+import subprocess
 import time
 from pathlib import Path
 from typing import Any
@@ -99,11 +100,38 @@ def render_messages(row: dict[str, Any], tokenizer: Any) -> str:
     return "\n".join(f"{message['role']}: {message['content']}" for message in messages)
 
 
-def cuda_utilization_percent(torch: Any) -> str:
+def nvidia_smi_sample() -> dict[str, str]:
     try:
-        return str(torch.cuda.utilization())
-    except Exception:
-        return ""
+        completed = subprocess.run(
+            [
+                "nvidia-smi",
+                "--query-gpu=utilization.gpu,memory.used,memory.total",
+                "--format=csv,noheader,nounits",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return {
+            "gpu_utilization_percent": "",
+            "gpu_memory_used_mb": "",
+            "gpu_memory_total_mb": "",
+        }
+    first_line = completed.stdout.strip().splitlines()[0] if completed.stdout.strip() else ""
+    values = [value.strip() for value in first_line.split(",")]
+    if len(values) != 3:
+        return {
+            "gpu_utilization_percent": "",
+            "gpu_memory_used_mb": "",
+            "gpu_memory_total_mb": "",
+        }
+    return {
+        "gpu_utilization_percent": values[0],
+        "gpu_memory_used_mb": values[1],
+        "gpu_memory_total_mb": values[2],
+    }
 
 
 def train_lora_smoke(
@@ -202,6 +230,8 @@ def train_lora_smoke(
             "tokens_per_second",
             "peak_vram_gb",
             "gpu_utilization_percent",
+            "gpu_memory_used_mb",
+            "gpu_memory_total_mb",
         ],
     )
     progress_writer.writeheader()
@@ -223,6 +253,7 @@ def train_lora_smoke(
                     optimizer_steps += 1
                 if step % log_every_steps == 0:
                     elapsed = time.monotonic() - started
+                    gpu_sample = nvidia_smi_sample()
                     progress_row = {
                         "step": str(step),
                         "optimizer_steps": str(optimizer_steps),
@@ -230,7 +261,7 @@ def train_lora_smoke(
                         "loss": f"{losses[-1]:.6f}",
                         "tokens_per_second": f"{token_count / elapsed if elapsed else 0.0:.3f}",
                         "peak_vram_gb": f"{torch.cuda.max_memory_allocated() / 1024**3:.3f}",
-                        "gpu_utilization_percent": cuda_utilization_percent(torch),
+                        **gpu_sample,
                     }
                     progress_writer.writerow(progress_row)
                     progress_file.flush()

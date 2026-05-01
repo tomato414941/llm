@@ -234,6 +234,64 @@ def test_collect_outputs_can_choose_weighted_random_generators_per_seed(tmp_path
     assert [row["generation"]["api_model"] for row in rows] == ["model/a", "model/a"]
 
 
+def test_collect_outputs_records_generation_error_and_continues(tmp_path: Path) -> None:
+    output = tmp_path / "instruction_outputs.jsonl"
+    seeds = {
+        "lt_seed_001": collect_instructions.InstructionSeed(
+            id="lt_seed_001",
+            capability="tool_use",
+            purpose="First row.",
+            system_prompt="Answer as a project lead.",
+            prompt="First prompt",
+            output_format="short_answer",
+            constraints=["mention cost"],
+        ),
+        "lt_seed_002": collect_instructions.InstructionSeed(
+            id="lt_seed_002",
+            capability="tool_use",
+            purpose="Second row.",
+            system_prompt="Answer as a project lead.",
+            prompt="Second prompt",
+            output_format="short_answer",
+            constraints=["mention cost"],
+        ),
+    }
+    calls = 0
+
+    def client(_payload):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise ValueError("API response message content must be text")
+        return ChatResult("Generated answer.", "stop", {"completion_tokens": 2})
+
+    collect_instructions.collect_outputs(
+        seeds,
+        client=client,
+        output_path=output,
+        api_model="provider/model",
+        model_label="provider_model",
+        generator_candidates=None,
+        random_seed=0,
+        max_tokens=256,
+        temperature=0.1,
+        thinking_mode="none",
+        thinking_param="chat_template_kwargs",
+        reasoning_effort="none",
+        exclude_reasoning=True,
+        overwrite=False,
+    )
+
+    rows = read_jsonl(output)
+    assert [row["source_prompt_id"] for row in rows] == ["lt_seed_001", "lt_seed_002"]
+    assert rows[0]["review"] == {"status": "generation_error"}
+    assert rows[0]["generation"]["error_type"] == "provider_content_error"
+    assert rows[0]["raw_response"] == ""
+    assert [message["role"] for message in rows[0]["messages"]] == ["system", "user"]
+    assert rows[1]["review"] == {"status": "raw"}
+    assert rows[1]["raw_response"] == "Generated answer."
+
+
 def test_parse_model_candidate_accepts_optional_weight() -> None:
     assert collect_instructions.parse_model_candidate(
         "generator_a=model/a:0.25",

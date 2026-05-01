@@ -90,6 +90,30 @@ def test_filter_row_rejects_unknown_seed() -> None:
     assert "unknown_source_prompt_id" in result.issues
 
 
+def test_filter_row_rejects_generation_error() -> None:
+    result = filter_row(
+        raw_row(
+            messages=[
+                {"role": "system", "content": "Answer concisely."},
+                {"role": "user", "content": "When should hosted inference be used?"},
+            ],
+            raw_response="",
+            generation={
+                "api_model": "provider/model",
+                "error_type": "provider_content_error",
+                "error": "API response message content must be text",
+            },
+            review={"status": "generation_error"},
+        ),
+        seeds={"lt_seed_test": seed()},
+        max_response_chars=200,
+    )
+
+    assert result.decision == "reject"
+    assert result.issues == ["generation_error", "generation_error:provider_content_error"]
+    assert result.response_chars == 0
+
+
 def test_filter_row_flags_overlong_response_without_rejecting() -> None:
     long_response = "x" * 201
     result = filter_row(

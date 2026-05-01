@@ -141,6 +141,23 @@ def filter_row(
     elif seed is not None and capability and seed.capability != capability:
         issues.append("capability_mismatch")
 
+    review = row.get("review")
+    generation = row.get("generation")
+    if isinstance(review, dict) and review.get("status") == "generation_error":
+        issues.append("generation_error")
+        if isinstance(generation, dict):
+            error_type = generation.get("error_type")
+            if isinstance(error_type, str) and error_type:
+                issues.append(f"generation_error:{error_type}")
+        return FilterResult(
+            source_prompt_id=source_prompt_id,
+            capability=capability,
+            model=model,
+            decision="reject",
+            issues=issues,
+            response_chars=0,
+        )
+
     messages = row.get("messages")
     if not isinstance(messages, list):
         issues.append("messages_not_list")
@@ -148,7 +165,6 @@ def filter_row(
         roles = [message.get("role") for message in messages if isinstance(message, dict)]
         if roles != REQUIRED_ROLES:
             issues.append("bad_message_roles")
-    review = row.get("review")
     if not isinstance(review, dict) or review.get("status") != "raw":
         issues.append("review_status_not_raw")
 

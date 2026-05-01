@@ -185,6 +185,15 @@ def choose_model(
     return rng.choices(labels, weights=weights, k=1)[0]
 
 
+def classify_generation_error(error: Exception) -> str:
+    message = str(error)
+    if "HTTP " in message:
+        return "provider_http_error"
+    if "content must be text" in message:
+        return "provider_content_error"
+    return "provider_error"
+
+
 def collect_outputs(
     seeds: dict[str, InstructionSeed],
     *,
@@ -238,29 +247,53 @@ def collect_outputs(
                 reasoning_effort=reasoning_effort,
                 exclude_reasoning=exclude_reasoning,
             )
-            response = client(payload)
-            record = {
-                "source_prompt_id": seed.id,
-                "capability": seed.capability,
-                "purpose": seed.purpose,
-                "model": selected_label,
-                "messages": [
-                    {"role": "system", "content": seed.system_prompt},
-                    {"role": "user", "content": seed.prompt},
-                    {"role": "assistant", "content": response.text},
-                ],
-                "raw_response": response.text,
-                "output_format": seed.output_format,
-                "constraints": seed.constraints,
-                "generation": {
-                    "api_model": selected_model,
-                    "max_tokens": max_tokens,
-                    "temperature": temperature,
-                    "finish_reason": response.finish_reason,
-                    "usage": response.usage,
-                },
-                "review": {"status": "raw"},
-            }
+            try:
+                response = client(payload)
+            except Exception as error:
+                record = {
+                    "source_prompt_id": seed.id,
+                    "capability": seed.capability,
+                    "purpose": seed.purpose,
+                    "model": selected_label,
+                    "messages": [
+                        {"role": "system", "content": seed.system_prompt},
+                        {"role": "user", "content": seed.prompt},
+                    ],
+                    "raw_response": "",
+                    "output_format": seed.output_format,
+                    "constraints": seed.constraints,
+                    "generation": {
+                        "api_model": selected_model,
+                        "max_tokens": max_tokens,
+                        "temperature": temperature,
+                        "error_type": classify_generation_error(error),
+                        "error": str(error),
+                    },
+                    "review": {"status": "generation_error"},
+                }
+            else:
+                record = {
+                    "source_prompt_id": seed.id,
+                    "capability": seed.capability,
+                    "purpose": seed.purpose,
+                    "model": selected_label,
+                    "messages": [
+                        {"role": "system", "content": seed.system_prompt},
+                        {"role": "user", "content": seed.prompt},
+                        {"role": "assistant", "content": response.text},
+                    ],
+                    "raw_response": response.text,
+                    "output_format": seed.output_format,
+                    "constraints": seed.constraints,
+                    "generation": {
+                        "api_model": selected_model,
+                        "max_tokens": max_tokens,
+                        "temperature": temperature,
+                        "finish_reason": response.finish_reason,
+                        "usage": response.usage,
+                    },
+                    "review": {"status": "raw"},
+                }
             output_file.write(json.dumps(record, ensure_ascii=False) + "\n")
             output_file.flush()
 

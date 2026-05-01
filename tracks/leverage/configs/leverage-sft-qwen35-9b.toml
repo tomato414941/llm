@@ -24,6 +24,7 @@ max_train_examples = 1200
 max_epochs = 1
 batch_size = 1
 max_length = 512
+gradient_checkpointing = true
 eval_max_new_tokens = 128
 max_runtime_minutes = 60
 notes = "This is the first full reviewed-data Qwen3.5-9B baseline run."

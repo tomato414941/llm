@@ -67,6 +67,12 @@ def optional_string_value(value: Any, label: str) -> str | None:
     return string_value(value, label)
 
 
+def bool_value(value: Any, label: str) -> bool:
+    if not isinstance(value, bool):
+        raise ValueError(f"{label} must be a boolean")
+    return value
+
+
 def load_training_rows(path: Path, max_examples: int) -> list[dict[str, Any]]:
     rows = [row for _line_number, row in load_jsonl(path)]
     if len(rows) > max_examples:
@@ -103,6 +109,7 @@ def train_lora_smoke(
     batch_size: int,
     max_length: int,
     torch_dtype: str | None,
+    gradient_checkpointing: bool,
 ) -> dict[str, float]:
     torch = modules["torch"]
     transformers = modules["transformers"]
@@ -115,6 +122,11 @@ def train_lora_smoke(
     if torch_dtype:
         model_kwargs["torch_dtype"] = getattr(torch, torch_dtype)
     model = transformers.AutoModelForCausalLM.from_pretrained(student_model, **model_kwargs)
+    if gradient_checkpointing:
+        model.config.use_cache = False
+        model.gradient_checkpointing_enable()
+        if hasattr(model, "enable_input_require_grads"):
+            model.enable_input_require_grads()
     lora_config = peft.LoraConfig(
         r=8,
         lora_alpha=16,
@@ -195,6 +207,10 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
     max_epochs = positive_int_value(method.get("max_epochs"), "method.max_epochs")
     batch_size = positive_int_value(method.get("batch_size", 1), "method.batch_size")
     max_length = positive_int_value(method.get("max_length", 1024), "method.max_length")
+    gradient_checkpointing = bool_value(
+        method.get("gradient_checkpointing", False),
+        "method.gradient_checkpointing",
+    )
     student_model = string_value(model.get("student"), "model.student")
     torch_dtype = optional_string_value(model.get("torch_dtype"), "model.torch_dtype")
 
@@ -205,6 +221,7 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
             f"student model: {student_model}",
             f"batch size: {batch_size}",
             f"max length: {max_length}",
+            f"gradient checkpointing: {gradient_checkpointing}",
             f"adapter output: {adapter_dir}",
             f"metrics output: {metrics_path}",
         ]
@@ -225,6 +242,7 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
         batch_size=batch_size,
         max_length=max_length,
         torch_dtype=torch_dtype,
+        gradient_checkpointing=gradient_checkpointing,
     )
     write_metrics(
         metrics_path,
@@ -235,6 +253,7 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
             {"metric": "epochs", "value": str(max_epochs)},
             {"metric": "batch_size", "value": str(batch_size)},
             {"metric": "max_length", "value": str(max_length)},
+            {"metric": "gradient_checkpointing", "value": str(gradient_checkpointing)},
             {"metric": "steps", "value": str(int(metrics["steps"]))},
             {"metric": "tokens", "value": str(int(metrics["tokens"]))},
             {"metric": "train_seconds", "value": f"{metrics['train_seconds']:.3f}"},
@@ -253,6 +272,7 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
                 f"Epochs: {max_epochs}",
                 f"Batch size: {batch_size}",
                 f"Max length: `{max_length}`",
+                f"Gradient checkpointing: `{gradient_checkpointing}`",
                 f"Student model: `{student_model}`",
                 f"CUDA device: `{torch.cuda.get_device_name(0)}`",
                 f"Train seconds: `{metrics['train_seconds']:.3f}`",

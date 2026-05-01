@@ -1,6 +1,7 @@
 import csv
 import json
 from pathlib import Path
+import sys
 
 import pytest
 
@@ -78,6 +79,34 @@ def test_config_defaults_reads_sft_smoke_eval_inputs(tmp_path: Path) -> None:
     assert defaults["adapter_dir"] == tmp_path / "outputs" / "leverage-sft-smoke" / "lora-adapter"
     assert defaults["max_new_tokens"] == 32
     assert len(defaults["tasks"]) == 1
+
+
+def test_main_resolves_cli_defaults_after_config_is_parsed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    config_path = write_config(tmp_path)
+    captured: dict[str, object] = {}
+
+    def fake_run_eval(**kwargs):
+        captured.update(kwargs)
+        return ["ok"]
+
+    monkeypatch.setattr(evaluate_sft_adapter, "run_eval", fake_run_eval)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "evaluate_sft_adapter",
+            "--config",
+            str(config_path),
+            "--dry-run",
+        ],
+    )
+
+    assert evaluate_sft_adapter.main() == 0
+
+    assert captured["base_model"] == "base/model"
+    assert captured["adapter_dir"] == tmp_path / "outputs" / "leverage-sft-smoke" / "lora-adapter"
+    assert captured["output_root"] == tmp_path / "outputs" / "leverage-sft-smoke"
+    assert captured["max_new_tokens"] == 32
 
 
 def test_prediction_paths_stay_under_output_root() -> None:

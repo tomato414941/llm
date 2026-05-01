@@ -1,4 +1,5 @@
 import argparse
+import gc
 import json
 import re
 from pathlib import Path
@@ -120,27 +121,56 @@ def extract_qwen_final_response(response: str) -> str:
     return final.strip()
 
 
-def load_model_pair(
+def load_tokenizer(
+    *,
+    modules: dict[str, Any],
+    base_model: str,
+) -> Any:
+    transformers = modules["transformers"]
+    tokenizer = transformers.AutoTokenizer.from_pretrained(base_model, trust_remote_code=True)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    return tokenizer
+
+
+def load_base_model(
+    *,
+    modules: dict[str, Any],
+    base_model: str,
+    device: str,
+) -> Any:
+    transformers = modules["transformers"]
+    torch = modules["torch"]
+    kwargs: dict[str, Any] = {"trust_remote_code": True}
+    if device == "cuda":
+        kwargs["dtype"] = torch.bfloat16
+    base = transformers.AutoModelForCausalLM.from_pretrained(base_model, **kwargs)
+    base.to(device)
+    base.eval()
+    return base
+
+
+def load_adapter_model(
     *,
     modules: dict[str, Any],
     base_model: str,
     adapter_dir: Path,
     device: str,
-) -> tuple[Any, Any, Any]:
-    transformers = modules["transformers"]
+) -> Any:
     peft = modules["peft"]
-
-    tokenizer = transformers.AutoTokenizer.from_pretrained(base_model, trust_remote_code=True)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-    base = transformers.AutoModelForCausalLM.from_pretrained(base_model, trust_remote_code=True)
-    adapter_base = transformers.AutoModelForCausalLM.from_pretrained(base_model, trust_remote_code=True)
+    adapter_base = load_base_model(modules=modules, base_model=base_model, device=device)
     adapter = peft.PeftModel.from_pretrained(adapter_base, adapter_dir)
-    base.to(device)
     adapter.to(device)
-    base.eval()
     adapter.eval()
-    return tokenizer, base, adapter
+    return adapter
+
+
+def release_model(*, modules: dict[str, Any], model: Any, device: str) -> None:
+    model.to("cpu")
+    del model
+    gc.collect()
+    if device == "cuda":
+        modules["torch"].cuda.empty_cache()
 
 
 def generate_text(
@@ -253,13 +283,10 @@ def run_eval(
     if device == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("CUDA is not available; run adapter eval on a CUDA RunPod image or pass --device cpu")
 
-    tokenizer, base, adapter = load_model_pair(
-        modules=modules,
-        base_model=base_model,
-        adapter_dir=adapter_dir,
-        device=device,
-    )
+    tokenizer = load_tokenizer(modules=modules, base_model=base_model)
     predictions: list[Prediction] = []
+
+    base = load_base_model(modules=modules, base_model=base_model, device=device)
     for task in tasks.values():
         predictions.append(
             Prediction(
@@ -276,6 +303,15 @@ def run_eval(
                 ),
             )
         )
+    release_model(modules=modules, model=base, device=device)
+
+    adapter = load_adapter_model(
+        modules=modules,
+        base_model=base_model,
+        adapter_dir=adapter_dir,
+        device=device,
+    )
+    for task in tasks.values():
         predictions.append(
             Prediction(
                 task_id=task.id,
@@ -291,6 +327,8 @@ def run_eval(
                 ),
             )
         )
+    release_model(modules=modules, model=adapter, device=device)
+
     write_predictions(predictions_path, predictions)
     results = evaluate_predictions(tasks, predictions)
     write_results(scores_path, results)
@@ -304,16 +342,15 @@ def run_eval(
 
 
 def parse_args() -> argparse.Namespace:
-    defaults = config_defaults(DEFAULT_CONFIG)
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--tasks", type=Path, action="append", default=None)
-    parser.add_argument("--base-model", default=defaults["base_model"])
-    parser.add_argument("--adapter-dir", type=Path, default=defaults["adapter_dir"])
-    parser.add_argument("--output-root", type=Path, default=defaults["output_root"])
+    parser.add_argument("--base-model")
+    parser.add_argument("--adapter-dir", type=Path)
+    parser.add_argument("--output-root", type=Path)
     parser.add_argument("--base-label", default="qwen3.5-0.8b-base")
     parser.add_argument("--adapter-label", default="qwen3.5-0.8b-lora-smoke")
-    parser.add_argument("--max-new-tokens", type=int, default=defaults["max_new_tokens"])
+    parser.add_argument("--max-new-tokens", type=int)
     parser.add_argument("--system-prompt", default=DEFAULT_SYSTEM_PROMPT)
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--dry-run", action="store_true")
@@ -325,22 +362,26 @@ def main() -> int:
     args = parse_args()
     defaults = config_defaults(args.config)
     tasks = args.tasks if args.tasks is not None else defaults["tasks"]
+    base_model = args.base_model if args.base_model is not None else defaults["base_model"]
+    adapter_dir = args.adapter_dir if args.adapter_dir is not None else defaults["adapter_dir"]
+    output_root = args.output_root if args.output_root is not None else defaults["output_root"]
+    max_new_tokens = args.max_new_tokens if args.max_new_tokens is not None else defaults["max_new_tokens"]
     if args.parse_predictions is not None:
         for line in parse_predictions(
             tasks_paths=tasks,
             predictions_path=args.parse_predictions,
-            output_root=args.output_root,
+            output_root=output_root,
         ):
             print(line)
         return 0
     for line in run_eval(
         tasks_paths=tasks,
-        base_model=args.base_model,
-        adapter_dir=args.adapter_dir,
-        output_root=args.output_root,
+        base_model=base_model,
+        adapter_dir=adapter_dir,
+        output_root=output_root,
         base_label=args.base_label,
         adapter_label=args.adapter_label,
-        max_new_tokens=args.max_new_tokens,
+        max_new_tokens=max_new_tokens,
         system_prompt=args.system_prompt,
         device=args.device,
         dry_run=args.dry_run,

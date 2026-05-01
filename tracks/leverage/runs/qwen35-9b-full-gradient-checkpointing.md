@@ -166,3 +166,50 @@ Current decision: use `batch_size=2` for the full Qwen3.5-9B reviewed-data
 baseline on RTX 4090. It is slower than the 200-row batch4 measurement, but it
 is the simplest setting that completed the full dataset with usable VRAM
 headroom.
+
+## Post-Training Eval
+
+After the full batch2 adapter was written, the base model and adapter were
+compared on the held-out eval tasks configured for the SFT baseline.
+
+The first eval attempt failed because the eval path loaded the 9B model without
+the training config's `bfloat16` dtype. The eval loader was changed to use
+`bfloat16` on CUDA and to load base and adapter sequentially instead of keeping
+both models on the GPU.
+
+- Pod: `llm-leverage-eval-qwen35-9b-full-batch2-20260501-194124`
+- Pod id: `xixndzg88w6cid`
+- RunPod reported cost rate: `$0.69/h`
+- Approximate billable wall time: 276.281 seconds, about 0.077 hours
+- Approximate cost: `$0.05`
+- Machine location: `RO`
+- GPU: `NVIDIA GeForce RTX 4090`
+- Image: `runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404`
+- Output sync: completed
+- Cleanup: completed automatically
+
+From `outputs/leverage-sft-qwen35-9b/runpod-timings.json`:
+
+- Status: `passed`
+- Total wall time: 276.281 seconds
+- SSH info wait: 35.902 seconds
+- Setup: 31.872 seconds
+- CUDA smoke: 18.722 seconds
+- Dependency command: 8.693 seconds
+- Eval step: 159.635 seconds
+- Output sync: 2.372 seconds
+
+From `outputs/leverage-sft-qwen35-9b/post-training-summary.csv`:
+
+- Base overall: 15/30, pass rate 0.500
+- Adapter overall: 17/30, pass rate 0.567
+- Base `leverage-smoke`: 9/12, pass rate 0.750
+- Adapter `leverage-smoke`: 9/12, pass rate 0.750
+- Base `project-judgment`: 6/18, pass rate 0.333
+- Adapter `project-judgment`: 8/18, pass rate 0.444
+
+Interpretation: this is a small positive result, not a strong capability claim.
+The adapter improved the exact held-out score by 2 tasks, mainly in
+`project-judgment`, while keeping `leverage-smoke` flat. The eval remains a
+strict string/regex harness, so some failures are scoring-contract failures
+rather than clear semantic failures.

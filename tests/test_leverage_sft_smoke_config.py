@@ -35,7 +35,7 @@ def test_leverage_sft_smoke_config_keeps_paid_run_bounded() -> None:
     assert isinstance(success, dict)
 
     assert method["first_choice"] == "lora"
-    assert method["max_train_examples"] == 1000
+    assert method["max_train_examples"] == 1200
     assert method["max_runtime_minutes"] <= 30
     assert runpod["required"] is False
     assert runpod["max_cost_usd"] <= 1.0

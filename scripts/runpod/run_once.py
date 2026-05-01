@@ -344,16 +344,22 @@ def main() -> int:
             print(f"created pod: {pod_id}")
             wait_started = time.monotonic()
             wait_started_at = utc_now()
-            connection = wait_for_connection(runner, args, pod_id, args.wait_seconds)
-            timings.data["steps"].append(
-                {
-                    "name": "ssh_info_wait",
-                    "started_at": wait_started_at,
-                    "finished_at": utc_now(),
-                    "duration_seconds": round(time.monotonic() - wait_started, 3),
-                    "returncode": 0,
-                }
-            )
+            poll_events: list[dict[str, object]] = []
+            wait_returncode = 1
+            try:
+                connection = wait_for_connection(runner, args, pod_id, args.wait_seconds, poll_events)
+                wait_returncode = 0
+            finally:
+                timings.data["steps"].append(
+                    {
+                        "name": "ssh_info_wait",
+                        "started_at": wait_started_at,
+                        "finished_at": utc_now(),
+                        "duration_seconds": round(time.monotonic() - wait_started, 3),
+                        "returncode": wait_returncode,
+                        "polls": poll_events,
+                    }
+                )
             print(f"ssh: {connection.user}@{connection.host}:{connection.port}")
 
         wait_started = time.monotonic()

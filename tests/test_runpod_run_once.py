@@ -22,6 +22,7 @@ COMMON_SPEC.loader.exec_module(runpod_common)
 PodConnection = runpod_common.PodConnection
 normalize_pods = runpod_common.normalize_pods
 parse_ssh_info = runpod_common.parse_ssh_info
+parse_ssh_info_error = runpod_common.parse_ssh_info_error
 preflight = runpod_run_once.preflight
 remote_cuda_smoke_command = runpod_run_once.remote_cuda_smoke_command
 remote_user_command = runpod_run_once.remote_user_command
@@ -30,6 +31,7 @@ rsync_to_remote_command = runpod_run_once.rsync_to_remote_command
 runpodctl_create_command = runpod_run_once.runpodctl_create_command
 split_shell_command = runpod_run_once.split_shell_command
 step_name = runpod_run_once.step_name
+wait_for_connection = runpod_common.wait_for_connection
 
 
 def write_repo_shape(tmp_path: Path) -> None:
@@ -187,6 +189,38 @@ def test_parse_ssh_info_reads_command_shape() -> None:
     connection = parse_ssh_info('{"command":"ssh root@213.173.108.12 -p 17445 -i ~/.ssh/id_ed25519"}')
 
     assert connection == PodConnection("213.173.108.12", 17445)
+
+
+def test_parse_ssh_info_error_reads_runpod_not_ready_shape() -> None:
+    assert parse_ssh_info_error('{"error":"pod not ready","status":"RUNNING"}') == "pod not ready"
+
+
+def test_wait_for_connection_records_poll_events(tmp_path: Path) -> None:
+    class FakeRunner:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def run(self, command, **kwargs):
+            from subprocess import CompletedProcess
+
+            if command[1:3] == ["pod", "get"]:
+                return CompletedProcess(command, 0, '{"id":"pod1","desiredStatus":"RUNNING","ports":"22/tcp"}', "")
+            if command[1:3] == ["ssh", "info"]:
+                self.calls += 1
+                if self.calls == 1:
+                    return CompletedProcess(command, 0, '{"error":"pod not ready","status":"RUNNING"}', "")
+                return CompletedProcess(command, 0, '{"ip":"203.0.113.10","port":10226}', "")
+            raise AssertionError(command)
+
+    run_args = args(tmp_path)
+    poll_events: list[dict[str, object]] = []
+
+    connection = wait_for_connection(FakeRunner(), run_args, "pod1", 30, poll_events)
+
+    assert connection == PodConnection("203.0.113.10", 10226)
+    assert poll_events[0]["pod_status"] == "RUNNING"
+    assert poll_events[0]["ssh_info_error"] == "pod not ready"
+    assert poll_events[-1]["ssh_info_has_connection"] is True
 
 
 def test_remote_cuda_smoke_requires_cuda() -> None:

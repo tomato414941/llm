@@ -220,17 +220,36 @@ def wait_for_connection(
     args: argparse.Namespace,
     pod_id: str,
     timeout_seconds: int,
+    poll_events: list[dict[str, object]] | None = None,
 ) -> PodConnection:
     deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
         pod = pod_get(runner, args, pod_id)
+        event: dict[str, object] = {
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+            "pod_status": pod.get("STATUS") if pod else None,
+            "pod_ports": pod.get("PORTS") if pod else None,
+            "ssh_info_error": None,
+            "ssh_info_has_connection": False,
+        }
         if pod:
             connection = pod_connection(pod)
             if connection is not None:
+                event["pod_ports_has_connection"] = True
+                if poll_events is not None:
+                    poll_events.append(event)
                 return connection
-        connection = ssh_info_connection(runner, args, pod_id)
+        else:
+            event["pod_missing"] = True
+        connection, ssh_error = ssh_info_probe(runner, args, pod_id)
+        event["ssh_info_error"] = ssh_error
         if connection is not None:
+            event["ssh_info_has_connection"] = True
+            if poll_events is not None:
+                poll_events.append(event)
             return connection
+        if poll_events is not None:
+            poll_events.append(event)
         time.sleep(10)
     raise TimeoutError(f"pod did not expose SSH within {timeout_seconds} seconds: {pod_id}")
 
@@ -255,10 +274,29 @@ def pod_get(runner: Runner, args: argparse.Namespace, pod_id: str) -> dict[str, 
 
 
 def ssh_info_connection(runner: Runner, args: argparse.Namespace, pod_id: str) -> PodConnection | None:
+    connection, _ = ssh_info_probe(runner, args, pod_id)
+    return connection
+
+
+def ssh_info_probe(
+    runner: Runner,
+    args: argparse.Namespace,
+    pod_id: str,
+) -> tuple[PodConnection | None, str | None]:
     completed = runner.run([args.runpodctl, "ssh", "info", pod_id, "-o", "json"], capture=True, check=False)
     if completed.returncode != 0:
+        return None, completed.stderr.strip() or f"exit {completed.returncode}"
+    return parse_ssh_info(completed.stdout), parse_ssh_info_error(completed.stdout)
+
+
+def parse_ssh_info_error(output: str) -> str | None:
+    try:
+        raw = parse_json_output(output)
+    except json.JSONDecodeError:
         return None
-    return parse_ssh_info(completed.stdout)
+    if isinstance(raw, dict) and raw.get("error"):
+        return str(raw["error"])
+    return None
 
 
 def parse_ssh_info(output: str) -> PodConnection | None:

@@ -59,8 +59,8 @@ def preflight(config_path: Path, *, overwrite: bool) -> list[str]:
     max_runtime_minutes = require_int(method.get("max_runtime_minutes"), "method.max_runtime_minutes")
     if max_train_examples <= 0:
         raise ValueError("method.max_train_examples must be positive")
-    if max_runtime_minutes > 30:
-        raise ValueError("method.max_runtime_minutes must be <= 30 for the smoke run")
+    if max_runtime_minutes > 60:
+        raise ValueError("method.max_runtime_minutes must be <= 60 for the smoke run")
 
     if require_bool(runpod.get("required"), "runpod.required"):
         raise ValueError("runpod.required must be false for local preflight")

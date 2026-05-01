@@ -90,7 +90,7 @@ collection, and cleanup:
 uv run python scripts/runpod/run_once.py --dry-run \
   --name llm-leverage-sft-smoke \
   --secure-cloud \
-  --gpu-type 'NVIDIA A40' \
+  --gpu-type 'NVIDIA GeForce RTX 4090' \
   --template-id runpod-torch-v280 \
   --mem 24 \
   --sync tracks/leverage/configs \

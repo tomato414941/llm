@@ -21,9 +21,9 @@ eval_tasks = [
 first_choice = "lora"
 fallback = "full_sft"
 max_train_examples = 1200
-max_epochs = 3
+max_epochs = 1
 eval_max_new_tokens = 128
-max_runtime_minutes = 30
+max_runtime_minutes = 60
 notes = "This is a wiring smoke, not a quality-improvement run."
 
 [runpod]

@@ -139,12 +139,52 @@ def normalize_pod(raw: dict[str, object]) -> dict[str, str]:
     ports = raw.get("ports") or raw.get("PORTS") or raw.get("portMappings") or ""
     if isinstance(ports, list):
         ports = ",".join(format_port_mapping(item) for item in ports)
+    machine = raw.get("machine") if isinstance(raw.get("machine"), dict) else {}
+    ssh = raw.get("ssh") if isinstance(raw.get("ssh"), dict) else {}
     return {
         "ID": str(raw.get("id") or raw.get("ID") or ""),
         "NAME": str(raw.get("name") or raw.get("NAME") or ""),
         "STATUS": str(raw.get("desiredStatus") or raw.get("status") or raw.get("STATUS") or ""),
         "PORTS": str(ports),
+        "IMAGE": str(raw.get("imageName") or raw.get("image") or ""),
+        "COST_PER_HR": str(raw.get("costPerHr") or ""),
+        "CREATED_AT": str(raw.get("createdAt") or ""),
+        "LAST_STATUS_CHANGE": str(raw.get("lastStatusChange") or ""),
+        "UPTIME_SECONDS": str(raw.get("uptimeSeconds") or ""),
+        "GPU_COUNT": str(raw.get("gpuCount") or ""),
+        "GPU_DISPLAY_NAME": str(machine.get("gpuDisplayName") or raw.get("gpuDisplayName") or ""),
+        "LOCATION": str(machine.get("location") or raw.get("location") or ""),
+        "MEMORY_GB": str(raw.get("memoryInGb") or ""),
+        "VCPU_COUNT": str(raw.get("vcpuCount") or ""),
+        "CONTAINER_DISK_GB": str(raw.get("containerDiskInGb") or ""),
+        "VOLUME_GB": str(raw.get("volumeInGb") or ""),
+        "VOLUME_MOUNT_PATH": str(raw.get("volumeMountPath") or ""),
+        "SSH_ERROR": str(ssh.get("error") or ""),
     }
+
+
+def public_pod_metadata(pod: dict[str, str]) -> dict[str, str]:
+    keys = (
+        "ID",
+        "NAME",
+        "STATUS",
+        "PORTS",
+        "IMAGE",
+        "COST_PER_HR",
+        "CREATED_AT",
+        "LAST_STATUS_CHANGE",
+        "UPTIME_SECONDS",
+        "GPU_COUNT",
+        "GPU_DISPLAY_NAME",
+        "LOCATION",
+        "MEMORY_GB",
+        "VCPU_COUNT",
+        "CONTAINER_DISK_GB",
+        "VOLUME_GB",
+        "VOLUME_MOUNT_PATH",
+        "SSH_ERROR",
+    )
+    return {key: pod[key] for key in keys if pod.get(key)}
 
 
 def format_port_mapping(raw: object) -> str:
@@ -229,6 +269,12 @@ def wait_for_connection(
             "checked_at": datetime.now(timezone.utc).isoformat(),
             "pod_status": pod.get("STATUS") if pod else None,
             "pod_ports": pod.get("PORTS") if pod else None,
+            "pod_uptime_seconds": pod.get("UPTIME_SECONDS") if pod else None,
+            "pod_location": pod.get("LOCATION") if pod else None,
+            "pod_gpu_display_name": pod.get("GPU_DISPLAY_NAME") if pod else None,
+            "pod_memory_gb": pod.get("MEMORY_GB") if pod else None,
+            "pod_vcpu_count": pod.get("VCPU_COUNT") if pod else None,
+            "pod_ssh_error": pod.get("SSH_ERROR") if pod else None,
             "ssh_info_error": None,
             "ssh_info_has_connection": False,
         }
@@ -245,6 +291,9 @@ def wait_for_connection(
         event["ssh_info_error"] = ssh_error
         if connection is not None:
             event["ssh_info_has_connection"] = True
+            event["ssh_host"] = connection.host
+            event["ssh_port"] = connection.port
+            event["ssh_user"] = connection.user
             if poll_events is not None:
                 poll_events.append(event)
             return connection

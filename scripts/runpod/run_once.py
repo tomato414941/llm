@@ -24,6 +24,9 @@ from runpod_common import (
     find_created_pod,
     list_pods,
     load_api_key,
+    normalize_pod,
+    parse_json_output,
+    public_pod_metadata,
     q,
     remote_transport_setup_command,
     run_with_deadline,
@@ -326,13 +329,17 @@ def main() -> int:
         ensure_before_deadline(deadline)
         if not args.dry_run:
             pods_before_create = list_pods(runner, args)
-        timings.run(
+        create_completed = timings.run(
             runner,
             runpodctl_create_command(args),
             cwd=args.repo_root,
             deadline=deadline,
             name="pod_create",
         )
+        if not args.dry_run:
+            created_raw = parse_json_output(create_completed.stdout)
+            if isinstance(created_raw, dict):
+                timings.data["pod_create_metadata"] = public_pod_metadata(normalize_pod(created_raw))
         if args.dry_run:
             connection = PodConnection(host="dry-run.runpod.local", port=22)
             pod_id = "dry-run-pod"
@@ -341,6 +348,7 @@ def main() -> int:
             pod = find_created_pod(pods_before_create, pods_after_create, args.pod_name)
             pod_id = str(pod["ID"])
             timings.set_pod_id(pod_id)
+            timings.data["pod_list_metadata"] = public_pod_metadata(pod)
             print(f"created pod: {pod_id}")
             wait_started = time.monotonic()
             wait_started_at = utc_now()

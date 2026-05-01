@@ -23,6 +23,7 @@ PodConnection = runpod_common.PodConnection
 normalize_pods = runpod_common.normalize_pods
 parse_ssh_info = runpod_common.parse_ssh_info
 parse_ssh_info_error = runpod_common.parse_ssh_info_error
+public_pod_metadata = runpod_common.public_pod_metadata
 preflight = runpod_run_once.preflight
 remote_cuda_smoke_command = runpod_run_once.remote_cuda_smoke_command
 remote_user_command = runpod_run_once.remote_user_command
@@ -162,6 +163,10 @@ def test_normalize_pods_formats_v2_port_mappings() -> None:
                 "id": "pod123",
                 "name": "run",
                 "desiredStatus": "RUNNING",
+                "imageName": "runpod/pytorch:test",
+                "costPerHr": 0.69,
+                "uptimeSeconds": 12,
+                "machine": {"gpuDisplayName": "RTX 4090", "location": "US"},
                 "ports": [
                     {
                         "ip": "104.1.2.3",
@@ -175,14 +180,40 @@ def test_normalize_pods_formats_v2_port_mappings() -> None:
         ]
     )
 
-    assert pods == [
-        {
-            "ID": "pod123",
-            "NAME": "run",
-            "STATUS": "RUNNING",
-            "PORTS": "104.1.2.3:45678->22 (pub,tcp)",
-        }
-    ]
+    assert pods[0]["ID"] == "pod123"
+    assert pods[0]["NAME"] == "run"
+    assert pods[0]["STATUS"] == "RUNNING"
+    assert pods[0]["PORTS"] == "104.1.2.3:45678->22 (pub,tcp)"
+    assert pods[0]["IMAGE"] == "runpod/pytorch:test"
+    assert pods[0]["COST_PER_HR"] == "0.69"
+    assert pods[0]["UPTIME_SECONDS"] == "12"
+    assert pods[0]["GPU_DISPLAY_NAME"] == "RTX 4090"
+    assert pods[0]["LOCATION"] == "US"
+
+
+def test_public_pod_metadata_keeps_observability_fields_without_secrets() -> None:
+    pod = normalize_pods(
+        [
+            {
+                "id": "pod123",
+                "name": "run",
+                "desiredStatus": "RUNNING",
+                "env": {"PUBLIC_KEY": "ssh-ed25519 secret"},
+                "ssh": {"error": "pod not ready"},
+                "machine": {"gpuDisplayName": "RTX 4090", "location": "US"},
+                "imageName": "runpod/pytorch:test",
+                "ports": ["22/tcp"],
+            }
+        ]
+    )[0]
+
+    metadata = public_pod_metadata(pod)
+
+    assert metadata["ID"] == "pod123"
+    assert metadata["SSH_ERROR"] == "pod not ready"
+    assert metadata["GPU_DISPLAY_NAME"] == "RTX 4090"
+    assert "env" not in metadata
+    assert "PUBLIC_KEY" not in metadata
 
 
 def test_parse_ssh_info_reads_command_shape() -> None:
@@ -204,7 +235,14 @@ def test_wait_for_connection_records_poll_events(tmp_path: Path) -> None:
             from subprocess import CompletedProcess
 
             if command[1:3] == ["pod", "get"]:
-                return CompletedProcess(command, 0, '{"id":"pod1","desiredStatus":"RUNNING","ports":"22/tcp"}', "")
+                return CompletedProcess(
+                    command,
+                    0,
+                    '{"id":"pod1","desiredStatus":"RUNNING","ports":"22/tcp",'
+                    '"uptimeSeconds":7,"machine":{"gpuDisplayName":"RTX 4090","location":"US"},'
+                    '"memoryInGb":62,"vcpuCount":12}',
+                    "",
+                )
             if command[1:3] == ["ssh", "info"]:
                 self.calls += 1
                 if self.calls == 1:
@@ -219,8 +257,13 @@ def test_wait_for_connection_records_poll_events(tmp_path: Path) -> None:
 
     assert connection == PodConnection("203.0.113.10", 10226)
     assert poll_events[0]["pod_status"] == "RUNNING"
+    assert poll_events[0]["pod_uptime_seconds"] == "7"
+    assert poll_events[0]["pod_location"] == "US"
+    assert poll_events[0]["pod_gpu_display_name"] == "RTX 4090"
     assert poll_events[0]["ssh_info_error"] == "pod not ready"
     assert poll_events[-1]["ssh_info_has_connection"] is True
+    assert poll_events[-1]["ssh_host"] == "203.0.113.10"
+    assert poll_events[-1]["ssh_port"] == 10226
 
 
 def test_remote_cuda_smoke_requires_cuda() -> None:

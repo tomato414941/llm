@@ -1,6 +1,7 @@
 import argparse
 import csv
 import subprocess
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -134,6 +135,70 @@ def nvidia_smi_sample() -> dict[str, str]:
     }
 
 
+def numeric_sample_values(samples: list[dict[str, str]], key: str) -> list[float]:
+    values: list[float] = []
+    for sample in samples:
+        try:
+            values.append(float(sample[key]))
+        except (KeyError, TypeError, ValueError):
+            pass
+    return values
+
+
+def gpu_sample_summary(samples: list[dict[str, str]]) -> dict[str, float]:
+    utilization_values = numeric_sample_values(samples, "gpu_utilization_percent")
+    memory_used_values = numeric_sample_values(samples, "gpu_memory_used_mb")
+    memory_total_values = numeric_sample_values(samples, "gpu_memory_total_mb")
+    return {
+        "gpu_sample_count": float(len(utilization_values)),
+        "gpu_utilization_avg_percent": sum(utilization_values) / len(utilization_values)
+        if utilization_values
+        else 0.0,
+        "gpu_utilization_max_percent": max(utilization_values) if utilization_values else 0.0,
+        "gpu_memory_used_max_mb": max(memory_used_values) if memory_used_values else 0.0,
+        "gpu_memory_total_mb": max(memory_total_values) if memory_total_values else 0.0,
+    }
+
+
+def start_gpu_sampler(path: Path, interval_seconds: float = 1.0) -> tuple[threading.Event, threading.Thread]:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    stop_event = threading.Event()
+
+    def sample_loop() -> None:
+        with path.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(
+                handle,
+                fieldnames=[
+                    "elapsed_seconds",
+                    "gpu_utilization_percent",
+                    "gpu_memory_used_mb",
+                    "gpu_memory_total_mb",
+                ],
+            )
+            writer.writeheader()
+            started = time.monotonic()
+            while not stop_event.is_set():
+                writer.writerow(
+                    {
+                        "elapsed_seconds": f"{time.monotonic() - started:.3f}",
+                        **nvidia_smi_sample(),
+                    }
+                )
+                handle.flush()
+                stop_event.wait(interval_seconds)
+
+    thread = threading.Thread(target=sample_loop, daemon=True)
+    thread.start()
+    return stop_event, thread
+
+
+def load_gpu_samples(path: Path) -> list[dict[str, str]]:
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
 def train_lora_smoke(
     *,
     modules: dict[str, Any],
@@ -215,6 +280,7 @@ def train_lora_smoke(
         shuffle=False,
         collate_fn=collate_texts,
     )
+    gpu_samples_path = progress_path.with_name("gpu-samples.csv")
     torch.cuda.reset_peak_memory_stats()
     started = time.monotonic()
     optimizer.zero_grad(set_to_none=True)
@@ -236,6 +302,7 @@ def train_lora_smoke(
     )
     progress_writer.writeheader()
     optimizer_steps = 0
+    gpu_stop_event, gpu_sampler_thread = start_gpu_sampler(gpu_samples_path)
     try:
         for _epoch in range(max_epochs):
             for step, encoded in enumerate(dataloader, start=len(losses) + 1):
@@ -274,7 +341,10 @@ def train_lora_smoke(
             optimizer.zero_grad(set_to_none=True)
             optimizer_steps += 1
     finally:
+        gpu_stop_event.set()
+        gpu_sampler_thread.join(timeout=5)
         progress_file.close()
+    gpu_summary = gpu_sample_summary(load_gpu_samples(gpu_samples_path))
     adapter_dir.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(adapter_dir)
     tokenizer.save_pretrained(adapter_dir)
@@ -295,6 +365,7 @@ def train_lora_smoke(
         "tokens": float(token_count),
         "tokens_per_second": token_count / train_seconds if train_seconds else 0.0,
         "max_memory_allocated_gb": torch.cuda.max_memory_allocated() / 1024**3,
+        **gpu_summary,
     }
 
 
@@ -386,6 +457,17 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
             {"metric": "train_seconds", "value": f"{metrics['train_seconds']:.3f}"},
             {"metric": "tokens_per_second", "value": f"{metrics['tokens_per_second']:.3f}"},
             {"metric": "max_memory_allocated_gb", "value": f"{metrics['max_memory_allocated_gb']:.3f}"},
+            {"metric": "gpu_sample_count", "value": str(int(metrics["gpu_sample_count"]))},
+            {
+                "metric": "gpu_utilization_avg_percent",
+                "value": f"{metrics['gpu_utilization_avg_percent']:.3f}",
+            },
+            {
+                "metric": "gpu_utilization_max_percent",
+                "value": f"{metrics['gpu_utilization_max_percent']:.3f}",
+            },
+            {"metric": "gpu_memory_used_max_mb", "value": f"{metrics['gpu_memory_used_max_mb']:.0f}"},
+            {"metric": "gpu_memory_total_mb", "value": f"{metrics['gpu_memory_total_mb']:.0f}"},
             {"metric": "final_loss", "value": f"{metrics['final_loss']:.6f}"},
             {"metric": "status", "value": "completed"},
         ],
@@ -412,6 +494,8 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
                 f"Train seconds: `{metrics['train_seconds']:.3f}`",
                 f"Tokens/sec: `{metrics['tokens_per_second']:.3f}`",
                 f"Peak VRAM GB: `{metrics['max_memory_allocated_gb']:.3f}`",
+                f"GPU utilization avg percent: `{metrics['gpu_utilization_avg_percent']:.3f}`",
+                f"GPU utilization max percent: `{metrics['gpu_utilization_max_percent']:.3f}`",
                 f"Final loss: `{metrics['final_loss']:.6f}`",
             ]
         )

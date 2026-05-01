@@ -116,3 +116,40 @@ step,optimizer_steps,tokens,loss,tokens_per_second,peak_vram_gb,gpu_utilization_
 Interpretation: GPU utilization samples were low, in the 22-32% range, while
 memory was nearly full at about 23.9GB of 24.6GB. For this setup, the immediate
 constraint is VRAM headroom rather than utilization alone.
+
+## Continuous GPU Sampling
+
+The trainer was then updated to record `logs/gpu-samples.csv` once per second
+during the training loop and summarize utilization in `metrics.csv`.
+
+- Pod: `llm-leverage-sft-qwen35-9b-batch4-200-gpusamples-20260501-184213`
+- Pod id: `1qb2qh4vqu1uht`
+- Total wall time: 257.532 seconds
+- Train command: 158.513 seconds
+- Train seconds: 64.049
+- Tokens/sec: 236.756
+- Peak VRAM: 21.886GB
+- Cleanup: completed automatically
+
+From `outputs/leverage-sft-qwen35-9b-batch4-200/metrics.csv`:
+
+- GPU samples: 57
+- Average GPU utilization: 33.754%
+- Max GPU utilization: 89.000%
+- Max driver-reported GPU memory: 23858MB / 24564MB
+
+Distribution from `logs/gpu-samples.csv`:
+
+- Samples >= 30% utilization: 40 / 57
+- Samples >= 40% utilization: 10 / 57
+- Samples >= 50% utilization: 3 / 57
+- Samples >= 80% utilization: 1 / 57
+
+Interpretation: step-time sampling was noisy but not fundamentally misleading.
+Continuous sampling confirms that average utilization is still low for this
+short-sequence, small-effective-batch workload. The model occasionally reaches
+high utilization, but most samples sit below 40%. Since memory is already near
+the RTX 4090 limit, the next throughput improvement should not be a simple
+batch-size increase. More plausible next tests are sequence packing, longer
+examples, disabling gradient checkpointing if memory permits, or a larger-VRAM
+GPU.

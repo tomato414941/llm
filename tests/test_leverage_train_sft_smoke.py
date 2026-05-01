@@ -4,6 +4,7 @@ import pytest
 
 from llm.leverage import train_sft_smoke
 from llm.leverage.train_sft_smoke import (
+    gpu_sample_summary,
     load_training_rows,
     nvidia_smi_sample,
     require_training_packages,
@@ -129,4 +130,49 @@ def test_nvidia_smi_sample_falls_back_to_empty_strings(monkeypatch) -> None:
         "gpu_utilization_percent": "",
         "gpu_memory_used_mb": "",
         "gpu_memory_total_mb": "",
+    }
+
+
+def test_gpu_sample_summary_reports_average_and_maximum() -> None:
+    summary = gpu_sample_summary(
+        [
+            {
+                "gpu_utilization_percent": "20",
+                "gpu_memory_used_mb": "1000",
+                "gpu_memory_total_mb": "24000",
+            },
+            {
+                "gpu_utilization_percent": "40",
+                "gpu_memory_used_mb": "2000",
+                "gpu_memory_total_mb": "24000",
+            },
+        ]
+    )
+
+    assert summary == {
+        "gpu_sample_count": 2.0,
+        "gpu_utilization_avg_percent": 30.0,
+        "gpu_utilization_max_percent": 40.0,
+        "gpu_memory_used_max_mb": 2000.0,
+        "gpu_memory_total_mb": 24000.0,
+    }
+
+
+def test_gpu_sample_summary_ignores_blank_values() -> None:
+    summary = gpu_sample_summary(
+        [
+            {
+                "gpu_utilization_percent": "",
+                "gpu_memory_used_mb": "",
+                "gpu_memory_total_mb": "",
+            }
+        ]
+    )
+
+    assert summary == {
+        "gpu_sample_count": 0.0,
+        "gpu_utilization_avg_percent": 0.0,
+        "gpu_utilization_max_percent": 0.0,
+        "gpu_memory_used_max_mb": 0.0,
+        "gpu_memory_total_mb": 0.0,
     }

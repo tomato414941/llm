@@ -5,6 +5,7 @@ import tomllib
 CONFIG_PATH = Path("tracks/leverage/configs/leverage-sft-smoke.toml")
 QWEN35_9B_CONFIG_PATH = Path("tracks/leverage/configs/leverage-sft-qwen35-9b.toml")
 QWEN35_9B_BATCH2_200_CONFIG_PATH = Path("tracks/leverage/configs/leverage-sft-qwen35-9b-batch2-200.toml")
+QWEN35_9B_BATCH4_200_CONFIG_PATH = Path("tracks/leverage/configs/leverage-sft-qwen35-9b-batch4-200.toml")
 
 
 def load_config() -> dict[str, object]:
@@ -104,6 +105,32 @@ def test_qwen35_9b_batch2_200_config_is_bounded_measurement() -> None:
     assert method["max_runtime_minutes"] <= 30
     assert runpod["max_cost_usd"] <= 0.5
     assert outputs["root"] == "outputs/leverage-sft-qwen35-9b-batch2-200"
+
+
+def test_qwen35_9b_batch4_200_config_is_bounded_measurement() -> None:
+    config = tomllib.loads(QWEN35_9B_BATCH4_200_CONFIG_PATH.read_text(encoding="utf-8"))
+    model = config["model"]
+    data = config["data"]
+    method = config["method"]
+    runpod = config["runpod"]
+    outputs = config["outputs"]
+    assert isinstance(model, dict)
+    assert isinstance(data, dict)
+    assert isinstance(method, dict)
+    assert isinstance(runpod, dict)
+    assert isinstance(outputs, dict)
+
+    assert model["student"] == "Qwen/Qwen3.5-9B"
+    assert data["train_export"] == "tracks/leverage/sft/bootstrap-200.train.jsonl"
+    assert method["max_train_examples"] == 200
+    assert method["batch_size"] == 4
+    assert method["max_length"] == 512
+    assert method["gradient_checkpointing"] is True
+    assert method["gradient_accumulation_steps"] == 4
+    assert method["log_every_steps"] == 10
+    assert method["max_runtime_minutes"] <= 30
+    assert runpod["max_cost_usd"] <= 0.5
+    assert outputs["root"] == "outputs/leverage-sft-qwen35-9b-batch4-200"
 
 
 def test_leverage_sft_smoke_doc_exists() -> None:

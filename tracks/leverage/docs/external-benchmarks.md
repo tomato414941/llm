@@ -82,11 +82,13 @@ models.
 
 Choose thinking mode per benchmark. Do not use one global setting.
 
-| benchmark type | default mode | why | note |
+| benchmark | default mode | why | note |
 | --- | --- | --- | --- |
-| Formatting and instruction-following benchmarks such as `ifeval`, JSON-only tasks, SQL, and code-format checks | `--no-enable-thinking` | These benchmarks score the visible response against explicit constraints. Thinking traces can distort the metric. | Use this as the Qwen default for IFEval. |
-| Math, reasoning QA, and reasoning-focused benchmarks | `--enable-thinking --think-end-token "</think>"` when the benchmark scores only the final answer | Reasoning may improve task performance, while stripping keeps the metric focused on the final answer. | Treat this as a separate condition, not as a silent replacement for thinking off. |
-| Smoke runs | `--no-enable-thinking` | Thinking mode can greatly increase generation cost. | Enable thinking only when the smoke is specifically checking reasoning-mode behavior. |
+| `ifeval` | `--no-enable-thinking` | IFEval scores the visible response against explicit formatting and instruction constraints. Thinking traces can distort the metric. | Use this as the Qwen default. |
+| `gsm8k` | `--enable-thinking --think-end-token "</think>"` | GSM8K is a math reasoning benchmark, and reasoning may improve the final answer. | Also run `--no-enable-thinking` as a separate speed/cost baseline before making it the default. |
+| `hellaswag` | `--no-enable-thinking` | HellaSwag is a continuation/common-sense selection benchmark; extra thinking is not the behavior being measured. | Prefer a fixed batch size smoke before full runs. |
+| `arc_easy` | `--no-enable-thinking` | ARC-Easy is a lightweight QA benchmark; start with the cheaper non-thinking mode. | If later using a reasoning-oriented ARC variant, compare thinking on separately. |
+| Project-owned smoke evals | `--no-enable-thinking` | Smoke runs should be cheap and should verify the visible answer contract. | Enable thinking only when the smoke is specifically checking reasoning-mode behavior. |
 
 If thinking mode is enabled, log samples first and verify that the model reaches
 the thinking terminator. If it does not reach `</think>` within the generation

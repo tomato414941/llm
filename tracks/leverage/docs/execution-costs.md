@@ -98,6 +98,12 @@ For RunPod one-off jobs, use `runpod-timings.json` from
 `scripts/runpod/run_once.py`. It records pod creation, SSH readiness, setup,
 remote command, output sync, and total wall time.
 
+## Planned Records
+
+| planned date | kind | workload | model | variants | purpose | record after run |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-05-02 | sample diagnosis | IFEval limit 50 with `--log-samples` | `Qwen/Qwen3.5-9B` | base and LoRA adapter | Classify why the adapter regressed on full IFEval before changing training data or LoRA settings. | wall time, command time, generation time if available, RunPod cost, score deltas, sample artifact paths, and diagnosis run note |
+
 ## Benchmark / Evaluation Records
 
 | date | kind | workload | model | variant | provider / hardware | units | wall time | command time | generation time | cost | note |

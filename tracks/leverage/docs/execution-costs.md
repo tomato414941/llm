@@ -98,6 +98,10 @@ For RunPod one-off jobs, use `runpod-timings.json` from
 `scripts/runpod/run_once.py`. It records pod creation, SSH readiness, setup,
 remote command, output sync, and total wall time.
 
+For benchmark and evaluation records, use one row per model variant. If a run
+is part of a base-vs-adapter comparison, record the base and adapter as
+separate rows and link them through the same run note or purpose.
+
 ## Planned Records
 
 | planned date | kind | workload | model | variant | purpose | record after run |

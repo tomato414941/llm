@@ -27,6 +27,7 @@ def build_lm_eval_command(
     batch_size: str,
     apply_chat_template: bool,
     limit: int | None,
+    log_samples: bool,
 ) -> list[str]:
     command = [
         "lm_eval",
@@ -47,6 +48,8 @@ def build_lm_eval_command(
         command.append("--apply_chat_template")
     if limit is not None:
         command.extend(["--limit", str(limit)])
+    if log_samples:
+        command.append("--log_samples")
     return command
 
 
@@ -70,6 +73,7 @@ def run_lm_harness(
     batch_size: str,
     apply_chat_template: bool,
     limit: int | None,
+    log_samples: bool,
     run: str,
     dry_run: bool,
 ) -> list[str]:
@@ -86,6 +90,7 @@ def run_lm_harness(
             batch_size=batch_size,
             apply_chat_template=apply_chat_template,
             limit=limit,
+            log_samples=log_samples,
         )
         lines.append(f"{target}: {shell_join(command)}")
         if dry_run:
@@ -109,6 +114,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--batch-size", default="auto")
     parser.add_argument("--limit", type=int)
+    parser.add_argument("--log-samples", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--run", choices=("base", "adapter", "both"), default="both")
     parser.add_argument("--apply-chat-template", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--dry-run", action="store_true")
@@ -130,6 +136,7 @@ def main() -> int:
         batch_size=args.batch_size,
         apply_chat_template=args.apply_chat_template,
         limit=args.limit,
+        log_samples=args.log_samples,
         run=args.run,
         dry_run=args.dry_run,
     ):

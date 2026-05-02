@@ -34,6 +34,7 @@ uv run python -m llm.leverage.evaluate_lm_harness \
   --config tracks/leverage/configs/leverage-sft-qwen35-9b.toml \
   --task ifeval \
   --run both \
+  --limit 10 \
   --dry-run
 ```
 
@@ -43,7 +44,8 @@ Run the benchmark by removing `--dry-run`:
 uv run python -m llm.leverage.evaluate_lm_harness \
   --config tracks/leverage/configs/leverage-sft-qwen35-9b.toml \
   --task ifeval \
-  --run both
+  --run both \
+  --limit 10
 ```
 
 The wrapper runs:
@@ -56,6 +58,9 @@ Outputs go under:
 ```text
 outputs/leverage-lm-harness/
 ```
+
+Use a small `--limit` first. Full `ifeval` has 541 generation requests and can
+be too slow for a first usability check on a single A40.
 
 ## Adapter Policy
 

@@ -26,6 +26,7 @@ def build_lm_eval_command(
     device: str,
     batch_size: str,
     apply_chat_template: bool,
+    limit: int | None,
 ) -> list[str]:
     command = [
         "lm_eval",
@@ -44,6 +45,8 @@ def build_lm_eval_command(
     ]
     if apply_chat_template:
         command.append("--apply_chat_template")
+    if limit is not None:
+        command.extend(["--limit", str(limit)])
     return command
 
 
@@ -66,6 +69,7 @@ def run_lm_harness(
     device: str,
     batch_size: str,
     apply_chat_template: bool,
+    limit: int | None,
     run: str,
     dry_run: bool,
 ) -> list[str]:
@@ -81,6 +85,7 @@ def run_lm_harness(
             device=device,
             batch_size=batch_size,
             apply_chat_template=apply_chat_template,
+            limit=limit,
         )
         lines.append(f"{target}: {shell_join(command)}")
         if dry_run:
@@ -103,6 +108,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--task", action="append", default=None)
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--batch-size", default="auto")
+    parser.add_argument("--limit", type=int)
     parser.add_argument("--run", choices=("base", "adapter", "both"), default="both")
     parser.add_argument("--apply-chat-template", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--dry-run", action="store_true")
@@ -123,6 +129,7 @@ def main() -> int:
         device=args.device,
         batch_size=args.batch_size,
         apply_chat_template=args.apply_chat_template,
+        limit=args.limit,
         run=args.run,
         dry_run=args.dry_run,
     ):

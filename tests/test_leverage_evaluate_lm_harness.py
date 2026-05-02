@@ -37,6 +37,7 @@ def test_build_lm_eval_command_defaults_to_hf_backend() -> None:
         device="cuda:0",
         batch_size="auto",
         apply_chat_template=True,
+        limit=None,
     )
 
     assert command == [
@@ -72,6 +73,7 @@ def test_run_lm_harness_dry_run_prints_base_and_adapter_commands() -> None:
         device="cuda:0",
         batch_size="auto",
         apply_chat_template=True,
+        limit=10,
         run="both",
         dry_run=True,
     )
@@ -82,6 +84,8 @@ def test_run_lm_harness_dry_run_prints_base_and_adapter_commands() -> None:
     assert "peft=" not in lines[0]
     assert lines[1].startswith("adapter: lm_eval")
     assert "peft=outputs/leverage-sft-qwen35-9b/lora-adapter" in lines[1]
+    assert "--limit 10" in lines[0]
+    assert "--limit 10" in lines[1]
 
 
 def test_run_lm_harness_requires_adapter_for_real_adapter_run(tmp_path: Path) -> None:
@@ -94,6 +98,7 @@ def test_run_lm_harness_requires_adapter_for_real_adapter_run(tmp_path: Path) ->
             device="cuda:0",
             batch_size="auto",
             apply_chat_template=True,
+            limit=None,
             run="adapter",
             dry_run=False,
         )
@@ -111,6 +116,7 @@ def test_run_lm_harness_requires_lm_eval_for_real_base_run(monkeypatch: pytest.M
             device="cuda:0",
             batch_size="auto",
             apply_chat_template=True,
+            limit=None,
             run="base",
             dry_run=False,
         )

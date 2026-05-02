@@ -35,19 +35,13 @@ Keep individual observations in run notes:
 tracks/leverage/runs/*.md
 ```
 
-Keep a compact lookup index here:
-
-```text
-tracks/leverage/runs/execution-costs.jsonl
-```
-
 Keep raw artifacts under ignored output paths:
 
 ```text
 outputs/
 ```
 
-The JSONL index is for lookup and comparison only. Keep details, caveats, and
+Keep a compact record table in this document. Keep details, caveats, and
 interpretation in the linked run note.
 
 ## What To Record
@@ -67,27 +61,6 @@ For any measured run, record the smallest useful set:
 - setup, SSH readiness, dependency install, model download, model load, and
   output sync time only when they materially affect the decision
 - cost rate and approximate cost formula
-
-For the JSONL index, prefer stable fields over prose:
-
-- `date`
-- `kind`
-- `workload`
-- `model`
-- `variant`
-- `backend`
-- `provider`
-- `hardware`
-- `unit_count`
-- `limit`
-- `wall_seconds`
-- `command_seconds`
-- `generation_seconds`
-- `training_seconds`
-- `cost_rate_usd_per_hr`
-- `estimated_cost_usd`
-- `run_note`
-- `artifact`
 
 ## Which Time To Use
 
@@ -124,3 +97,9 @@ in harness output, the observed `generate_until` interval.
 For RunPod one-off jobs, use `runpod-timings.json` from
 `scripts/runpod/run_once.py`. It records pod creation, SSH readiness, setup,
 remote command, output sync, and total wall time.
+
+## Records
+
+| date | kind | workload | model | variant | provider / hardware | units | wall time | command time | generation time | cost | note |
+| --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| 2026-05-02 | benchmark timing probe | IFEval limit 10 | `Qwen/Qwen3.5-9B` | base | RunPod Secure Cloud / `NVIDIA A40` | 10 | `534.698s` | `226.772s` | `40.762s` | about `$0.07` | `tracks/leverage/runs/lm-harness-ifeval-timing-limit10.md` |

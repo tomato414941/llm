@@ -62,6 +62,7 @@ def test_dry_run_reports_models_and_outputs(tmp_path: Path) -> None:
     assert any("would evaluate 1 tasks" in line for line in lines)
     assert any("label=provider/model" in line for line in lines)
     assert any("openrouter-summary.csv" in line for line in lines)
+    assert any("openrouter-run.json" in line for line in lines)
 
 
 def test_run_eval_collects_scores_for_multiple_models(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -106,6 +107,13 @@ def test_run_eval_collects_scores_for_multiple_models(tmp_path: Path, monkeypatc
     assert [row["model"] for row in predictions] == ["good", "bad"]
     scores = read_csv(output_root / "openrouter-scores.csv")
     assert [(row["model"], row["passed"]) for row in scores] == [("good", "true"), ("bad", "false")]
+    metadata = json.loads((output_root / "openrouter-run.json").read_text(encoding="utf-8"))
+    assert metadata["reasoning_effort"] == "provider_default"
+    assert metadata["exclude_reasoning"] is True
+    assert metadata["models"] == [
+        {"label": "good", "api_model": "provider/good"},
+        {"label": "bad", "api_model": "provider/bad"},
+    ]
 
 
 def test_run_eval_resume_only_requests_missing_predictions(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

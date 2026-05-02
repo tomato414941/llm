@@ -31,6 +31,17 @@ uv run python -m llm.leverage.evaluate_openrouter \
   --overwrite
 ```
 
+Shared evaluation settings:
+
+- `temperature`: `0.0`
+- `max_tokens`: `512`
+- `system_prompt`: `Return only the requested answer. Do not include hidden reasoning.`
+- `thinking_mode`: `none`
+- `thinking_param`: `chat_template_kwargs`
+- `reasoning_effort`: `provider_default`
+- `exclude_reasoning`: `true`
+- `timeout_seconds`: `120.0`
+
 The first run hit an upstream 429 from Alibaba while evaluating
 `qwen/qwen3.6-plus`. The CLI was given `--resume`, then only the missing
 predictions were regenerated.
@@ -40,6 +51,7 @@ Generated outputs:
 - `outputs/leverage-openrouter-eval/openrouter-predictions.jsonl`
 - `outputs/leverage-openrouter-eval/openrouter-scores.csv`
 - `outputs/leverage-openrouter-eval/openrouter-summary.csv`
+- `outputs/leverage-openrouter-eval/openrouter-run.json`
 
 These are generated artifacts and are not committed.
 

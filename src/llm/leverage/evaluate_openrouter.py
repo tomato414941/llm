@@ -1,4 +1,5 @@
 import argparse
+import json
 from pathlib import Path
 
 from llm.leverage.collect_openai import (
@@ -28,11 +29,12 @@ def parse_model(value: str) -> tuple[str, str]:
     return label, api_model
 
 
-def output_paths(output_root: Path) -> tuple[Path, Path, Path]:
+def output_paths(output_root: Path) -> tuple[Path, Path, Path, Path]:
     return (
         output_root / "openrouter-predictions.jsonl",
         output_root / "openrouter-scores.csv",
         output_root / "openrouter-summary.csv",
+        output_root / "openrouter-run.json",
     )
 
 
@@ -60,7 +62,7 @@ def run_eval(
     dry_run: bool,
 ) -> list[str]:
     tasks = load_task_suites(tasks_paths)
-    predictions_path, scores_path, summary_path = output_paths(output_root)
+    predictions_path, scores_path, summary_path, run_metadata_path = output_paths(output_root)
     if dry_run:
         return [
             f"would evaluate {len(tasks)} tasks",
@@ -68,6 +70,7 @@ def run_eval(
             f"predictions output: {predictions_path}",
             f"scores output: {scores_path}",
             f"summary output: {summary_path}",
+            f"run metadata output: {run_metadata_path}",
         ]
 
     if predictions_path.exists() and not overwrite and not resume:
@@ -109,12 +112,69 @@ def run_eval(
     results = evaluate_predictions(tasks, predictions)
     write_results(scores_path, results)
     write_summary(summary_path, results)
+    write_run_metadata(
+        run_metadata_path,
+        tasks_paths=tasks_paths,
+        models=models,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        system_prompt=system_prompt,
+        timeout_seconds=timeout_seconds,
+        thinking_mode=thinking_mode,
+        thinking_param=thinking_param,
+        reasoning_effort=reasoning_effort,
+        exclude_reasoning=exclude_reasoning,
+        overwrite=overwrite,
+        resume=resume,
+    )
     return [
         f"evaluated {len(tasks)} tasks with {len(models)} models",
         f"wrote predictions: {predictions_path}",
         f"wrote scores: {scores_path}",
         f"wrote summary: {summary_path}",
+        f"wrote run metadata: {run_metadata_path}",
     ]
+
+
+def write_run_metadata(
+    path: Path,
+    *,
+    tasks_paths: list[Path],
+    models: list[tuple[str, str]],
+    max_tokens: int,
+    temperature: float,
+    system_prompt: str,
+    timeout_seconds: float,
+    thinking_mode: str,
+    thinking_param: str,
+    reasoning_effort: str,
+    exclude_reasoning: bool,
+    overwrite: bool,
+    resume: bool,
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                "tasks": [str(path) for path in tasks_paths],
+                "models": [{"label": label, "api_model": api_model} for label, api_model in models],
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "system_prompt": system_prompt,
+                "timeout_seconds": timeout_seconds,
+                "thinking_mode": thinking_mode,
+                "thinking_param": thinking_param,
+                "reasoning_effort": reasoning_effort,
+                "exclude_reasoning": exclude_reasoning,
+                "overwrite": overwrite,
+                "resume": resume,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
 
 def parse_args() -> argparse.Namespace:

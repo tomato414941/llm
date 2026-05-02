@@ -98,7 +98,7 @@ For RunPod one-off jobs, use `runpod-timings.json` from
 `scripts/runpod/run_once.py`. It records pod creation, SSH readiness, setup,
 remote command, output sync, and total wall time.
 
-## Records
+## Benchmark / Evaluation Records
 
 | date | kind | workload | model | variant | provider / hardware | units | wall time | command time | generation time | cost | note |
 | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |

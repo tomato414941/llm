@@ -122,6 +122,8 @@ def response_result(response_payload: dict[str, Any]) -> ChatResult:
     content = message.get("content")
     if isinstance(content, str):
         return ChatResult(content, finish_reason, usage)
+    if content is None:
+        return ChatResult("", finish_reason, usage)
     if isinstance(content, list):
         parts = content_parts(content)
         if parts:
@@ -162,11 +164,13 @@ def collect_predictions(
     reasoning_effort: str,
     exclude_reasoning: bool,
     overwrite: bool,
+    append: bool = False,
 ) -> None:
     if output_path.exists() and not overwrite:
         raise FileExistsError(f"output already exists: {output_path}")
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", encoding="utf-8") as output_file:
+    mode = "a" if append else "w"
+    with output_path.open(mode, encoding="utf-8") as output_file:
         for task in tasks.values():
             payload = build_payload(
                 task,

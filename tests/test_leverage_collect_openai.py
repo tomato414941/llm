@@ -83,6 +83,17 @@ def test_response_result_reads_finish_reason_and_usage() -> None:
     assert result.usage == {"prompt_tokens": 10, "completion_tokens": 32, "total_tokens": 42}
 
 
+def test_response_result_treats_empty_content_as_empty_text() -> None:
+    result = collect_openai.response_result(
+        {
+            "choices": [{"message": {"content": None}, "finish_reason": "length"}],
+            "usage": {"completion_tokens": 32},
+        }
+    )
+
+    assert result == collect_openai.ChatResult("", "length", {"completion_tokens": 32})
+
+
 def test_response_text_reads_openai_content_parts() -> None:
     assert (
         collect_openai.response_text(

@@ -16,7 +16,8 @@ one slice of the target mix.
 
 Target reviewed rows: 300
 
-Use the shared `capability` semantics defined in `data-category-design.md`.
+Use the shared `capability` semantics defined in
+`tracks/leverage/docs/data-category-design.md`.
 
 | capability | target rows | purpose |
 | --- | ---: | --- |

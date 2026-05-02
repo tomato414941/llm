@@ -92,7 +92,7 @@ external pattern unless local evaluation evidence shows that it fails here.
 ### capability
 
 `capability` is the primary axis. It describes the main ability a row trains or
-evaluates. Its definitions live in `tracks/leverage/runs/data-category-design.md`.
+evaluates. Its definitions live in `tracks/leverage/docs/data-category-design.md`.
 
 Use `capability` for target counts and readiness planning.
 

@@ -35,14 +35,20 @@ Keep individual observations in run notes:
 tracks/leverage/runs/*.md
 ```
 
+Keep a compact lookup index here:
+
+```text
+tracks/leverage/runs/execution-costs.jsonl
+```
+
 Keep raw artifacts under ignored output paths:
 
 ```text
 outputs/
 ```
 
-Do not add a machine-readable cost ledger until repeated manual lookup becomes
-the bottleneck.
+The JSONL index is for lookup and comparison only. Keep details, caveats, and
+interpretation in the linked run note.
 
 ## What To Record
 
@@ -61,6 +67,27 @@ For any measured run, record the smallest useful set:
 - setup, SSH readiness, dependency install, model download, model load, and
   output sync time only when they materially affect the decision
 - cost rate and approximate cost formula
+
+For the JSONL index, prefer stable fields over prose:
+
+- `date`
+- `kind`
+- `workload`
+- `model`
+- `variant`
+- `backend`
+- `provider`
+- `hardware`
+- `unit_count`
+- `limit`
+- `wall_seconds`
+- `command_seconds`
+- `generation_seconds`
+- `training_seconds`
+- `cost_rate_usd_per_hr`
+- `estimated_cost_usd`
+- `run_note`
+- `artifact`
 
 ## Which Time To Use
 

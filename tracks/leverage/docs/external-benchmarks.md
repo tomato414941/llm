@@ -66,6 +66,27 @@ Outputs go under:
 outputs/leverage-lm-harness/
 ```
 
+## Artifact Policy
+
+Keep raw benchmark outputs under ignored `outputs/` paths. Commit concise run
+notes and machine-readable summaries only when the result affects future
+decisions.
+
+Treat full benchmark runs as decision records. Treat partial runs as smoke,
+timing, or sample-level diagnosis; do not use partial-run scores as benchmark
+claims.
+
+For stable base models, keep one canonical baseline per benchmark
+configuration. Re-run the base only when the benchmark, model revision,
+tokenizer, chat template, thinking mode, or decoding settings change.
+
+For adapters, record benchmark results per training run because each adapter is
+a new evaluated model variant.
+
+If raw artifacts become obsolete, they may be deleted after the run note records
+the important result, configuration, and interpretation. Mark superseded run
+notes explicitly instead of relying on old raw outputs.
+
 Use `--timing-output` when comparing GPUs or backend speed. It records total
 command time and, when the lm-evaluation-harness progress output exposes it,
 the observed `generate_until` interval. Treat generation timing as unavailable

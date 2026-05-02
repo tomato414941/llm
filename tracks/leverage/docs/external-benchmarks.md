@@ -82,17 +82,11 @@ models.
 
 Choose thinking mode per benchmark. Do not use one global setting.
 
-- Formatting and instruction-following benchmarks such as `ifeval`, JSON-only
-  tasks, SQL, and code-format checks should default to `--no-enable-thinking`.
-  These benchmarks score the visible response against explicit constraints, so
-  thinking traces can distort the metric.
-- Math, reasoning QA, and reasoning-focused benchmarks may use
-  `--enable-thinking --think-end-token "</think>"` when the benchmark scores
-  only the final answer. Treat this as a separate condition, not as a silent
-  replacement for thinking off.
-- Smoke runs should default to `--no-enable-thinking` unless the smoke is
-  specifically checking reasoning-mode behavior. Thinking mode can greatly
-  increase generation cost.
+| benchmark type | default mode | why | note |
+| --- | --- | --- | --- |
+| Formatting and instruction-following benchmarks such as `ifeval`, JSON-only tasks, SQL, and code-format checks | `--no-enable-thinking` | These benchmarks score the visible response against explicit constraints. Thinking traces can distort the metric. | Use this as the Qwen default for IFEval. |
+| Math, reasoning QA, and reasoning-focused benchmarks | `--enable-thinking --think-end-token "</think>"` when the benchmark scores only the final answer | Reasoning may improve task performance, while stripping keeps the metric focused on the final answer. | Treat this as a separate condition, not as a silent replacement for thinking off. |
+| Smoke runs | `--no-enable-thinking` | Thinking mode can greatly increase generation cost. | Enable thinking only when the smoke is specifically checking reasoning-mode behavior. |
 
 If thinking mode is enabled, log samples first and verify that the model reaches
 the thinking terminator. If it does not reach `</think>` within the generation

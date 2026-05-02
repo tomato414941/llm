@@ -1,6 +1,9 @@
 import argparse
+from datetime import datetime, timezone
+import json
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 from llm.leverage.evaluate_sft_adapter import DEFAULT_CONFIG, config_defaults
@@ -8,6 +11,11 @@ from llm.leverage.evaluate_sft_adapter import DEFAULT_CONFIG, config_defaults
 
 DEFAULT_TASK = "ifeval"
 DEFAULT_OUTPUT_ROOT = Path("outputs/leverage-lm-harness")
+GENERATE_MARKER = "Running generate_until requests:"
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def model_args(
@@ -74,6 +82,58 @@ def shell_join(command: list[str]) -> str:
     return subprocess.list2cmdline(command)
 
 
+def update_generation_timing(line: str, timing: dict[str, object], started: float) -> None:
+    if GENERATE_MARKER not in line:
+        return
+    elapsed = round(time.monotonic() - started, 3)
+    if timing["generation_started_after_seconds"] is None:
+        timing["generation_started_after_seconds"] = elapsed
+    timing["generation_last_seen_after_seconds"] = elapsed
+
+
+def write_timing(path: Path, timing: dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(timing, indent=2) + "\n", encoding="utf-8")
+
+
+def run_command_with_timing(command: list[str], timing_output: Path | None) -> None:
+    started = time.monotonic()
+    timing: dict[str, object] = {
+        "command": shell_join(command),
+        "started_at": utc_now(),
+        "finished_at": None,
+        "returncode": None,
+        "elapsed_seconds": None,
+        "generation_started_after_seconds": None,
+        "generation_last_seen_after_seconds": None,
+        "generation_seconds": None,
+    }
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+    assert process.stdout is not None
+    for line in process.stdout:
+        print(line, end="")
+        update_generation_timing(line, timing, started)
+    returncode = process.wait()
+    elapsed = round(time.monotonic() - started, 3)
+    timing["finished_at"] = utc_now()
+    timing["returncode"] = returncode
+    timing["elapsed_seconds"] = elapsed
+    generation_started = timing["generation_started_after_seconds"]
+    generation_last_seen = timing["generation_last_seen_after_seconds"]
+    if isinstance(generation_started, float) and isinstance(generation_last_seen, float):
+        timing["generation_seconds"] = round(generation_last_seen - generation_started, 3)
+    if timing_output is not None:
+        write_timing(timing_output, timing)
+    if returncode != 0:
+        raise subprocess.CalledProcessError(returncode, command)
+
+
 def run_lm_harness(
     *,
     base_model: str,
@@ -89,6 +149,7 @@ def run_lm_harness(
     think_end_token: str | None,
     run: str,
     dry_run: bool,
+    timing_output: Path | None = None,
 ) -> list[str]:
     lines: list[str] = []
     target_adapter = adapter_dir if run == "adapter" else None
@@ -114,7 +175,7 @@ def run_lm_harness(
     if shutil.which("lm_eval") is None:
         raise RuntimeError("lm_eval is not installed; install lm-evaluation-harness in the run environment")
     output_path.mkdir(parents=True, exist_ok=True)
-    subprocess.run(command, check=True)
+    run_command_with_timing(command, timing_output)
     return lines
 
 
@@ -133,6 +194,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--think-end-token")
     parser.add_argument("--run", choices=("base", "adapter"), required=True)
     parser.add_argument("--apply-chat-template", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--timing-output", type=Path)
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 
@@ -157,6 +219,7 @@ def main() -> int:
         think_end_token=args.think_end_token,
         run=args.run,
         dry_run=args.dry_run,
+        timing_output=args.timing_output,
     ):
         print(line)
     return 0

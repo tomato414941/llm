@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -6,7 +7,9 @@ from llm.leverage import evaluate_lm_harness
 from llm.leverage.evaluate_lm_harness import (
     build_lm_eval_command,
     model_args,
+    run_command_with_timing,
     run_lm_harness,
+    update_generation_timing,
 )
 
 
@@ -180,3 +183,51 @@ def test_run_lm_harness_requires_lm_eval_for_real_base_run(monkeypatch: pytest.M
             run="base",
             dry_run=False,
         )
+
+
+def test_update_generation_timing_records_first_and_last_marker(monkeypatch: pytest.MonkeyPatch) -> None:
+    values = iter([12.0, 15.5])
+    monkeypatch.setattr(evaluate_lm_harness.time, "monotonic", lambda: next(values))
+    timing: dict[str, object] = {
+        "generation_started_after_seconds": None,
+        "generation_last_seen_after_seconds": None,
+    }
+
+    update_generation_timing("Running generate_until requests: 10%", timing, started=10.0)
+    update_generation_timing("Running generate_until requests: 100%", timing, started=10.0)
+
+    assert timing["generation_started_after_seconds"] == 2.0
+    assert timing["generation_last_seen_after_seconds"] == 5.5
+
+
+def test_update_generation_timing_ignores_non_generation_lines(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(evaluate_lm_harness.time, "monotonic", lambda: 12.0)
+    timing: dict[str, object] = {
+        "generation_started_after_seconds": None,
+        "generation_last_seen_after_seconds": None,
+    }
+
+    update_generation_timing("Loading weights", timing, started=10.0)
+
+    assert timing["generation_started_after_seconds"] is None
+    assert timing["generation_last_seen_after_seconds"] is None
+
+
+def test_run_command_with_timing_writes_timing_json(tmp_path: Path) -> None:
+    timing_path = tmp_path / "timing.json"
+
+    run_command_with_timing(
+        [
+            "sh",
+            "-c",
+            "printf '%s\\n' 'Loading weights' 'Running generate_until requests: 100%'",
+        ],
+        timing_path,
+    )
+
+    timing = json.loads(timing_path.read_text(encoding="utf-8"))
+    assert timing["returncode"] == 0
+    assert timing["elapsed_seconds"] >= 0
+    assert timing["generation_started_after_seconds"] is not None
+    assert timing["generation_last_seen_after_seconds"] is not None
+    assert timing["generation_seconds"] >= 0

@@ -47,7 +47,8 @@ uv run python -m llm.leverage.evaluate_lm_harness \
   --task ifeval \
   --run base \
   --limit 10 \
-  --no-enable-thinking
+  --no-enable-thinking \
+  --timing-output outputs/leverage-lm-harness/base-timing.json
 ```
 
 The wrapper runs:
@@ -64,6 +65,11 @@ Outputs go under:
 ```text
 outputs/leverage-lm-harness/
 ```
+
+Use `--timing-output` when comparing GPUs or backend speed. It records total
+command time and, when the lm-evaluation-harness progress output exposes it,
+the observed `generate_until` interval. Treat generation timing as unavailable
+when the field is `null`; do not infer it from total command time.
 
 Use a small `--limit` first. Full `ifeval` has 541 generation requests and can
 be too slow for a first usability check on a single A40.

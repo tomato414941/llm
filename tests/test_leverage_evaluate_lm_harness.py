@@ -106,7 +106,7 @@ def test_run_lm_harness_dry_run_prints_base_command() -> None:
         log_samples=True,
         enable_thinking=True,
         think_end_token="</think>",
-        run="base",
+        variant="base",
         dry_run=True,
     )
 
@@ -133,7 +133,7 @@ def test_run_lm_harness_dry_run_prints_adapter_command() -> None:
         log_samples=False,
         enable_thinking=False,
         think_end_token=None,
-        run="adapter",
+        variant="adapter",
         dry_run=True,
     )
 
@@ -159,7 +159,7 @@ def test_run_lm_harness_requires_adapter_for_real_adapter_run(tmp_path: Path) ->
             log_samples=False,
             enable_thinking=None,
             think_end_token=None,
-            run="adapter",
+            variant="adapter",
             dry_run=False,
         )
 
@@ -180,7 +180,7 @@ def test_run_lm_harness_requires_lm_eval_for_real_base_run(monkeypatch: pytest.M
             log_samples=False,
             enable_thinking=None,
             think_end_token=None,
-            run="base",
+            variant="base",
             dry_run=False,
         )
 

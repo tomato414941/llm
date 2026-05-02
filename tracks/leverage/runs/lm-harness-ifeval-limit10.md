@@ -22,6 +22,8 @@ RunPod:
 
 Remote command:
 
+Historical command used at the time:
+
 ```bash
 uv pip install lm-eval peft transformers accelerate datasets sentencepiece protobuf langdetect immutabledict &&
 uv run python -m llm.leverage.evaluate_lm_harness \
@@ -30,6 +32,9 @@ uv run python -m llm.leverage.evaluate_lm_harness \
   --run both \
   --limit 10
 ```
+
+Current CLI no longer supports `--run both`; run each model variant separately
+with `--variant base` or `--variant adapter`.
 
 ## Result
 

@@ -147,13 +147,13 @@ def run_lm_harness(
     log_samples: bool,
     enable_thinking: bool | None,
     think_end_token: str | None,
-    run: str,
+    variant: str,
     dry_run: bool,
     timing_output: Path | None = None,
 ) -> list[str]:
     lines: list[str] = []
-    target_adapter = adapter_dir if run == "adapter" else None
-    output_path = output_root / run
+    target_adapter = adapter_dir if variant == "adapter" else None
+    output_path = output_root / variant
     command = build_lm_eval_command(
         base_model=base_model,
         adapter_dir=target_adapter,
@@ -167,10 +167,10 @@ def run_lm_harness(
         enable_thinking=enable_thinking,
         think_end_token=think_end_token,
     )
-    lines.append(f"{run}: {shell_join(command)}")
+    lines.append(f"{variant}: {shell_join(command)}")
     if dry_run:
         return lines
-    if run == "adapter" and not adapter_dir.exists():
+    if variant == "adapter" and not adapter_dir.exists():
         raise FileNotFoundError(f"adapter directory does not exist: {adapter_dir}")
     if shutil.which("lm_eval") is None:
         raise RuntimeError("lm_eval is not installed; install lm-evaluation-harness in the run environment")
@@ -192,7 +192,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--log-samples", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--enable-thinking", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--think-end-token")
-    parser.add_argument("--run", choices=("base", "adapter"), required=True)
+    parser.add_argument("--variant", choices=("base", "adapter"), required=True)
     parser.add_argument("--apply-chat-template", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--timing-output", type=Path)
     parser.add_argument("--dry-run", action="store_true")
@@ -217,7 +217,7 @@ def main() -> int:
         log_samples=args.log_samples,
         enable_thinking=args.enable_thinking,
         think_end_token=args.think_end_token,
-        run=args.run,
+        variant=args.variant,
         dry_run=args.dry_run,
         timing_output=args.timing_output,
     ):

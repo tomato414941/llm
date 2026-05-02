@@ -33,7 +33,7 @@ project wrapper:
 uv run python -m llm.leverage.evaluate_lm_harness \
   --config tracks/leverage/configs/leverage-sft-qwen35-9b.toml \
   --task ifeval \
-  --run base \
+  --variant base \
   --limit 10 \
   --no-enable-thinking \
   --dry-run
@@ -45,7 +45,7 @@ Run the benchmark by removing `--dry-run`:
 uv run python -m llm.leverage.evaluate_lm_harness \
   --config tracks/leverage/configs/leverage-sft-qwen35-9b.toml \
   --task ifeval \
-  --run base \
+  --variant base \
   --limit 10 \
   --no-enable-thinking \
   --timing-output outputs/leverage-lm-harness/base-timing.json
@@ -56,9 +56,9 @@ The wrapper runs:
 - base: `pretrained=Qwen/Qwen3.5-9B`
 - adapter: `pretrained=Qwen/Qwen3.5-9B,peft=outputs/leverage-sft-qwen35-9b/lora-adapter`
 
-Run each model variant as a separate command. Use `--run base` for the base
-model and `--run adapter` for the LoRA adapter. Do not combine variants in one
-long benchmark job.
+Run each model variant as a separate command. Use `--variant base` for the base
+model and `--variant adapter` for the LoRA adapter. Do not combine variants in
+one long benchmark job.
 
 Outputs go under:
 

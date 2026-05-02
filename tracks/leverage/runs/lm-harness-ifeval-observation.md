@@ -34,7 +34,7 @@ uv pip install lm-eval peft transformers accelerate datasets sentencepiece proto
   uv run python -m llm.leverage.evaluate_lm_harness \
     --config tracks/leverage/configs/leverage-sft-qwen35-9b.toml \
     --task ifeval \
-    --run base \
+    --variant base \
     --batch-size 1 \
     --limit 2 \
     --log-samples \

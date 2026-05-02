@@ -31,7 +31,7 @@ Base:
 uv run python -u -m llm.leverage.evaluate_lm_harness \
   --config tracks/leverage/configs/leverage-sft-qwen35-9b.toml \
   --task ifeval \
-  --run base \
+  --variant base \
   --no-enable-thinking \
   --output-root outputs/leverage-lm-harness-ifeval-full
 ```
@@ -42,7 +42,7 @@ Adapter:
 uv run python -u -m llm.leverage.evaluate_lm_harness \
   --config tracks/leverage/configs/leverage-sft-qwen35-9b.toml \
   --task ifeval \
-  --run adapter \
+  --variant adapter \
   --no-enable-thinking \
   --output-root outputs/leverage-lm-harness-ifeval-full
 ```

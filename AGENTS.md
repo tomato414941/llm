@@ -25,6 +25,13 @@
 - Prefer `uv add` / `uv add --dev` for managed dependencies.
 - Defer CUDA-specific PyTorch indexes and heavy LLM dependencies until experiments require them.
 
+## Benchmark Rules
+- Run full benchmarks separately by benchmark task and model variant.
+- A model variant is one evaluated target, such as a base model or the same base model with a LoRA adapter.
+- Do not combine multiple model variants in one long benchmark job.
+- Keep generated benchmark outputs under ignored `outputs/` paths and commit only concise run notes.
+- After any RunPod benchmark job, verify `runpodctl pod list -o json` is empty.
+
 ## Git Rules
 - Main development happens on `main`.
 - Use small commits with English messages in `type: description` format.

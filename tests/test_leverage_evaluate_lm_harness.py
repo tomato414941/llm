@@ -7,7 +7,6 @@ from llm.leverage.evaluate_lm_harness import (
     build_lm_eval_command,
     model_args,
     run_lm_harness,
-    selected_runs,
 )
 
 
@@ -91,13 +90,7 @@ def test_build_lm_eval_command_defaults_to_hf_backend() -> None:
     ]
 
 
-def test_selected_runs_expands_both() -> None:
-    assert selected_runs("both") == ["base", "adapter"]
-    assert selected_runs("base") == ["base"]
-    assert selected_runs("adapter") == ["adapter"]
-
-
-def test_run_lm_harness_dry_run_prints_base_and_adapter_commands() -> None:
+def test_run_lm_harness_dry_run_prints_base_command() -> None:
     lines = run_lm_harness(
         base_model="Qwen/Qwen3.5-9B",
         adapter_dir=Path("outputs/leverage-sft-qwen35-9b/lora-adapter"),
@@ -110,22 +103,43 @@ def test_run_lm_harness_dry_run_prints_base_and_adapter_commands() -> None:
         log_samples=True,
         enable_thinking=True,
         think_end_token="</think>",
-        run="both",
+        run="base",
         dry_run=True,
     )
 
-    assert len(lines) == 2
+    assert len(lines) == 1
     assert lines[0].startswith("base: lm_eval")
     assert "pretrained=Qwen/Qwen3.5-9B" in lines[0]
     assert "peft=" not in lines[0]
-    assert lines[1].startswith("adapter: lm_eval")
-    assert "peft=outputs/leverage-sft-qwen35-9b/lora-adapter" in lines[1]
     assert "--limit 10" in lines[0]
-    assert "--limit 10" in lines[1]
     assert "--log_samples" in lines[0]
-    assert "--log_samples" in lines[1]
     assert "enable_thinking=True" in lines[0]
     assert "think_end_token=</think>" in lines[0]
+
+
+def test_run_lm_harness_dry_run_prints_adapter_command() -> None:
+    lines = run_lm_harness(
+        base_model="Qwen/Qwen3.5-9B",
+        adapter_dir=Path("outputs/leverage-sft-qwen35-9b/lora-adapter"),
+        output_root=Path("outputs/leverage-lm-harness"),
+        tasks=["ifeval"],
+        device="cuda:0",
+        batch_size="auto",
+        apply_chat_template=True,
+        limit=10,
+        log_samples=False,
+        enable_thinking=False,
+        think_end_token=None,
+        run="adapter",
+        dry_run=True,
+    )
+
+    assert len(lines) == 1
+    assert lines[0].startswith("adapter: lm_eval")
+    assert "pretrained=Qwen/Qwen3.5-9B" in lines[0]
+    assert "peft=outputs/leverage-sft-qwen35-9b/lora-adapter" in lines[0]
+    assert "--limit 10" in lines[0]
+    assert "enable_thinking=False" in lines[0]
 
 
 def test_run_lm_harness_requires_adapter_for_real_adapter_run(tmp_path: Path) -> None:

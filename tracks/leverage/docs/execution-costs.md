@@ -104,10 +104,10 @@ separate rows and link them through the same run note or purpose.
 
 ## Planned Records
 
-| planned date | kind | workload | model | variant | purpose | record after run |
-| --- | --- | --- | --- | --- | --- | --- |
-| 2026-05-02 | sample diagnosis | IFEval limit 50 with `--log-samples` | `Qwen/Qwen3.5-9B` | base | Provide the fixed baseline sample set for adapter regression diagnosis. | wall time, command time, generation time if available, RunPod cost, scores, sample artifact path, and diagnosis run note |
-| 2026-05-02 | sample diagnosis | IFEval limit 50 with `--log-samples` | `Qwen/Qwen3.5-9B` + LoRA adapter | adapter | Classify why the adapter regressed on full IFEval before changing training data or LoRA settings. | wall time, command time, generation time if available, RunPod cost, score delta against base, sample artifact path, and diagnosis run note |
+| planned date | kind | workload | model | variant | provider / hardware | units | estimated wall time | estimated command time | estimated generation time | estimated cost | purpose | note |
+| --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| 2026-05-02 | sample diagnosis | IFEval limit 50 with `--log-samples` | `Qwen/Qwen3.5-9B` | base | RunPod Secure Cloud / `NVIDIA A40` | 50 | about `15-25m` | unknown | unknown | about `$0.11-$0.18` | Fixed baseline sample set for adapter regression diagnosis. | Estimate based on the limit-10 timing probe; setup and model load do not scale linearly. |
+| 2026-05-02 | sample diagnosis | IFEval limit 50 with `--log-samples` | `Qwen/Qwen3.5-9B` + LoRA adapter | adapter | RunPod Secure Cloud / `NVIDIA A40` | 50 | about `15-25m` | unknown | unknown | about `$0.11-$0.18` | Diagnose adapter-only IFEval regressions. | Compare against the planned base sample set. |
 
 ## Benchmark / Evaluation Records
 

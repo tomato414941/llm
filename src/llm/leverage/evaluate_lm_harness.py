@@ -11,6 +11,8 @@ from llm.leverage.evaluate_sft_adapter import DEFAULT_CONFIG, config_defaults
 
 DEFAULT_TASK = "ifeval"
 DEFAULT_OUTPUT_ROOT = Path("outputs/leverage-lm-harness")
+# Generation timing is observational: lm-evaluation-harness may change or hide
+# this progress line, so missing generation_seconds is not an error.
 GENERATE_MARKER = "Running generate_until requests:"
 
 

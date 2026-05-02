@@ -35,6 +35,7 @@ uv run python -m llm.leverage.evaluate_lm_harness \
   --task ifeval \
   --run both \
   --limit 10 \
+  --no-enable-thinking \
   --dry-run
 ```
 
@@ -45,7 +46,8 @@ uv run python -m llm.leverage.evaluate_lm_harness \
   --config tracks/leverage/configs/leverage-sft-qwen35-9b.toml \
   --task ifeval \
   --run both \
-  --limit 10
+  --limit 10 \
+  --no-enable-thinking
 ```
 
 The wrapper runs:
@@ -61,6 +63,11 @@ outputs/leverage-lm-harness/
 
 Use a small `--limit` first. Full `ifeval` has 541 generation requests and can
 be too slow for a first usability check on a single A40.
+
+For Qwen, use `--no-enable-thinking` for IFEval by default. IFEval scores the
+visible response against formatting constraints, and thinking traces can distort
+those metrics. `--enable-thinking --think-end-token "</think>"` is available as
+a diagnostic mode, but it is not the default.
 
 ## Adapter Policy
 

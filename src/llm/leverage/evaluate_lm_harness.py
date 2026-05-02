@@ -10,10 +10,20 @@ DEFAULT_TASK = "ifeval"
 DEFAULT_OUTPUT_ROOT = Path("outputs/leverage-lm-harness")
 
 
-def model_args(*, base_model: str, adapter_dir: Path | None) -> str:
+def model_args(
+    *,
+    base_model: str,
+    adapter_dir: Path | None,
+    enable_thinking: bool | None,
+    think_end_token: str | None,
+) -> str:
     args = [f"pretrained={base_model}", "trust_remote_code=True"]
     if adapter_dir is not None:
         args.append(f"peft={adapter_dir}")
+    if enable_thinking is not None:
+        args.append(f"enable_thinking={enable_thinking}")
+    if think_end_token is not None:
+        args.append(f"think_end_token={think_end_token}")
     return ",".join(args)
 
 
@@ -28,13 +38,20 @@ def build_lm_eval_command(
     apply_chat_template: bool,
     limit: int | None,
     log_samples: bool,
+    enable_thinking: bool | None,
+    think_end_token: str | None,
 ) -> list[str]:
     command = [
         "lm_eval",
         "--model",
         "hf",
         "--model_args",
-        model_args(base_model=base_model, adapter_dir=adapter_dir),
+        model_args(
+            base_model=base_model,
+            adapter_dir=adapter_dir,
+            enable_thinking=enable_thinking,
+            think_end_token=think_end_token,
+        ),
         "--tasks",
         ",".join(tasks),
         "--device",
@@ -74,6 +91,8 @@ def run_lm_harness(
     apply_chat_template: bool,
     limit: int | None,
     log_samples: bool,
+    enable_thinking: bool | None,
+    think_end_token: str | None,
     run: str,
     dry_run: bool,
 ) -> list[str]:
@@ -91,6 +110,8 @@ def run_lm_harness(
             apply_chat_template=apply_chat_template,
             limit=limit,
             log_samples=log_samples,
+            enable_thinking=enable_thinking,
+            think_end_token=think_end_token,
         )
         lines.append(f"{target}: {shell_join(command)}")
         if dry_run:
@@ -115,6 +136,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--batch-size", default="auto")
     parser.add_argument("--limit", type=int)
     parser.add_argument("--log-samples", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--enable-thinking", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--think-end-token")
     parser.add_argument("--run", choices=("base", "adapter", "both"), default="both")
     parser.add_argument("--apply-chat-template", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--dry-run", action="store_true")
@@ -137,6 +160,8 @@ def main() -> int:
         apply_chat_template=args.apply_chat_template,
         limit=args.limit,
         log_samples=args.log_samples,
+        enable_thinking=args.enable_thinking,
+        think_end_token=args.think_end_token,
         run=args.run,
         dry_run=args.dry_run,
     ):

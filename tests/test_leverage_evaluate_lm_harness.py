@@ -12,7 +12,12 @@ from llm.leverage.evaluate_lm_harness import (
 
 
 def test_model_args_uses_base_model_without_adapter() -> None:
-    assert model_args(base_model="Qwen/Qwen3.5-9B", adapter_dir=None) == (
+    assert model_args(
+        base_model="Qwen/Qwen3.5-9B",
+        adapter_dir=None,
+        enable_thinking=None,
+        think_end_token=None,
+    ) == (
         "pretrained=Qwen/Qwen3.5-9B,trust_remote_code=True"
     )
 
@@ -21,11 +26,36 @@ def test_model_args_adds_peft_adapter_path() -> None:
     assert model_args(
         base_model="Qwen/Qwen3.5-9B",
         adapter_dir=Path("outputs/leverage-sft-qwen35-9b/lora-adapter"),
+        enable_thinking=None,
+        think_end_token=None,
     ) == (
         "pretrained=Qwen/Qwen3.5-9B,"
         "trust_remote_code=True,"
         "peft=outputs/leverage-sft-qwen35-9b/lora-adapter"
     )
+
+
+def test_model_args_adds_thinking_arguments() -> None:
+    assert model_args(
+        base_model="Qwen/Qwen3.5-9B",
+        adapter_dir=None,
+        enable_thinking=True,
+        think_end_token="</think>",
+    ) == (
+        "pretrained=Qwen/Qwen3.5-9B,"
+        "trust_remote_code=True,"
+        "enable_thinking=True,"
+        "think_end_token=</think>"
+    )
+
+
+def test_model_args_can_disable_thinking() -> None:
+    assert model_args(
+        base_model="Qwen/Qwen3.5-9B",
+        adapter_dir=None,
+        enable_thinking=False,
+        think_end_token=None,
+    ) == "pretrained=Qwen/Qwen3.5-9B,trust_remote_code=True,enable_thinking=False"
 
 
 def test_build_lm_eval_command_defaults_to_hf_backend() -> None:
@@ -39,6 +69,8 @@ def test_build_lm_eval_command_defaults_to_hf_backend() -> None:
         apply_chat_template=True,
         limit=None,
         log_samples=False,
+        enable_thinking=None,
+        think_end_token=None,
     )
 
     assert command == [
@@ -76,6 +108,8 @@ def test_run_lm_harness_dry_run_prints_base_and_adapter_commands() -> None:
         apply_chat_template=True,
         limit=10,
         log_samples=True,
+        enable_thinking=True,
+        think_end_token="</think>",
         run="both",
         dry_run=True,
     )
@@ -90,6 +124,8 @@ def test_run_lm_harness_dry_run_prints_base_and_adapter_commands() -> None:
     assert "--limit 10" in lines[1]
     assert "--log_samples" in lines[0]
     assert "--log_samples" in lines[1]
+    assert "enable_thinking=True" in lines[0]
+    assert "think_end_token=</think>" in lines[0]
 
 
 def test_run_lm_harness_requires_adapter_for_real_adapter_run(tmp_path: Path) -> None:
@@ -104,6 +140,8 @@ def test_run_lm_harness_requires_adapter_for_real_adapter_run(tmp_path: Path) ->
             apply_chat_template=True,
             limit=None,
             log_samples=False,
+            enable_thinking=None,
+            think_end_token=None,
             run="adapter",
             dry_run=False,
         )
@@ -123,6 +161,8 @@ def test_run_lm_harness_requires_lm_eval_for_real_base_run(monkeypatch: pytest.M
             apply_chat_template=True,
             limit=None,
             log_samples=False,
+            enable_thinking=None,
+            think_end_token=None,
             run="base",
             dry_run=False,
         )

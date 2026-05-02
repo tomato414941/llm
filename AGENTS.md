@@ -32,6 +32,12 @@
 - Keep generated benchmark outputs under ignored `outputs/` paths and commit only concise run notes.
 - After any RunPod benchmark job, verify `runpodctl pod list -o json` is empty.
 
+## Execution Cost Rules
+- Before running cost-bearing work, propose whether the run should be recorded in `tracks/leverage/docs/execution-costs.md`.
+- Cost-bearing work includes RunPod jobs, external benchmarks, generated-data API calls, judge API calls, inference probes, and LoRA/SFT training.
+- After cost-bearing work completes, propose recording the measured time and cost in `tracks/leverage/docs/execution-costs.md` when the result can change future execution decisions.
+- Keep detailed context in a run note under `tracks/leverage/runs/`; keep the compact summary table in `tracks/leverage/docs/execution-costs.md`.
+
 ## Git Rules
 - Main development happens on `main`.
 - Use small commits with English messages in `type: description` format.

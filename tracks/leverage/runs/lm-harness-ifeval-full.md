@@ -61,6 +61,9 @@ On full IFEval, the adapter is worse than the base model:
 - instruction strict: -0.0384
 - instruction loose: -0.0468
 
+The same result is recorded as machine-readable one-result-per-line metadata in
+`tracks/leverage/runs/benchmark-results.jsonl`.
+
 ## Artifacts
 
 Ignored output files:

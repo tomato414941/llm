@@ -71,31 +71,7 @@ command time and, when the lm-evaluation-harness progress output exposes it,
 the observed `generate_until` interval. Treat generation timing as unavailable
 when the field is `null`; do not infer it from total command time.
 
-## Speed And Cost Records
-
-Record speed and cost in a run note under `tracks/leverage/runs/` whenever a
-benchmark run is used to make an execution decision. Keep raw artifacts under
-ignored `outputs/`.
-
-Include:
-
-- benchmark task, limit or full-run status, model variant, base model, adapter
-  path when used, thinking mode, batch size, backend, and device
-- GPU type, cloud, image, CUDA filter, cost rate, and observed pod location
-- score metrics if the run produced scores
-- total RunPod wall time from `runpod-timings.json`
-- benchmark command time from `--timing-output`
-- generation time from `--timing-output` when available
-- setup, SSH readiness, and output sync time when they materially affect cost
-- approximate cost computed from observed wall time and the RunPod cost rate
-
-Use wall time for actual RunPod cost. Use benchmark command time for backend or
-batch-size comparisons. Use generation time only when `generation_seconds` is
-present; otherwise say it was unavailable.
-
-For projections, write the formula and the assumption next to the estimate.
-Do not present limited-run scores as real benchmark quality. Limited runs are
-for smoke, speed, and cost estimation only.
+Record speed and cost according to `tracks/leverage/docs/execution-costs.md`.
 
 Use a small `--limit` first. Full `ifeval` has 541 generation requests and can
 be too slow for a first usability check on a single A40.

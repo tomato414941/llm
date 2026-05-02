@@ -77,3 +77,23 @@ benchmark runner supports PEFT.
 Create a merged model only when a benchmark tool cannot load PEFT adapters or
 when a serving backend needs a complete model directory. Do not commit merged
 models.
+
+## Thinking Mode Policy
+
+Choose thinking mode per benchmark. Do not use one global setting.
+
+- Formatting and instruction-following benchmarks such as `ifeval`, JSON-only
+  tasks, SQL, and code-format checks should default to `--no-enable-thinking`.
+  These benchmarks score the visible response against explicit constraints, so
+  thinking traces can distort the metric.
+- Math, reasoning QA, and reasoning-focused benchmarks may use
+  `--enable-thinking --think-end-token "</think>"` when the benchmark scores
+  only the final answer. Treat this as a separate condition, not as a silent
+  replacement for thinking off.
+- Smoke runs should default to `--no-enable-thinking` unless the smoke is
+  specifically checking reasoning-mode behavior. Thinking mode can greatly
+  increase generation cost.
+
+If thinking mode is enabled, log samples first and verify that the model reaches
+the thinking terminator. If it does not reach `</think>` within the generation
+limit, the final answer is missing and the benchmark result is not reliable.

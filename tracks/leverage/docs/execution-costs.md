@@ -100,9 +100,10 @@ remote command, output sync, and total wall time.
 
 ## Planned Records
 
-| planned date | kind | workload | model | variants | purpose | record after run |
+| planned date | kind | workload | model | variant | purpose | record after run |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2026-05-02 | sample diagnosis | IFEval limit 50 with `--log-samples` | `Qwen/Qwen3.5-9B` | base and LoRA adapter | Classify why the adapter regressed on full IFEval before changing training data or LoRA settings. | wall time, command time, generation time if available, RunPod cost, score deltas, sample artifact paths, and diagnosis run note |
+| 2026-05-02 | sample diagnosis | IFEval limit 50 with `--log-samples` | `Qwen/Qwen3.5-9B` | base | Provide the fixed baseline sample set for adapter regression diagnosis. | wall time, command time, generation time if available, RunPod cost, scores, sample artifact path, and diagnosis run note |
+| 2026-05-02 | sample diagnosis | IFEval limit 50 with `--log-samples` | `Qwen/Qwen3.5-9B` + LoRA adapter | adapter | Classify why the adapter regressed on full IFEval before changing training data or LoRA settings. | wall time, command time, generation time if available, RunPod cost, score delta against base, sample artifact path, and diagnosis run note |
 
 ## Benchmark / Evaluation Records
 

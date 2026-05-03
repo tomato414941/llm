@@ -125,6 +125,9 @@ def runpodctl_create_command(args: argparse.Namespace) -> list[str]:
         command.extend(["--cloud-type", "COMMUNITY", "--public-ip"])
     if args.bootstrap_sshd:
         command.append("--ssh")
+    data_center_ids = getattr(args, "data_center_ids", "")
+    if data_center_ids:
+        command.extend(["--data-center-ids", data_center_ids])
     return command
 
 
@@ -143,6 +146,9 @@ def runpod_create_command(args: argparse.Namespace, *, api_key: str, public_key:
         "cloudType": "SECURE" if args.secure_cloud else "COMMUNITY",
         "allowedCudaVersions": allowed_cuda_versions,
     }
+    data_center_ids = getattr(args, "data_center_ids", "")
+    if data_center_ids:
+        payload["dataCenterIds"] = [value.strip() for value in data_center_ids.split(",") if value.strip()]
     template_id = getattr(args, "template_id", None)
     if template_id:
         payload["templateId"] = template_id

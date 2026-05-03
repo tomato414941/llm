@@ -272,6 +272,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--vcpu", type=int, default=8)
     parser.add_argument("--mem", type=int, default=32)
     parser.add_argument("--secure-cloud", action="store_true")
+    parser.add_argument("--data-center-ids", default="")
     parser.add_argument("--runpodctl", default=DEFAULT_RUNPODCTL)
     parser.add_argument("--secret-path", type=Path, default=DEFAULT_SECRET_PATH)
     parser.add_argument("--ssh-key", type=Path, default=DEFAULT_SSH_KEY)

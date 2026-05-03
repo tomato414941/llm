@@ -109,6 +109,37 @@ Needs-edit rows:
 | `lt_seed_1484` | `qwen3-6-plus-openrouter` | `gpt-5-5-openrouter` | Added unsupported workflow details while expanding notes. |
 | `lt_seed_1489` | `claude-sonnet-4-6-openrouter` | `kimi-k2-6-openrouter` | Added an unsupported sixth checklist item and may be below the word target. |
 
+## Promotion Result
+
+Accepted rows were promoted after an extra local constraint spot check covering
+minimum word count, exact word count, forbidden punctuation, uppercase-only
+letters, forbidden terms, JSON validity, and Markdown JSON fences.
+
+- promoted rows: 15
+- reviewed dataset size after promotion: 1,098 rows
+- SFT export size after promotion: 1,098 rows
+- promoted id range: `instr_1086` through `instr_1100`
+
+Promoted seeds:
+
+```text
+lt_seed_1471
+lt_seed_1472
+lt_seed_1473
+lt_seed_1474
+lt_seed_1475
+lt_seed_1476
+lt_seed_1478
+lt_seed_1479
+lt_seed_1480
+lt_seed_1483
+lt_seed_1485
+lt_seed_1486
+lt_seed_1487
+lt_seed_1488
+lt_seed_1490
+```
+
 ## Interpretation
 
 The existing schema was sufficient to run the batch. The pipeline could generate,

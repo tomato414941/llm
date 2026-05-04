@@ -1,12 +1,15 @@
-# Leverage SFT Smoke Plan
+# LoRA/SFT RunPod Guide
 
-This plan defines the first weight-changing leverage experiment. It is a smoke
-test for the data and training path, not a claim that the model improves.
+This is the canonical RunPod guide for leverage-track LoRA/SFT runs. It covers
+smoke runs, bounded measurement runs, and short baseline-adapter training runs.
+A successful run proves that the training path works. It is not a claim that
+the model improves.
 
 ## Objective
 
-Verify that reviewed instructions can be exported into training JSONL and used
-by a small student model in a bounded LoRA or SFT run.
+Run a bounded weight-changing experiment from reviewed instructions, with
+preflight, package checks, training, optional held-out eval, artifact sync, and
+pod cleanup all explicit before paid GPU time starts.
 
 ## Inputs
 
@@ -15,7 +18,10 @@ by a small student model in a bounded LoRA or SFT run.
 - Held-out evals:
   - `tracks/leverage/evals/leverage-smoke.jsonl`
   - `tracks/leverage/evals/project-judgment.jsonl`
-- Config: `tracks/leverage/configs/leverage-sft-smoke.toml`
+- Config examples:
+  - `tracks/leverage/configs/leverage-sft-smoke.toml`
+  - `tracks/leverage/configs/leverage-sft-qwen35-9b.toml`
+  - `tracks/leverage/configs/leverage-sft-qwen35-9b-long-form-constraint.toml`
 
 ## Student Model
 
@@ -38,9 +44,9 @@ model with different loading and adaptation concerns.
 
 ## Method
 
-Prefer LoRA for the first run. Full SFT is acceptable only if the implementation
-is simpler in the selected training stack and remains bounded to the configured
-smoke example limit.
+Prefer LoRA for current leverage-track training. Full SFT is acceptable only if
+the selected stack makes it simpler and the run remains bounded by the chosen
+config.
 
 ## Before Training
 
@@ -58,7 +64,9 @@ The preferred local preflight combines those checks with the smoke config
 constraints:
 
 ```bash
-uv run python -m llm.leverage.sft_smoke_preflight --overwrite
+uv run python -m llm.leverage.sft_smoke_preflight \
+  --config tracks/leverage/configs/leverage-sft-smoke.toml \
+  --overwrite
 ```
 
 This command validates the reviewed instruction source, regenerates the training
@@ -66,6 +74,21 @@ export, checks the eval task paths, verifies the export row count stays within
 `max_train_examples`, and confirms that RunPod is not required for preflight. It
 does not train a model, call external APIs, download weights, or start paid GPU
 resources.
+
+## Required Training Packages
+
+`uv sync --extra dev` does not install the optional SFT training stack. Unless
+the project dependency surface or RunPod image changes, each remote training
+job must install and verify these packages before launching training:
+
+```bash
+uv pip install transformers peft trl accelerate
+
+uv run python -u -c "import torch; import transformers; import peft; import trl; print(\"training packages import ok\")"
+```
+
+Keep this check close to the training command. A missing package is setup
+failure, not evidence about the model, data, trainer, or GPU.
 
 ## RunPod Dry Run
 
@@ -108,6 +131,31 @@ The dry run must show these steps in order:
 - artifact, metrics, and notes sync from `outputs/leverage-sft-smoke`
 - cleanup
 
+For a 9B short training run, keep the same shape and change only the name,
+config, and output path:
+
+```bash
+uv run python scripts/runpod/run_once.py \
+  --dry-run \
+  --name llm-leverage-qwen35-9b-lora \
+  --secure-cloud \
+  --gpu-type 'NVIDIA GeForce RTX 4090' \
+  --image runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404 \
+  --allowed-cuda-version 12.8 \
+  --allowed-cuda-version 12.9 \
+  --allowed-cuda-version 13.0 \
+  --mem 24 \
+  --sync tracks/leverage/configs \
+  --sync tracks/leverage/datasets \
+  --sync tracks/leverage/evals \
+  --sync tracks/leverage/sft \
+  --output outputs/leverage-sft-qwen35-9b-long-form-constraint \
+  --local 'uv run python -m llm.leverage.sft_smoke_preflight --config tracks/leverage/configs/leverage-sft-qwen35-9b-long-form-constraint.toml --overwrite' \
+  --remote 'uv pip install transformers peft trl accelerate' \
+  --remote 'uv run python -u -c "import torch; import transformers; import peft; import trl; print(\"training packages import ok\")"' \
+  --remote 'uv run python -u -m llm.leverage.train_sft_smoke --config tracks/leverage/configs/leverage-sft-qwen35-9b-long-form-constraint.toml'
+```
+
 Do not run the same command without `--dry-run` until the dry-run plan matches
 the intended GPU, image, model, output paths, and cleanup policy. Prefer an RTX
 4090 when the selected small student fits comfortably; use an A40 when the extra
@@ -136,12 +184,13 @@ image when host-driver compatibility matters more than using the newest image.
 - The training JSONL export is regenerated.
 - The training command completes within the configured smoke example limit.
 - An adapter or checkpoint artifact is written.
-- The held-out eval command can run before and after training.
+- If eval is part of the run objective, the held-out eval command can run
+  before and after training.
 
 ## Post-Training Eval
 
-After a smoke adapter exists under `outputs/leverage-sft-smoke/lora-adapter/`, compare
-the base student and adapter on the same eval tasks:
+After an adapter exists, compare the base student and adapter on the same eval
+tasks:
 
 ```bash
 uv run python -m llm.leverage.evaluate_sft_adapter --dry-run
@@ -149,8 +198,8 @@ uv run python -m llm.leverage.evaluate_sft_adapter --dry-run
 
 Remove `--dry-run` only in an environment that can load the base model and
 adapter. The command writes predictions, detailed scores, and summary scores
-under `outputs/leverage-sft-smoke/`. Treat this as a wiring comparison, not as a
-capability claim.
+under the configured output directory. Treat short evals as wiring comparisons,
+not as capability claims.
 
 ## Stop Conditions
 

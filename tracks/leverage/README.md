@@ -25,7 +25,7 @@ seed prompts
 - SFT export: `sft/bootstrap.train.jsonl`
 - Held-out evals: `evals/leverage-smoke.jsonl`,
   `evals/project-judgment.jsonl`, `evals/leverage-model-spec.jsonl`
-- LoRA smoke plan: `docs/sft-smoke.md`
+- LoRA/SFT RunPod guide: `docs/lora-sft-runpod.md`
 - External benchmark plan: `docs/external-benchmarks.md`
 - Latest smoke result:
   `runs/leverage-sft-smoke-runpod-59-qwen35-08b-timing.md`

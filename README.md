@@ -60,7 +60,7 @@ Reference docs:
 - `tracks/leverage/model-spec.md`: target behavior and policy guard spec.
 - `tracks/leverage/datasets/README.md`: reviewed instruction dataset lifecycle.
 - `tracks/leverage/prompts/README.md`: generation seed prompts.
-- `tracks/leverage/docs/sft-smoke.md`: first LoRA/SFT smoke plan.
+- `tracks/leverage/docs/lora-sft-runpod.md`: canonical LoRA/SFT RunPod guide.
 - `tracks/leverage/runs/README.md`: which run records to read first.
 - `tracks/leverage/runs/leverage-sft-smoke-runpod-1083-qwen35-08b-batched.md`:
   current 0.8B RunPod SFT smoke result.
@@ -86,28 +86,8 @@ RunPod is a paid external resource. Do not start a pod unless the objective,
 cost ceiling, uploaded files, stopping condition, and cleanup plan are explicit.
 
 The generic one-shot runner handles pod lifecycle, sync, remote commands, output
-collection, and cleanup:
-
-```bash
-uv run python scripts/runpod/run_once.py --dry-run \
-  --name llm-leverage-sft-smoke \
-  --secure-cloud \
-  --gpu-type 'NVIDIA GeForce RTX 4090' \
-  --image runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404 \
-  --allowed-cuda-version 12.8 \
-  --allowed-cuda-version 12.9 \
-  --allowed-cuda-version 13.0 \
-  --mem 24 \
-  --sync tracks/leverage/configs \
-  --sync tracks/leverage/datasets \
-  --sync tracks/leverage/evals \
-  --sync tracks/leverage/sft \
-  --output outputs/leverage-sft-smoke \
-  --local 'uv run python -m llm.leverage.sft_smoke_preflight --config tracks/leverage/configs/leverage-sft-smoke.toml --overwrite' \
-  --remote 'uv pip install transformers peft trl accelerate' \
-  --remote 'uv run python -u -m llm.leverage.train_sft_smoke --config tracks/leverage/configs/leverage-sft-smoke.toml' \
-  --remote 'uv run python -u -m llm.leverage.evaluate_sft_adapter --config tracks/leverage/configs/leverage-sft-smoke.toml'
-```
+collection, and cleanup. Keep LoRA/SFT RunPod command examples in
+`tracks/leverage/docs/lora-sft-runpod.md`.
 
 The runner expects `runpodctl` v2 and uses `runpodctl pod ...` commands.
 Use `--dry-run` first. The CUDA filter keeps CUDA 12.8 images away from hosts

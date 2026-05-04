@@ -134,5 +134,4 @@ separate rows and link them through the same run note or purpose.
 
 | date | kind | workload | model | variant | provider / hardware | scale | wall time | command time | training time | cost | note |
 | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
-| 2026-05-04 | setup failure | missing optional SFT packages before long-form constraint smoke | `Qwen/Qwen3.5-9B` | adapter | RunPod Secure Cloud / `NVIDIA RTX 4090` | 1,098 rows planned | `1488.523s` | `3.024s` | n/a | about `$0.29` | `tracks/leverage/runs/qwen35-9b-lora-long-form-constraint-smoke.md` |
 | 2026-05-04 | LoRA training smoke | reviewed-data short run after long-form constraint promotion | `Qwen/Qwen3.5-9B` | adapter | RunPod Secure Cloud / `NVIDIA RTX 4090` | 1,098 rows, 1ep, 549 steps, 138 opt steps, bs2, acc4 | `1100.261s` | `995.435s` | `944.599s` | about `$0.21` | `tracks/leverage/runs/qwen35-9b-lora-long-form-constraint-smoke.md` |

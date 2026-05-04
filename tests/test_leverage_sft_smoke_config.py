@@ -134,10 +134,11 @@ def test_qwen35_9b_batch4_200_config_is_bounded_measurement() -> None:
 
 
 def test_leverage_sft_smoke_doc_exists() -> None:
-    doc = Path("tracks/leverage/docs/sft-smoke.md")
+    doc = Path("tracks/leverage/docs/lora-sft-runpod.md")
 
     assert doc.exists()
     text = doc.read_text(encoding="utf-8")
-    assert "not a claim that the model improves" in text
+    assert "not a claim" in text
+    assert "model improves" in text
     assert "Qwen/Qwen3.5-9B" in text
     assert "Do not launch a paid GPU job" in text

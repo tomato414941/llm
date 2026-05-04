@@ -25,6 +25,7 @@ seed prompts
 - SFT export: `sft/bootstrap.train.jsonl`
 - Held-out evals: `evals/leverage-smoke.jsonl`,
   `evals/project-judgment.jsonl`, `evals/leverage-model-spec.jsonl`
+- Reusable command map: `docs/commands.md`
 - LoRA/SFT RunPod guide: `docs/lora-sft-runpod.md`
 - External benchmark plan: `docs/external-benchmarks.md`
 - Latest smoke result:

@@ -60,6 +60,7 @@ Reference docs:
 - `tracks/leverage/model-spec.md`: target behavior and policy guard spec.
 - `tracks/leverage/datasets/README.md`: reviewed instruction dataset lifecycle.
 - `tracks/leverage/prompts/README.md`: generation seed prompts.
+- `tracks/leverage/docs/commands.md`: reusable leverage command guide map.
 - `tracks/leverage/docs/lora-sft-runpod.md`: canonical LoRA/SFT RunPod guide.
 - `tracks/leverage/runs/README.md`: which run records to read first.
 - `tracks/leverage/runs/leverage-sft-smoke-runpod-1083-qwen35-08b-batched.md`:

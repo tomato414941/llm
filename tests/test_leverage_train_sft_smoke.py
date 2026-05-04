@@ -68,7 +68,7 @@ def test_run_smoke_dry_run_reports_training_plan(tmp_path: Path) -> None:
     assert any("adapter output" in line for line in lines)
 
 
-def test_qwen35_9b_config_dry_run_uses_exported_rows() -> None:
+def test_qwen35_9b_config_dry_run_reports_training_plan() -> None:
     config_path = Path("tracks/leverage/configs/leverage-sft-qwen35-9b.toml")
     train_export_path = Path("tracks/leverage/sft/bootstrap.train.jsonl")
     expected_rows = len(train_export_path.read_text(encoding="utf-8").splitlines())

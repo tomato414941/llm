@@ -69,9 +69,13 @@ def test_run_smoke_dry_run_reports_training_plan(tmp_path: Path) -> None:
 
 
 def test_qwen35_9b_config_dry_run_uses_exported_rows() -> None:
-    lines = run_smoke(Path("tracks/leverage/configs/leverage-sft-qwen35-9b.toml"), dry_run=True)
+    config_path = Path("tracks/leverage/configs/leverage-sft-qwen35-9b.toml")
+    train_export_path = Path("tracks/leverage/sft/bootstrap.train.jsonl")
+    expected_rows = len(train_export_path.read_text(encoding="utf-8").splitlines())
 
-    assert any("would train 1098 rows" in line for line in lines)
+    lines = run_smoke(config_path, dry_run=True)
+
+    assert any(f"would train {expected_rows} rows" in line for line in lines)
     assert any("Qwen/Qwen3.5-9B" in line for line in lines)
     assert any("batch size: 2" in line for line in lines)
     assert any("max length: 512" in line for line in lines)

@@ -1,0 +1,64 @@
+[experiment]
+name = "leverage_sft_qwen35_9b_long_form_constraint"
+track = "leverage"
+objective = "Run Qwen3.5-9B LoRA/SFT after adding long-form constraint rows."
+status = "planned"
+
+[model]
+student = "Qwen/Qwen3.5-9B"
+torch_dtype = "bfloat16"
+selection_reason = "Qwen3.5-9B is the intended baseline; this run checks the 1,098-row dataset after long-form constraint promotion."
+
+[data]
+reviewed-instructions = "tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl"
+train_export = "tracks/leverage/sft/bootstrap.train.jsonl"
+eval_tasks = [
+  "tracks/leverage/evals/leverage-smoke.jsonl",
+  "tracks/leverage/evals/project-judgment.jsonl",
+]
+
+[method]
+first_choice = "lora"
+fallback = "stop"
+max_train_examples = 1200
+max_epochs = 1
+batch_size = 2
+max_length = 512
+gradient_checkpointing = true
+gradient_accumulation_steps = 4
+log_every_steps = 10
+eval_max_new_tokens = 128
+max_runtime_minutes = 60
+notes = "Use the stable full-data batch2 9B settings while writing to a separate output directory from the earlier baseline adapter."
+
+[runpod]
+required = false
+use_when = "Run only after dry-run confirms the exact GPU, config, outputs, timing, and cleanup plan."
+gpu_target = "NVIDIA RTX 4090"
+max_cost_usd = 1.00
+cleanup_required = true
+
+[outputs]
+root = "outputs/leverage-sft-qwen35-9b-long-form-constraint"
+adapter_dir = "outputs/leverage-sft-qwen35-9b-long-form-constraint/lora-adapter"
+logs = "outputs/leverage-sft-qwen35-9b-long-form-constraint/logs"
+metrics = "outputs/leverage-sft-qwen35-9b-long-form-constraint/metrics.csv"
+notes = "outputs/leverage-sft-qwen35-9b-long-form-constraint/notes.md"
+
+[success]
+criteria = [
+  "reviewed instructions validate successfully",
+  "training export is regenerated from reviewed instructions",
+  "training command completes on all exported reviewed rows",
+  "adapter artifact is written",
+  "metrics include rows, steps, tokens/sec, final loss, and peak VRAM",
+]
+
+[stop]
+conditions = [
+  "dependency setup exceeds the planned runtime",
+  "Qwen3.5-9B cannot be loaded on the selected GPU",
+  "loss becomes NaN",
+  "cost cap would be exceeded",
+  "any paid resource cannot be cleaned up immediately",
+]

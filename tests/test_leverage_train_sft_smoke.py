@@ -71,7 +71,7 @@ def test_run_smoke_dry_run_reports_training_plan(tmp_path: Path) -> None:
 def test_qwen35_9b_config_dry_run_uses_exported_rows() -> None:
     lines = run_smoke(Path("tracks/leverage/configs/leverage-sft-qwen35-9b.toml"), dry_run=True)
 
-    assert any("would train 1083 rows" in line for line in lines)
+    assert any("would train 1098 rows" in line for line in lines)
     assert any("Qwen/Qwen3.5-9B" in line for line in lines)
     assert any("batch size: 2" in line for line in lines)
     assert any("max length: 512" in line for line in lines)

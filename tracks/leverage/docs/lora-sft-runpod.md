@@ -187,6 +187,41 @@ image when host-driver compatibility matters more than using the newest image.
 - If eval is part of the run objective, the held-out eval command can run
   before and after training.
 
+## Capability-Seeking Run Gate
+
+Prioritize the `Qwen/Qwen3.5-9B` path over additional side-model smoke tests.
+Do not run another capability-seeking LoRA until the data and eval scale meet
+the thresholds below. A smoke proves the training path works; it does not prove
+that the reviewed dataset improves the student model.
+
+| reviewed rows | name | purpose |
+| ---: | --- | --- |
+| 300 | readiness run | Check that a 9B LoRA run is wired correctly and does not obviously collapse. |
+| 1,000 | pilot LoRA | Look for an early improvement trend against the base 9B model. |
+| 3,000+ | first serious 9B LoRA | First run large enough to treat as a real capability-seeking attempt. |
+| 10,000+ | dataset v1 | Candidate scale for a serious reviewed instruction dataset. |
+
+Before the next paid 9B LoRA run:
+
+- Reviewed instruction rows: at least 300
+- Project-judgment eval tasks: at least 100
+- Holdout eval tasks: at least 30
+- Label-only, duplicate, and malformed reviewed rows are excluded from the
+  training export
+- Holdout eval prompts are not used as teacher-generation seeds for the
+  training slice
+
+The next 9B LoRA run is useful only if:
+
+- Overall pass rate is at least the base student pass rate.
+- Project-judgment pass rate improves over the base student pass rate.
+- General `leverage-smoke` capabilities do not materially regress.
+- RunPod cleanup is verified after the run.
+
+Use the reviewed-instruction mix plan for dataset distribution. Use failed
+project-judgment cases only as one seed source, not as the center of the
+dataset.
+
 ## Post-Training Eval
 
 After an adapter exists, compare the base student and adapter on the same eval

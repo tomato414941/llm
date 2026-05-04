@@ -8,9 +8,9 @@ exports.
 
 - `../docs/data-category-design.md`: shared top-level capability taxonomy for
   seed prompts, reviewed instruction rows, and held-out eval tasks.
+- `../docs/lora-sft-runpod.md`: LoRA/SFT RunPod guide and capability-seeking
+  run gate.
 - `reviewed-instruction-mix-plan.md`: target reviewed-data mix for the next
-  capability-seeking LoRA run.
-- `next-lora-run-gate.md`: minimum reviewed-data and eval scale before the next
   capability-seeking LoRA run.
 - `leverage-sft-smoke-runpod-1083-qwen35-08b-batched.md`: current 0.8B RunPod
   LoRA/SFT smoke result, including timing, metrics, and cleanup confirmation.

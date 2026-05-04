@@ -6,7 +6,7 @@ Date: 2026-04-29
 
 Define the reviewed-instruction mix needed for the next `Qwen/Qwen3.5-9B`
 readiness run. This file answers what kind of reviewed data to add; the run gate
-is defined in `next-lora-run-gate.md`.
+is defined in `tracks/leverage/docs/lora-sft-runpod.md`.
 
 The dataset should be general-purpose instruction data, not a project-specific
 agent-policy dataset. Project-judgment examples are useful, but they are only

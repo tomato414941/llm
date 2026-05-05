@@ -62,9 +62,11 @@ Reference docs:
 - `tracks/leverage/prompts/README.md`: generation seed prompts.
 - `tracks/leverage/docs/commands.md`: reusable leverage command guide map.
 - `tracks/leverage/docs/lora-sft-runpod.md`: canonical LoRA/SFT RunPod guide.
+- `tracks/leverage/docs/reviewed-instruction-mix-plan.md`: reviewed-data mix
+  plan for Qwen3.5-9B LoRA runs.
 - `tracks/leverage/runs/README.md`: which run records to read first.
-- `tracks/leverage/runs/leverage-sft-smoke-runpod-1083-qwen35-08b-batched.md`:
-  current 0.8B RunPod SFT smoke result.
+- `tracks/leverage/runs/qwen35-9b-lora-long-form-constraint-smoke.md`:
+  current Qwen3.5-9B RunPod LoRA/SFT smoke result.
 - `tracks/leverage/runs/qwen35-9b-load-smoke-image103.md`: current 9B load
   smoke result.
 

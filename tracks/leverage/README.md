@@ -27,9 +27,10 @@ seed prompts
   `evals/project-judgment.jsonl`, `evals/leverage-model-spec.jsonl`
 - Reusable command map: `docs/commands.md`
 - LoRA/SFT RunPod guide: `docs/lora-sft-runpod.md`
+- Reviewed-data mix plan: `docs/reviewed-instruction-mix-plan.md`
 - External benchmark plan: `docs/external-benchmarks.md`
 - Latest smoke result:
-  `runs/leverage-sft-smoke-runpod-59-qwen35-08b-timing.md`
+  `runs/qwen35-9b-lora-long-form-constraint-smoke.md`
 
 ## Model Roles
 
@@ -40,9 +41,9 @@ seed prompts
   `deepseek-ai/DeepSeek-R1-Distill-Llama-8B`
 - Challenging open-weight target: `openai/gpt-oss-20b`
 
-Prioritize the Qwen path before side-model smoke tests: 300 reviewed rows for a
-9B readiness run, 1,000 for a pilot LoRA, and 3,000+ for the first serious
-`Qwen/Qwen3.5-9B` capability-seeking run.
+Prioritize the Qwen path before side-model smoke tests. The 300-row readiness
+and 1,000-row pilot thresholds have been reached; 3,000+ reviewed rows is the
+next target for a serious `Qwen/Qwen3.5-9B` capability-seeking run.
 
 ## Keep It Simple
 

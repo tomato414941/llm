@@ -8,6 +8,7 @@ from here.
 
 - LoRA/SFT RunPod training: `tracks/leverage/docs/lora-sft-runpod.md`
 - External benchmarks: `tracks/leverage/docs/external-benchmarks.md`
+- Reviewed-data mix planning: `tracks/leverage/docs/reviewed-instruction-mix-plan.md`
 - Reviewed dataset validation and export: `tracks/leverage/datasets/README.md`
 - Prompt generation utilities: `tracks/leverage/prompts/README.md`
 - RunPod cleanup check: root `README.md`

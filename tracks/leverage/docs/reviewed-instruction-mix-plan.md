@@ -4,17 +4,19 @@ Date: 2026-04-29
 
 ## Purpose
 
-Define the reviewed-instruction mix needed for the next `Qwen/Qwen3.5-9B`
-readiness run. This file answers what kind of reviewed data to add; the run gate
-is defined in `tracks/leverage/docs/lora-sft-runpod.md`.
+Define the reviewed-instruction mix for `Qwen/Qwen3.5-9B` LoRA readiness and
+pilot runs. This file answers what kind of reviewed data to add; the run gate is
+defined in `tracks/leverage/docs/lora-sft-runpod.md`.
 
 The dataset should be general-purpose instruction data, not a project-specific
 agent-policy dataset. Project-judgment examples are useful, but they are only
 one slice of the target mix.
 
-## 300-Row Readiness Mix
+## Baseline Mix
 
-Target reviewed rows: 300
+The 300-row readiness target used this baseline distribution. Keep the same
+rough capability balance for 1,000-row and 3,000-row targets unless evaluation
+failures show a clear reason to rebalance.
 
 Use the shared `capability` semantics defined in
 `tracks/leverage/docs/data-category-design.md`.
@@ -28,16 +30,15 @@ Use the shared `capability` semantics defined in
 | summarization_transformation | 25 | Summarization, rewrite, extraction, normalization, and format transformation. |
 | tool_use | 35 | Deciding whether to use local tools, APIs, generation, evaluation, or training. |
 
-For 1,000-row and 3,000-row targets, keep the same rough capability balance
-unless evaluation failures show a clear reason to rebalance. Do not let
-project-specific policy examples dominate any larger dataset stage.
+Do not let project-specific policy examples dominate any larger dataset stage.
 
 ## Current State
 
-Current reviewed rows: 104
+Current reviewed rows: 1,098
 
-The current reviewed dataset is enough for training-path smoke tests. It is not
-large or general enough for a capability claim.
+The current reviewed dataset is enough for training-path smoke tests and a
+small pilot LoRA. It is still below the 3,000+ row target for the first serious
+capability-seeking run.
 
 ## Rules
 

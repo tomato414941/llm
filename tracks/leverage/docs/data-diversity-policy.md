@@ -5,7 +5,7 @@ Date: 2026-04-29
 ## Purpose
 
 Define how reviewed instruction data should stay diverse while the dataset grows
-from smoke-test size to the first `Qwen/Qwen3.5-9B` readiness run.
+from smoke-test size toward serious `Qwen/Qwen3.5-9B` capability-seeking runs.
 
 This document is an operating policy, not a taxonomy research project. The goal
 is to prevent obvious data collapse without slowing down data growth.
@@ -28,9 +28,13 @@ For our schema, the adopted policy maps to:
 - provenance fields: generator, judge, edit, and historical source tracking.
 - near-duplicate signal: review aid, starting with string similarity.
 
+See `tracks/leverage/docs/reviewed-instruction-mix-plan.md` for the current
+reviewed-data mix plan.
+
 Do not invent a project-specific ontology when a common external pattern covers
 the need. Do not use `task_shape` as a target-count system yet. Revisit that
-after the 300-row readiness dataset exists.
+only if evaluation evidence shows `capability` is not enough to explain data
+coverage or regressions.
 
 ## Why Diversity Matters
 
@@ -134,7 +138,7 @@ duplicates.
 
 ## Current Operating Rules
 
-- Keep adding reviewed rows toward the 300-row readiness target.
+- Keep adding reviewed rows toward the 3,000+ row capability-seeking target.
 - Prefer underrepresented `capability` areas when selecting candidates for
   generation or manual recovery.
 - Do not promote rows only because they fill a count.
@@ -142,5 +146,5 @@ duplicates.
 - Do not require every `capability` and `task_shape` combination to exist.
 - Do not use held-out eval prompts as training-generation seeds.
 - Treat high similarity as "review this", not "reject this".
-- Revisit `task_shape` after 300 reviewed rows and decide whether it should
-  remain observational or become part of mix planning.
+- Keep `task_shape` observational unless evaluation evidence shows it needs to
+  become part of mix planning.

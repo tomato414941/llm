@@ -10,10 +10,10 @@ exports.
   seed prompts, reviewed instruction rows, and held-out eval tasks.
 - `../docs/lora-sft-runpod.md`: LoRA/SFT RunPod guide and capability-seeking
   run gate.
-- `reviewed-instruction-mix-plan.md`: target reviewed-data mix for the next
-  capability-seeking LoRA run.
-- `leverage-sft-smoke-runpod-1083-qwen35-08b-batched.md`: current 0.8B RunPod
-  LoRA/SFT smoke result, including timing, metrics, and cleanup confirmation.
+- `../docs/reviewed-instruction-mix-plan.md`: reviewed-data mix plan for
+  Qwen3.5-9B LoRA readiness and pilot runs.
+- `qwen35-9b-lora-long-form-constraint-smoke.md`: current Qwen3.5-9B LoRA/SFT
+  smoke result, including timing, metrics, and cleanup confirmation.
 - `qwen35-9b-load-smoke-image103.md`: current 9B load-only result on the newer
   official RunPod PyTorch image.
 - `reviewed-batch-013.md`: reviewed-data growth batch that took the dataset

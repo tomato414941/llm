@@ -63,6 +63,7 @@ Judge-side errors:
 - Reviewed id range: `instr_1101` through `instr_1218`
 - Reviewed dataset after promotion: 1216 rows
 - SFT export after promotion: 1216 rows
+- Promoted user messages store the full instruction contract, including output format and constraints.
 
 Accepted row distribution:
 

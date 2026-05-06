@@ -38,7 +38,7 @@ def test_leverage_sft_smoke_config_keeps_paid_run_bounded() -> None:
     assert isinstance(success, dict)
 
     assert method["first_choice"] == "lora"
-    assert method["max_train_examples"] == 1200
+    assert method["max_train_examples"] == 1500
     assert method["max_epochs"] == 1
     assert method["batch_size"] == 4
     assert method["max_runtime_minutes"] <= 60
@@ -68,7 +68,7 @@ def test_qwen35_9b_sft_config_is_bounded_baseline() -> None:
     train_export = Path(data["train_export"])
     assert train_export.parent.exists()
     assert train_export.suffix == ".jsonl"
-    assert method["max_train_examples"] == 1200
+    assert method["max_train_examples"] == 1500
     assert method["max_epochs"] == 1
     assert method["batch_size"] == 2
     assert method["max_length"] == 512

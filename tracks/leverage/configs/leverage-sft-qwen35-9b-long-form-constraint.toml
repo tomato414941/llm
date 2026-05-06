@@ -20,7 +20,7 @@ eval_tasks = [
 [method]
 first_choice = "lora"
 fallback = "stop"
-max_train_examples = 1200
+max_train_examples = 1500
 max_epochs = 1
 batch_size = 2
 max_length = 512

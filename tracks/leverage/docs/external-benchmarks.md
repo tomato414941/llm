@@ -26,8 +26,9 @@ Why:
 
 ## Command
 
-Install `lm-evaluation-harness` in the RunPod environment, then dry-run the
-project wrapper:
+Install `lm-evaluation-harness` in the RunPod environment. IFEval also needs
+`langdetect` and `immutabledict` in this environment. Then dry-run the project
+wrapper:
 
 ```bash
 uv run python -m llm.leverage.evaluate_lm_harness \

@@ -119,7 +119,7 @@ separate rows and link them through the same run note or purpose.
 
 | date | kind | workload | model | variant | provider / hardware | scale | wall time | command time | generation time | cost | note |
 | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
-| 2026-05-02 | benchmark timing probe | IFEval limit 10 | `Qwen/Qwen3.5-9B` | base | RunPod Secure Cloud / `NVIDIA A40` | 10 | `534.698s` | `226.772s` | `40.762s` | about `$0.07` | `tracks/leverage/runs/lm-harness-ifeval-timing-limit10.md` |
+| 2026-05-02 | benchmark timing probe | IFEval limit 10 | `Qwen/Qwen3.5-9B` | base | RunPod Secure Cloud / `NVIDIA A40` | 10 | `534.698s` | `226.772s` | `40.762s` | about `$0.07` | Historical timing probe; raw run note removed. |
 | 2026-05-02 | sample diagnosis | IFEval limit 50 with `--log-samples` | `Qwen/Qwen3.5-9B` | base | RunPod Secure Cloud / `NVIDIA A40` | 50 | `648.600s` | `542.230s` | `373.265s` | about `$0.08` | `tracks/leverage/runs/lm-harness-ifeval-sample-diagnosis.md` |
 | 2026-05-02 | sample diagnosis | IFEval limit 50 with `--log-samples` | `Qwen/Qwen3.5-9B` + LoRA adapter | adapter | RunPod Secure Cloud / `NVIDIA A40` | 50 | `774.844s` | `629.557s` | `369.489s` | about `$0.09` | `tracks/leverage/runs/lm-harness-ifeval-sample-diagnosis.md` |
 

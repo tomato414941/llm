@@ -97,6 +97,9 @@ command time and, when the lm-evaluation-harness progress output exposes it,
 the observed `generate_until` interval. Treat generation timing as unavailable
 when the field is `null`; do not infer it from total command time.
 
+For generative benchmarks, if latency looks abnormal, inspect generated sample
+length, stop behavior, and thinking traces before assuming CPU fallback.
+
 Record speed and cost according to `tracks/leverage/docs/execution-costs.md`.
 
 Use a small `--limit` first. Full `ifeval` has 541 generation requests and can

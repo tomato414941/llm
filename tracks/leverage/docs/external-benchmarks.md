@@ -5,7 +5,7 @@ evals. They do not replace `leverage-smoke` or `project-judgment`.
 
 ## Adoption Criteria
 
-- One command can evaluate the base model and the LoRA adapter.
+- The same wrapper can evaluate each model variant with the same result schema.
 - Results are written under ignored `outputs/` paths.
 - The benchmark runner owns task formatting and scoring.
 - The adapter remains the source artifact; merged models are only temporary
@@ -51,10 +51,10 @@ uv run python -m llm.leverage.evaluate_lm_harness \
   --timing-output outputs/leverage-lm-harness/base-timing.json
 ```
 
-The wrapper runs:
+The wrapper builds model arguments from the selected config:
 
-- base: `pretrained=Qwen/Qwen3.5-9B`
-- adapter: `pretrained=Qwen/Qwen3.5-9B,peft=outputs/leverage-sft-qwen35-9b/lora-adapter`
+- base: `pretrained=<base_model>`
+- adapter: `pretrained=<base_model>,peft=<evaluation.adapter_dir>`
 
 Run each model variant as a separate command. Use `--variant base` for the base
 model and `--variant adapter` for the LoRA adapter. Do not combine variants in
@@ -82,6 +82,10 @@ tokenizer, chat template, thinking mode, or decoding settings change.
 
 For adapters, record benchmark results per training run because each adapter is
 a new evaluated model variant.
+
+The selected config is the source of truth for the adapter under evaluation.
+Record the config path and the training run note with adapter benchmark results
+so the result can be traced back to the exact training run.
 
 If raw artifacts become obsolete, they may be deleted after the run note records
 the important result, configuration, and interpretation. Mark superseded run

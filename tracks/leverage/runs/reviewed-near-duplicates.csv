@@ -7,45 +7,717 @@ instr_0294,instr_0352,0.963,reasoning,reasoning,comparison,comparison,Experiment
 instr_0297,instr_0336,0.963,reasoning,reasoning,direct_answer,direct_answer,"A backup job must finish before 06:21. It takes 36 minutes to copy files and 13 minutes to verify them. If it starts at 05:11, will it finish in time?","A backup job must finish before 06:21. It takes 36 minutes to copy files and 13 minutes to verify them. If it starts at 05:21, will it finish in time?"
 instr_0305,instr_0343,0.963,reasoning,reasoning,direct_answer,direct_answer,"A backup job must finish before 06:29. It takes 44 minutes to copy files and 21 minutes to verify them. If it starts at 05:19, will it finish in time?","A backup job must finish before 06:29. It takes 44 minutes to copy files and 21 minutes to verify them. If it starts at 05:29, will it finish in time?"
 instr_0320,instr_0359,0.963,reasoning,reasoning,direct_answer,direct_answer,"A backup job must finish before 06:45. It takes 40 minutes to copy files and 17 minutes to verify them. If it starts at 05:05, will it finish in time?","A backup job must finish before 06:45. It takes 40 minutes to copy files and 17 minutes to verify them. If it starts at 05:15, will it finish in time?"
-instr_0288,instr_0296,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 2. Which option is better and why?,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 10. Which option is better and why?
-instr_0288,instr_0308,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 2. Which option is better and why?,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 22. Which option is better and why?
-instr_0288,instr_0316,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 2. Which option is better and why?,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 30. Which option is better and why?
-instr_0288,instr_0327,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 2. Which option is better and why?,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 42. Which option is better and why?
-instr_0288,instr_0335,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 2. Which option is better and why?,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 50. Which option is better and why?
-instr_0288,instr_0346,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 2. Which option is better and why?,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 62. Which option is better and why?
-instr_0288,instr_0354,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 2. Which option is better and why?,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 70. Which option is better and why?
-instr_0292,instr_0300,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 6. Which option is better and why?,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 14. Which option is better and why?
-instr_0292,instr_0312,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 6. Which option is better and why?,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 26. Which option is better and why?
-instr_0292,instr_0319,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 6. Which option is better and why?,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 34. Which option is better and why?
-instr_0292,instr_0331,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 6. Which option is better and why?,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 46. Which option is better and why?
-instr_0292,instr_0339,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 6. Which option is better and why?,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 54. Which option is better and why?
-instr_0292,instr_0350,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 6. Which option is better and why?,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 66. Which option is better and why?
-instr_0292,instr_0358,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 6. Which option is better and why?,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 74. Which option is better and why?
-instr_0296,instr_0316,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 10. Which option is better and why?,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 30. Which option is better and why?
-instr_0296,instr_0335,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 10. Which option is better and why?,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 50. Which option is better and why?
-instr_0296,instr_0354,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 10. Which option is better and why?,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 70. Which option is better and why?
-instr_0300,instr_0319,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 14. Which option is better and why?,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 34. Which option is better and why?
-instr_0300,instr_0339,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 14. Which option is better and why?,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 54. Which option is better and why?
-instr_0300,instr_0358,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 14. Which option is better and why?,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 74. Which option is better and why?
-instr_0304,instr_0323,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 5% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 18. Which option is better and why?,A team can either ship fix A today with a 5% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 38. Which option is better and why?
-instr_0304,instr_0342,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 5% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 18. Which option is better and why?,A team can either ship fix A today with a 5% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 58. Which option is better and why?
-instr_0304,instr_0362,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 5% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 18. Which option is better and why?,A team can either ship fix A today with a 5% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 78. Which option is better and why?
-instr_0308,instr_0327,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 22. Which option is better and why?,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 42. Which option is better and why?
-instr_0308,instr_0346,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 22. Which option is better and why?,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 62. Which option is better and why?
-instr_0312,instr_0331,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 26. Which option is better and why?,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 46. Which option is better and why?
-instr_0312,instr_0350,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 26. Which option is better and why?,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 66. Which option is better and why?
-instr_0316,instr_0335,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 30. Which option is better and why?,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 50. Which option is better and why?
-instr_0316,instr_0354,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 30. Which option is better and why?,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 70. Which option is better and why?
-instr_0319,instr_0339,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 34. Which option is better and why?,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 54. Which option is better and why?
-instr_0319,instr_0358,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 34. Which option is better and why?,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 74. Which option is better and why?
-instr_0323,instr_0342,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 5% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 38. Which option is better and why?,A team can either ship fix A today with a 5% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 58. Which option is better and why?
-instr_0323,instr_0362,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 5% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 38. Which option is better and why?,A team can either ship fix A today with a 5% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 78. Which option is better and why?
-instr_0327,instr_0346,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 42. Which option is better and why?,A team can either ship fix A today with a 4% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 62. Which option is better and why?
-instr_0331,instr_0350,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 46. Which option is better and why?,A team can either ship fix A today with a 3% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 66. Which option is better and why?
-instr_0335,instr_0354,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 50. Which option is better and why?,A team can either ship fix A today with a 2% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 70. Which option is better and why?
-instr_0339,instr_0358,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 54. Which option is better and why?,A team can either ship fix A today with a 6% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 74. Which option is better and why?
-instr_0342,instr_0362,0.949,reasoning,reasoning,decision,decision,A team can either ship fix A today with a 5% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 58. Which option is better and why?,A team can either ship fix A today with a 5% known edge-case risk or wait two days for fix B with broader test coverage. Customer impact is currently limited to internal users in region 78. Which option is better and why?
-instr_0838,instr_0843,0.944,reasoning,reasoning,decision,decision,"In batch-013 scenario 1171, a dataset has enough rows for smoke training but still has uneven task-shape coverage. Should the team generate more data or audit the distribution first? Give one choice and two reasons.","In batch-013 scenario 1177, a dataset has enough rows for smoke training but still has uneven task-shape coverage. Should the team generate more data or audit the distribution first? Give one choice and two reasons."
-instr_0838,instr_0849,0.944,reasoning,reasoning,decision,decision,"In batch-013 scenario 1171, a dataset has enough rows for smoke training but still has uneven task-shape coverage. Should the team generate more data or audit the distribution first? Give one choice and two reasons.","In batch-013 scenario 1183, a dataset has enough rows for smoke training but still has uneven task-shape coverage. Should the team generate more data or audit the distribution first? Give one choice and two reasons."
-instr_0838,instr_0853,0.944,reasoning,reasoning,decision,decision,"In batch-013 scenario 1171, a dataset has enough rows for smoke training but still has uneven task-shape coverage. Should the team generate more data or audit the distribution first? Give one choice and two reasons.","In batch-013 scenario 1189, a dataset has enough rows for smoke training but still has uneven task-shape coverage. Should the team generate more data or audit the distribution first? Give one choice and two reasons."
-instr_0838,instr_0859,0.944,reasoning,reasoning,decision,decision,"In batch-013 scenario 1171, a dataset has enough rows for smoke training but still has uneven task-shape coverage. Should the team generate more data or audit the distribution first? Give one choice and two reasons.","In batch-013 scenario 1195, a dataset has enough rows for smoke training but still has uneven task-shape coverage. Should the team generate more data or audit the distribution first? Give one choice and two reasons."
+instr_1106,instr_1110,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506"
+instr_1106,instr_1115,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1514, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1514"
+instr_1106,instr_1119,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1522, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1522"
+instr_1106,instr_1125,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1530, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1530"
+instr_1106,instr_1130,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1538, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1538"
+instr_1106,instr_1133,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1546, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1546"
+instr_1106,instr_1137,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1554, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1554"
+instr_1106,instr_1141,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1562, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1562"
+instr_1106,instr_1146,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1570, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1570"
+instr_1106,instr_1152,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1578, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1578"
+instr_1106,instr_1158,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1586, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1586"
+instr_1106,instr_1164,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1594, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1594"
+instr_1106,instr_1168,0.962,instruction_following,summarization_transformation,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1602, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1602"
+instr_1106,instr_1173,0.962,instruction_following,summarization_transformation,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1610, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1610"
+instr_1106,instr_1178,0.962,instruction_following,summarization_transformation,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1618, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1618"
+instr_1106,instr_1184,0.962,instruction_following,summarization_transformation,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1626, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1626"
+instr_1106,instr_1189,0.962,instruction_following,reasoning,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1634, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1634"
+instr_1106,instr_1193,0.962,instruction_following,reasoning,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1642, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1642"
+instr_1106,instr_1198,0.962,instruction_following,reasoning,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1650, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1650"
+instr_1106,instr_1202,0.962,instruction_following,knowledge_qa,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1658, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1658"
+instr_1106,instr_1209,0.962,instruction_following,knowledge_qa,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1666, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1666"
+instr_1106,instr_1215,0.962,instruction_following,knowledge_qa,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1674, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1674"
+instr_1106,instr_1217,0.962,instruction_following,coding,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1682, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1682"
+instr_1106,instr_1218,0.962,instruction_following,tool_use,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1498, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1498","For surface-constraint batch scenario 1690, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1690"
+instr_1110,instr_1115,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1514, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1514"
+instr_1110,instr_1119,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1522, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1522"
+instr_1110,instr_1125,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1530, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1530"
+instr_1110,instr_1130,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1538, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1538"
+instr_1110,instr_1133,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1546, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1546"
+instr_1110,instr_1137,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1554, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1554"
+instr_1110,instr_1141,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1562, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1562"
+instr_1110,instr_1146,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1570, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1570"
+instr_1110,instr_1152,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1578, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1578"
+instr_1110,instr_1158,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1586, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1586"
+instr_1110,instr_1164,0.962,instruction_following,instruction_following,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1594, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1594"
+instr_1110,instr_1168,0.962,instruction_following,summarization_transformation,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1602, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1602"
+instr_1110,instr_1173,0.962,instruction_following,summarization_transformation,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1610, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1610"
+instr_1110,instr_1178,0.962,instruction_following,summarization_transformation,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1618, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1618"
+instr_1110,instr_1184,0.962,instruction_following,summarization_transformation,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1626, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1626"
+instr_1110,instr_1189,0.962,instruction_following,reasoning,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1634, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1634"
+instr_1110,instr_1193,0.962,instruction_following,reasoning,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1642, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1642"
+instr_1110,instr_1198,0.962,instruction_following,reasoning,extraction_transformation,extraction_transformation,"For surface-constraint batch scenario 1506, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1506","For surface-constraint batch scenario 1650, return a JSON object describing a data review plan. Use fields title, checks, risk_level, and ready unless the constraints say otherwise.
+
+Output format: json_object
+Constraints:
+- return JSON only
+- do not wrap JSON in Markdown code fences
+- use exactly four top-level keys
+- include no key named status
+- title or name must mention surface-constraint batch scenario 1650"

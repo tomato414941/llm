@@ -136,3 +136,4 @@ separate rows and link them through the same run note or purpose.
 | date | kind | workload | model | variant | provider / hardware | scale | wall time | command time | training time | cost | note |
 | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | 2026-05-04 | LoRA training smoke | reviewed-data short run after long-form constraint promotion | `Qwen/Qwen3.5-9B` | adapter | RunPod Secure Cloud / `NVIDIA RTX 4090` | 1,098 rows, 1ep, 549 steps, 138 opt steps, bs2, acc4 | `1100.261s` | `995.435s` | `944.599s` | about `$0.21` | `tracks/leverage/runs/qwen35-9b-lora-long-form-constraint-smoke.md` |
+| 2026-05-09 | LoRA training baseline | full reviewed data after surface-constraint batch 001 | `Qwen/Qwen3.5-9B` | adapter | RunPod Secure Cloud / `NVIDIA RTX 4090` | 1,216 rows, 1ep, 608 steps, 152 opt steps, bs2, acc4 | `749.380s` | `566.667s` | `492.657s` | about `$0.14` | `tracks/leverage/runs/qwen35-9b-baseline-1216.md` |

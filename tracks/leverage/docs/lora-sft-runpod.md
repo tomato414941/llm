@@ -167,6 +167,9 @@ The smoke config uses one epoch, batched PyTorch training, and a 60-minute
 runtime ceiling. A first RunPod setup can spend most of a 30-minute window
 downloading CUDA/PyTorch wheels, so a 60-minute ceiling keeps the run bounded
 while staying under the current $1 smoke cost cap on a $0.69/h RTX 4090.
+Batched training is the default smoke path: the old non-batched 1,083-row
+`Qwen/Qwen3.5-0.8B` smoke took 731.690 seconds for training, while the batched
+path took 201.648 seconds on the same row count.
 
 Use a RunPod PyTorch image whose CUDA requirement fits the allocated host
 driver. The CUDA 12.8 image

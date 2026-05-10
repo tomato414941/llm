@@ -42,6 +42,12 @@ targets only after the smoke path and eval loop are stable. Treat
 `openai/gpt-oss-20b` as a separate compatibility challenge because it is a MoE
 model with different loading and adaptation concerns.
 
+The first `openai/gpt-oss-20b` Transformers probe passed on a RunPod RTX 5090
+with the official PyTorch 2.8.0 template. See
+`tracks/leverage/runs/gpt-oss-20b-transformers-probe-20260510.md`. Do not use it
+in quality benchmarks until the Harmony final-answer extraction or serving path
+is explicit.
+
 ## Method
 
 Prefer LoRA for current leverage-track training. Full SFT is acceptable only if

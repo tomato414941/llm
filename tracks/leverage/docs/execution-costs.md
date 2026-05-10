@@ -132,6 +132,9 @@ separate rows and link them through the same run note or purpose.
 | 2026-05-10 | diagnostic benchmark | GSM8K limit 50, thinking-on | `Qwen/Qwen3.5-9B` + LoRA adapter | adapter | RunPod Secure Cloud / `NVIDIA RTX 4090` | 50 | `521.719s` | `344.180s` | `214.676s` | about `$0.10` | `tracks/leverage/runs/lm-harness-gsm8k-limit50.md` |
 | 2026-05-10 | diagnostic benchmark | GSM8K limit 5, thinking-on, `max_gen_toks=16384` | `Qwen/Qwen3.5-9B` | base | RunPod Secure Cloud / `NVIDIA RTX 4090` | 5 | `981.984s` | `827.198s` | `711.089s` | about `$0.19` | `tracks/leverage/runs/lm-harness-gsm8k-limit50.md` |
 | 2026-05-10 | diagnostic benchmark | GSM8K limit 3, thinking-on, sampling, `max_gen_toks=16384` | `Qwen/Qwen3.5-9B` | base | RunPod Secure Cloud / `NVIDIA RTX 4090` | 3 | `505.098s` | `331.662s` | `38.792s` | about `$0.10` | `tracks/leverage/runs/lm-harness-gsm8k-limit50.md` |
+| 2026-05-10 | model candidate baseline | IFEval limit 50 + GSM8K limit 50 | `Qwen/Qwen2.5-7B-Instruct` | base | RunPod Secure Cloud / `NVIDIA RTX 4090` | 100 | `543.375s` | IFEval `244.447s`; GSM8K `145.188s` | IFEval `143.604s`; GSM8K `75.766s` | about `$0.10` | `tracks/leverage/runs/model-candidate-baselines-20260510.md` |
+| 2026-05-10 | model candidate baseline | IFEval limit 50 + GSM8K limit 50 | `mistralai/Mistral-7B-Instruct-v0.3` | base | RunPod Secure Cloud / `NVIDIA RTX 4090` | 100 | `1137.572s` | IFEval `466.129s`; GSM8K `267.132s` | IFEval `238.617s`; GSM8K `85.249s` | about `$0.22` | `tracks/leverage/runs/model-candidate-baselines-20260510.md` |
+| 2026-05-10 | model candidate access check | IFEval startup | `meta-llama/Llama-3.1-8B-Instruct` | base | RunPod Secure Cloud / `NVIDIA RTX 4090` | access blocked | `293.875s` | n/a | n/a | about `$0.06` | `tracks/leverage/runs/model-candidate-baselines-20260510.md` |
 
 ## Data Generation / Judge Records
 

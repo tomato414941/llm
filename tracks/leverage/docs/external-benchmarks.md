@@ -135,7 +135,7 @@ Choose thinking mode per benchmark. Do not use one global setting.
 | benchmark | default mode | status | note |
 | --- | --- | --- | --- |
 | `ifeval` | `--no-enable-thinking` | Verified for Qwen. | IFEval scores the visible response against explicit formatting and instruction constraints. Thinking traces distort the metric. |
-| `gsm8k` | `--no-enable-thinking` for the first base-vs-adapter comparison. | Planned. | Use the same visible-answer mode as IFEval first; compare thinking mode only if the no-thinking result is ambiguous or unexpectedly poor. |
+| `gsm8k` | `--no-enable-thinking` | Verified for the first base-vs-adapter comparison. | The 2026-05-10 limit-50 run showed useful no-thinking scores. Thinking-on did not reliably reach `</think>` and produced invalid extraction, so do not use it as a quality comparison without a separate prompt/template fix. |
 | `hellaswag` | Undecided | Not yet verified. | Run a small smoke before choosing a default. |
 | `arc_easy` | Undecided | Not yet verified. | Run a small smoke before choosing a default. |
 | Project-owned smoke evals | `--no-enable-thinking` | Project policy. | Smoke runs should be cheap and verify the visible answer contract. Enable thinking only when the smoke is specifically checking reasoning-mode behavior. |

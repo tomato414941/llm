@@ -126,6 +126,10 @@ separate rows and link them through the same run note or purpose.
 | 2026-05-09 | held-out eval | configured leverage eval tasks after 1,216-row LoRA training | `Qwen/Qwen3.5-9B` and LoRA adapter | base + adapter | RunPod Secure Cloud / `NVIDIA RTX 4090` | 30 tasks, base + adapter | `640.257s` | `438.917s` | unavailable | about `$0.12` | `tracks/leverage/runs/qwen35-9b-baseline-1216-eval.md` |
 | 2026-05-09 | sample diagnosis | IFEval limit 50 with `--log-samples` after 1,216-row LoRA training | `Qwen/Qwen3.5-9B` + LoRA adapter | adapter | RunPod Secure Cloud / `NVIDIA RTX 4090` | 50 | `1254.422s` | `910.965s` | `659.903s` | about `$0.24` | `tracks/leverage/runs/lm-harness-ifeval-adapter-1216-limit50.md` |
 | 2026-05-09 | external benchmark | full IFEval after 1,216-row LoRA training | `Qwen/Qwen3.5-9B` + LoRA adapter | adapter | RunPod Secure Cloud / `NVIDIA A40` | 541 | `5897.653s` | `5672.374s` | `5465.026s` | about `$0.72` | `tracks/leverage/runs/lm-harness-ifeval-adapter-1216-full.md` |
+| 2026-05-10 | external benchmark | GSM8K limit 50, no-thinking | `Qwen/Qwen3.5-9B` | base | RunPod Secure Cloud / `NVIDIA RTX 4090` | 50 | `669.705s` | `377.532s` | `132.171s` | about `$0.13` | `tracks/leverage/runs/lm-harness-gsm8k-limit50.md` |
+| 2026-05-10 | external benchmark | GSM8K limit 50, no-thinking | `Qwen/Qwen3.5-9B` + LoRA adapter | adapter | RunPod Secure Cloud / `NVIDIA RTX 4090` | 50 | `557.370s` | `294.709s` | `160.284s` | about `$0.11` | `tracks/leverage/runs/lm-harness-gsm8k-limit50.md` |
+| 2026-05-10 | diagnostic benchmark | GSM8K limit 50, thinking-on | `Qwen/Qwen3.5-9B` | base | RunPod Secure Cloud / `NVIDIA RTX 4090` | 50 | `508.688s` | `296.310s` | `132.217s` | about `$0.10` | `tracks/leverage/runs/lm-harness-gsm8k-limit50.md` |
+| 2026-05-10 | diagnostic benchmark | GSM8K limit 50, thinking-on | `Qwen/Qwen3.5-9B` + LoRA adapter | adapter | RunPod Secure Cloud / `NVIDIA RTX 4090` | 50 | `521.719s` | `344.180s` | `214.676s` | about `$0.10` | `tracks/leverage/runs/lm-harness-gsm8k-limit50.md` |
 
 ## Data Generation / Judge Records
 

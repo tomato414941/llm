@@ -2,9 +2,6 @@
 
 ## Git Autonomy
 
-- When the user explicitly delegates commit and push decisions to the agent,
-  treat that delegation as active for the rest of the session unless the user
-  revokes it.
 - After completing a coherent change set, commit and push without asking for
   confirmation.
 

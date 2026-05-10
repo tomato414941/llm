@@ -90,6 +90,7 @@ def test_remote_cuda_smoke_command_checks_cuda() -> None:
     command = runpod_run_once.remote_cuda_smoke_command()
 
     assert command.startswith("set -euo pipefail")
+    assert 'cd "$REMOTE_DIR"' in command
     assert 'export PATH="$HOME/.local/bin:$PATH"' in command
     assert "torch.cuda.is_available()" in command
     assert "cuda_device=" in command
@@ -98,7 +99,7 @@ def test_remote_cuda_smoke_command_checks_cuda() -> None:
 def test_remote_user_command_adds_shell_safety_and_uv_path() -> None:
     command = runpod_run_once.remote_user_command("echo ok")
 
-    assert command == 'set -euo pipefail; export PATH="$HOME/.local/bin:$PATH"; echo ok'
+    assert command == 'set -euo pipefail; cd "$REMOTE_DIR"; export PATH="$HOME/.local/bin:$PATH"; echo ok'
 
 
 def test_build_shared_runner_command_preserves_llm_defaults(

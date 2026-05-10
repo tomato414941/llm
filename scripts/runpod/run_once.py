@@ -37,6 +37,7 @@ def shell_command(command: str) -> list[str]:
 def remote_cuda_smoke_command() -> str:
     return (
         "set -euo pipefail; "
+        "cd \"$REMOTE_DIR\"; "
         "export PATH=\"$HOME/.local/bin:$PATH\"; "
         "uv run python -u -c "
         + shlex.quote(
@@ -50,7 +51,7 @@ def remote_cuda_smoke_command() -> str:
 
 
 def remote_user_command(command: str) -> str:
-    return f"set -euo pipefail; export PATH=\"$HOME/.local/bin:$PATH\"; {command}"
+    return f"set -euo pipefail; cd \"$REMOTE_DIR\"; export PATH=\"$HOME/.local/bin:$PATH\"; {command}"
 
 
 def preflight(args: argparse.Namespace) -> None:

@@ -54,14 +54,24 @@ hypothesis: the current 1,216-row adapter appears more likely to have an
 instruction-following or response-format regression than a general reasoning
 regression visible on this GSM8K sample.
 
-The thinking-on rows are not valid model-quality comparisons. Logged samples
-show outputs beginning with `Thinking Process:` and generally not reaching the
-configured `</think>` terminator. The harness filters many responses as
-`[invalid]`, so these scores mainly indicate a chat-template or thinking-mode
-compatibility failure for GSM8K under the current command.
+The thinking-on rows are not valid model-quality comparisons. Logged prompts
+end with `<|im_start|>assistant\n<think>\n`, so `enable_thinking=True` did
+affect the chat template. However, logged completions never reached the
+configured `</think>` terminator. Tokenizing the saved completions with the
+Qwen tokenizer showed that 88/100 base sample rows and 94/100 adapter sample
+rows ended at exactly 256 generated tokens, matching the lm-evaluation-harness
+default `max_gen_toks`.
+
+This points to a generation-budget/configuration failure before any LoRA
+quality claim: the model began the Qwen thinking block, but the harness cut off
+generation before the model closed the block and exposed a final answer. The
+current command also used GSM8K's default greedy generation
+(`do_sample=False`, `temperature=0.0`), while Qwen's guidance recommends
+sampling for thinking mode. A valid thinking-on comparison needs a separate
+probe with a larger `max_gen_toks` and Qwen-compatible sampling settings before
+recording quality scores.
 
 ## Cleanup
 
 All created RunPod pods were deleted after output sync. Final pod list was
 empty.
-

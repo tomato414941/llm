@@ -135,7 +135,7 @@ Choose thinking mode per benchmark. Do not use one global setting.
 | benchmark | default mode | status | note |
 | --- | --- | --- | --- |
 | `ifeval` | `--no-enable-thinking` | Verified for Qwen. | IFEval scores the visible response against explicit formatting and instruction constraints. Thinking traces distort the metric. |
-| `gsm8k` | `--no-enable-thinking` | Verified for the first base-vs-adapter comparison. | The 2026-05-10 limit-50 run showed useful no-thinking scores. Thinking-on began the Qwen `<think>` block but hit the default 256-token generation cap without reaching `</think>`. A base-only limit-5 probe with `max_gen_toks=16384` still did not close `</think>` under greedy decoding, so do not use thinking-on as a quality comparison without Qwen-compatible sampling settings. |
+| `gsm8k` | `--no-enable-thinking` | Verified for the first base-vs-adapter comparison. | The 2026-05-10 limit-50 run showed useful no-thinking scores. Thinking-on began the Qwen `<think>` block but hit the default 256-token generation cap without reaching `</think>`. A base-only limit-5 probe with `max_gen_toks=16384` still did not close `</think>` under greedy decoding. A limit-3 sampling probe answered correctly but still did not close `</think>`, so do not use thinking-on as a quality comparison unless raw generations prove the thinking block closes. |
 | `hellaswag` | Undecided | Not yet verified. | Run a small smoke before choosing a default. |
 | `arc_easy` | Undecided | Not yet verified. | Run a small smoke before choosing a default. |
 | Project-owned smoke evals | `--no-enable-thinking` | Project policy. | Smoke runs should be cheap and verify the visible answer contract. Enable thinking only when the smoke is specifically checking reasoning-mode behavior. |
@@ -150,3 +150,8 @@ Use `--max-gen-toks 16384` only for small thinking-mode probes. It can make
 individual GSM8K requests take minutes under greedy decoding, and a high score
 is still invalid if the task extractor reads answer-like text inside an
 unclosed thinking block.
+
+`lm-evaluation-harness` does not fail a generation when a string
+`think_end_token` is absent; it leaves the whole generated text available after
+post-processing. For Qwen thinking-mode probes, record both the score and the
+raw `</think>` presence count before treating a result as valid.

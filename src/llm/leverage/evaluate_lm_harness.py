@@ -51,6 +51,7 @@ def build_lm_eval_command(
     enable_thinking: bool | None,
     think_end_token: str | None,
     max_gen_toks: int | None = None,
+    gen_kwargs: list[str] | None = None,
 ) -> list[str]:
     command = [
         "lm_eval",
@@ -78,8 +79,11 @@ def build_lm_eval_command(
         command.extend(["--limit", str(limit)])
     if log_samples:
         command.append("--log_samples")
+    merged_gen_kwargs = list(gen_kwargs or [])
     if max_gen_toks is not None:
-        command.extend(["--gen_kwargs", f"max_gen_toks={max_gen_toks}"])
+        merged_gen_kwargs.append(f"max_gen_toks={max_gen_toks}")
+    if merged_gen_kwargs:
+        command.extend(["--gen_kwargs", ",".join(merged_gen_kwargs)])
     return command
 
 
@@ -156,6 +160,7 @@ def run_lm_harness(
     dry_run: bool,
     timing_output: Path | None = None,
     max_gen_toks: int | None = None,
+    gen_kwargs: list[str] | None = None,
 ) -> list[str]:
     lines: list[str] = []
     target_adapter = adapter_dir if variant == "adapter" else None
@@ -173,6 +178,7 @@ def run_lm_harness(
         enable_thinking=enable_thinking,
         think_end_token=think_end_token,
         max_gen_toks=max_gen_toks,
+        gen_kwargs=gen_kwargs,
     )
     lines.append(f"{variant}: {shell_join(command)}")
     if dry_run:
@@ -200,6 +206,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--enable-thinking", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--think-end-token")
     parser.add_argument("--max-gen-toks", type=int)
+    parser.add_argument(
+        "--gen-kwarg",
+        action="append",
+        default=None,
+        help="Additional lm-evaluation-harness generation kwarg as key=value. Repeatable.",
+    )
     parser.add_argument("--variant", choices=("base", "adapter"), required=True)
     parser.add_argument("--apply-chat-template", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--timing-output", type=Path)
@@ -226,6 +238,7 @@ def main() -> int:
         enable_thinking=args.enable_thinking,
         think_end_token=args.think_end_token,
         max_gen_toks=args.max_gen_toks,
+        gen_kwargs=args.gen_kwarg,
         variant=args.variant,
         dry_run=args.dry_run,
         timing_output=args.timing_output,

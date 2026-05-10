@@ -81,6 +81,21 @@ inside an unclosed thinking block. One sample hit the full 16,384-token cap.
 Generation took `711.089s` for five requests, so this setting is also too
 expensive for broad benchmarking without first fixing the decoding behavior.
 
+Second follow-up probe: a 2026-05-10 base-only limit-3 run with
+`max_gen_toks=16384`, batch size 1, and Qwen-style sampling
+(`do_sample=True`, `temperature=0.6`, `top_p=0.95`, `top_k=20`) completed much
+faster and reported `flexible-extract=1.0` and `strict-match=1.0`. Saved
+samples were short and answer-like, but still contained no `</think>`.
+
+Inspecting lm-evaluation-harness showed why this can score: for a string
+`think_end_token`, post-processing uses `generation.split(think_end_token)[-1]`.
+If `</think>` is absent, the whole generated text remains available to the
+task extractor. Therefore the sampling probe shows that Qwen can answer GSM8K
+under sampling, but it does not validate the intended closed-thinking contract.
+For thinking-mode quality claims, require an explicit check that `</think>` was
+present in the raw generation or avoid using `enable_thinking=True` for GSM8K
+benchmark scores.
+
 ## Cleanup
 
 All created RunPod pods were deleted after output sync. Final pod list was

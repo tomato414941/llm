@@ -131,6 +131,7 @@ separate rows and link them through the same run note or purpose.
 | 2026-05-10 | diagnostic benchmark | GSM8K limit 50, thinking-on | `Qwen/Qwen3.5-9B` | base | RunPod Secure Cloud / `NVIDIA RTX 4090` | 50 | `508.688s` | `296.310s` | `132.217s` | about `$0.10` | `tracks/leverage/runs/lm-harness-gsm8k-limit50.md` |
 | 2026-05-10 | diagnostic benchmark | GSM8K limit 50, thinking-on | `Qwen/Qwen3.5-9B` + LoRA adapter | adapter | RunPod Secure Cloud / `NVIDIA RTX 4090` | 50 | `521.719s` | `344.180s` | `214.676s` | about `$0.10` | `tracks/leverage/runs/lm-harness-gsm8k-limit50.md` |
 | 2026-05-10 | diagnostic benchmark | GSM8K limit 5, thinking-on, `max_gen_toks=16384` | `Qwen/Qwen3.5-9B` | base | RunPod Secure Cloud / `NVIDIA RTX 4090` | 5 | `981.984s` | `827.198s` | `711.089s` | about `$0.19` | `tracks/leverage/runs/lm-harness-gsm8k-limit50.md` |
+| 2026-05-10 | diagnostic benchmark | GSM8K limit 3, thinking-on, sampling, `max_gen_toks=16384` | `Qwen/Qwen3.5-9B` | base | RunPod Secure Cloud / `NVIDIA RTX 4090` | 3 | `505.098s` | `331.662s` | `38.792s` | about `$0.10` | `tracks/leverage/runs/lm-harness-gsm8k-limit50.md` |
 
 ## Data Generation / Judge Records
 

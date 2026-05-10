@@ -48,6 +48,12 @@ with the official PyTorch 2.8.0 template. See
 in quality benchmarks until the Harmony final-answer extraction or serving path
 is explicit.
 
+The first tiny project-owned eval with Harmony final extraction also passed
+operationally. See
+`tracks/leverage/runs/gpt-oss-20b-tiny-eval-20260510.md`. The current direct
+`lm-eval` path should still be avoided until it can score only the final answer
+channel.
+
 ## Method
 
 Prefer LoRA for current leverage-track training. Full SFT is acceptable only if

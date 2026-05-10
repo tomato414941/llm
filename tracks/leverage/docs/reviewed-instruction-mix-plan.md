@@ -34,11 +34,27 @@ Do not let project-specific policy examples dominate any larger dataset stage.
 
 ## Current State
 
-Current reviewed rows: 1,098
+Current reviewed rows: 1,216
 
 The current reviewed dataset is enough for training-path smoke tests and a
 small pilot LoRA. It is still below the 3,000+ row target for the first serious
 capability-seeking run.
+
+The first surface-constraint batch improved some long-answer behavior on a
+small IFEval sample, but the 1,216-row adapter still regressed on full IFEval.
+See `tracks/leverage/docs/qwen35-9b-adapter-regression-analysis.md`.
+
+## Current Mix Adjustment
+
+The next reviewed-data addition should not chase IFEval prompts directly. Add a
+small generalized constraint-accounting slice that covers:
+
+- word-count budgets
+- keyword frequency
+- letter frequency
+- forbidden words
+- JSON-only and exact-format answers
+- case and section-count constraints
 
 ## Rules
 

@@ -29,6 +29,8 @@ seed prompts
 - LoRA/SFT RunPod guide: `docs/lora-sft-runpod.md`
 - Reviewed-data mix plan: `docs/reviewed-instruction-mix-plan.md`
 - External benchmark plan: `docs/external-benchmarks.md`
+- Current Qwen3.5-9B adapter regression analysis:
+  `docs/qwen35-9b-adapter-regression-analysis.md`
 - Latest smoke result:
   `runs/qwen35-9b-lora-long-form-constraint-smoke.md`
 

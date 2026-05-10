@@ -1,81 +1,60 @@
 # Leverage Runs
 
-This directory stores concise, reviewable leverage-track run records and small
-example artifacts. It is not the source of truth for datasets or generated SFT
-exports.
+This directory stores concise records for concrete leverage-track work:
+training runs, benchmark runs, data-generation batches, dataset audits,
+operational probes, and small example artifacts.
+
+It is not the source of truth for reviewed data, generated artifacts, or
+cross-run strategy.
+
+Use:
+
+- `tracks/leverage/datasets/` for reviewed training data.
+- `tracks/leverage/sft/` for generated SFT exports.
+- `outputs/` for generated predictions, adapters, checkpoints, and benchmark
+  artifacts.
+- `tracks/leverage/docs/` for policies, reusable procedures, and cross-run
+  analysis.
+
+## Boundary
+
+Put notes here when they answer:
+
+- What was run or generated?
+- What inputs, command, model, hardware, and cost were used?
+- What metrics or artifacts were produced?
+- Was cleanup completed?
+- What is the immediate next decision from this single run or batch?
+
+Put notes in `tracks/leverage/docs/` when they answer:
+
+- What is the current strategy across several runs?
+- Which result supersedes another result?
+- How should data mix, benchmark policy, or training policy change?
+- What should the next experiment design be?
 
 ## Read First
 
-- `../docs/data-category-design.md`: shared top-level capability taxonomy for
-  seed prompts, reviewed instruction rows, and held-out eval tasks.
-- `../docs/lora-sft-runpod.md`: LoRA/SFT RunPod guide and capability-seeking
-  run gate.
-- `../docs/reviewed-instruction-mix-plan.md`: reviewed-data mix plan for
-  Qwen3.5-9B LoRA readiness and pilot runs.
-- `qwen35-9b-lora-long-form-constraint-smoke.md`: current Qwen3.5-9B LoRA/SFT
-  smoke result, including timing, metrics, and cleanup confirmation.
-- `qwen35-9b-load-smoke-image103.md`: current 9B load-only result on the newer
-  official RunPod PyTorch image.
-- `reviewed-batch-013.md`: reviewed-data growth batch that took the dataset
-  past 1000 rows.
-- `model-spec-comparison.md`: current summary of `leverage-model-spec.jsonl`
-  scoring changes and model comparison results.
+For current strategy:
 
-These files are the current human-readable run notes.
+- `../README.md`
+- `../docs/reviewed-instruction-mix-plan.md`
+- `../docs/lora-sft-runpod.md`
+- `../docs/qwen35-9b-adapter-regression-analysis.md`
 
-## Examples
+For current run evidence:
 
-- `predictions.example.jsonl`: minimal prediction-file shape for
-  `llm.leverage.evaluate`.
-- `two-layer.example.jsonl`: example predictions across the smoke and
-  project-judgment eval layers.
-- `project-judgment.example.jsonl`: example output for project judgment
-  tasks.
-- `leverage-model-spec.example.jsonl`: example output for the policy guard eval.
+- `qwen35-9b-baseline-1216-eval.md`
+- `lm-harness-ifeval-adapter-1216-full.md`
+- `reviewed-dataset-audit-1216.md`
 
-## Historical Model-Spec Runs
+## Conventions
 
-`model-spec-comparison.md` is the committed source of truth for historical
-model-spec comparisons. Do not commit raw `*-model-spec*.jsonl`,
-`*-scores.csv`, or `*-summary.csv` files for that comparison family.
-
-Keep only small example files, such as `leverage-model-spec.example.jsonl`,
-when they document evaluator input or output shape.
-
-## Instruction-Output Runs
-
-`instruction-outputs/` contains raw teacher outputs, structural-filter results,
-candidate files, judge outputs, and summaries used before manual promotion into
-`tracks/leverage/datasets/reviewed-instructions/`.
-
-Those files are run artifacts. They are not reviewed training data. The reviewed
-dataset is the source of truth after manual promotion.
-
-## What Not To Put Here
-
-Do not add:
-
-- LoRA adapters or model checkpoints.
-- Generated SFT exports.
-- Large raw model outputs.
-- Secrets, API keys, provider responses containing credentials, or local
-  machine details.
-
-Use ignored paths such as `outputs/` and `tracks/leverage/sft/` for generated
-artifacts. If a result matters, commit a short markdown run note with the
-command, success criteria, summary metrics, cleanup status, and next decision.
-
-## Naming Rule
-
-For new committed notes, prefer:
-
-```text
-<topic>-<purpose>.md
-```
-
-Examples:
-
-- `leverage-sft-smoke-runpod-59-qwen35-08b-timing.md`
-
-Avoid adding another family of raw `*-scores.csv` / `*-summary.csv` files unless
-the raw files are directly needed for a comparison note.
+- Keep run notes short and evidence-focused.
+- Do not commit adapters, checkpoints, generated SFT exports, large raw outputs,
+  or secrets.
+- Use ignored paths such as `outputs/` and `tracks/leverage/sft/` for generated
+  artifacts.
+- Keep raw instruction-generation outputs under `instruction-outputs/`;
+  promoted rows belong in `datasets/`.
+- Prefer names like `<topic>-<purpose>.md`.

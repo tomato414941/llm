@@ -93,6 +93,25 @@ def test_build_lm_eval_command_defaults_to_hf_backend() -> None:
     ]
 
 
+def test_build_lm_eval_command_can_set_max_gen_toks() -> None:
+    command = build_lm_eval_command(
+        base_model="Qwen/Qwen3.5-9B",
+        adapter_dir=None,
+        tasks=["gsm8k"],
+        output_path=Path("outputs/leverage-lm-harness/base"),
+        device="cuda:0",
+        batch_size="4",
+        apply_chat_template=True,
+        limit=5,
+        log_samples=True,
+        enable_thinking=True,
+        think_end_token="</think>",
+        max_gen_toks=16384,
+    )
+
+    assert command[-2:] == ["--gen_kwargs", "max_gen_toks=16384"]
+
+
 def test_run_lm_harness_dry_run_prints_base_command() -> None:
     lines = run_lm_harness(
         base_model="Qwen/Qwen3.5-9B",
@@ -108,6 +127,7 @@ def test_run_lm_harness_dry_run_prints_base_command() -> None:
         think_end_token="</think>",
         variant="base",
         dry_run=True,
+        max_gen_toks=16384,
     )
 
     assert len(lines) == 1
@@ -118,6 +138,7 @@ def test_run_lm_harness_dry_run_prints_base_command() -> None:
     assert "--log_samples" in lines[0]
     assert "enable_thinking=True" in lines[0]
     assert "think_end_token=</think>" in lines[0]
+    assert "--gen_kwargs max_gen_toks=16384" in lines[0]
 
 
 def test_run_lm_harness_dry_run_prints_adapter_command() -> None:

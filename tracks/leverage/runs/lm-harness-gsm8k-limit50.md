@@ -71,6 +71,16 @@ sampling for thinking mode. A valid thinking-on comparison needs a separate
 probe with a larger `max_gen_toks` and Qwen-compatible sampling settings before
 recording quality scores.
 
+Follow-up probe: a 2026-05-10 base-only limit-5 run with
+`max_gen_toks=16384`, batch size 1, and the same greedy GSM8K defaults
+completed, but still did not produce `</think>` in any saved completion. The
+prompt did enter `<think>`, and lm-evaluation-harness reported
+`flexible-extract=0.8` and `strict-match=0.4`, but those scores are not valid
+thinking-mode quality scores because extraction was reading answer-like text
+inside an unclosed thinking block. One sample hit the full 16,384-token cap.
+Generation took `711.089s` for five requests, so this setting is also too
+expensive for broad benchmarking without first fixing the decoding behavior.
+
 ## Cleanup
 
 All created RunPod pods were deleted after output sync. Final pod list was

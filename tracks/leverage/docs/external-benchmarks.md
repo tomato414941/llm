@@ -135,7 +135,7 @@ Choose thinking mode per benchmark. Do not use one global setting.
 | benchmark | default mode | status | note |
 | --- | --- | --- | --- |
 | `ifeval` | `--no-enable-thinking` | Verified for Qwen. | IFEval scores the visible response against explicit formatting and instruction constraints. Thinking traces distort the metric. |
-| `gsm8k` | `--no-enable-thinking` | Verified for the first base-vs-adapter comparison. | The 2026-05-10 limit-50 run showed useful no-thinking scores. Thinking-on began the Qwen `<think>` block but hit the default 256-token generation cap without reaching `</think>`, producing invalid extraction. Do not use thinking-on as a quality comparison without a larger generation budget and Qwen-compatible sampling settings. |
+| `gsm8k` | `--no-enable-thinking` | Verified for the first base-vs-adapter comparison. | The 2026-05-10 limit-50 run showed useful no-thinking scores. Thinking-on began the Qwen `<think>` block but hit the default 256-token generation cap without reaching `</think>`. A base-only limit-5 probe with `max_gen_toks=16384` still did not close `</think>` under greedy decoding, so do not use thinking-on as a quality comparison without Qwen-compatible sampling settings. |
 | `hellaswag` | Undecided | Not yet verified. | Run a small smoke before choosing a default. |
 | `arc_easy` | Undecided | Not yet verified. | Run a small smoke before choosing a default. |
 | Project-owned smoke evals | `--no-enable-thinking` | Project policy. | Smoke runs should be cheap and verify the visible answer contract. Enable thinking only when the smoke is specifically checking reasoning-mode behavior. |
@@ -145,3 +145,8 @@ contains the expected thinking opener, the model reaches the thinking
 terminator, and the generated answer survives the task's extraction filter. If
 the output hits `max_gen_toks` before `</think>`, the final answer is missing
 and the benchmark result is not reliable.
+
+Use `--max-gen-toks 16384` only for small thinking-mode probes. It can make
+individual GSM8K requests take minutes under greedy decoding, and a high score
+is still invalid if the task extractor reads answer-like text inside an
+unclosed thinking block.

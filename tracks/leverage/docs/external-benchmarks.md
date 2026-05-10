@@ -11,18 +11,26 @@ evals. They do not replace `leverage-smoke` or `project-judgment`.
 - The adapter remains the source artifact; merged models are only temporary
   derived artifacts when another tool cannot load PEFT adapters.
 
-## First Benchmark
+## Current Benchmark Set
 
-Start with EleutherAI `lm-evaluation-harness` and `ifeval`.
+Start with EleutherAI `lm-evaluation-harness`.
 
-Why:
+Current benchmarks:
 
-- `ifeval` checks instruction following, which is the closest external signal
-  for this SFT/LoRA loop.
-- `lm-evaluation-harness` can load PEFT adapters with
+- `ifeval`: primary instruction-following guardrail for formatting and explicit
+  constraint adherence.
+- `gsm8k`: second external axis for checking whether adapter changes damage
+  basic reasoning beyond IFEval-style surface constraints.
+
+Why this set:
+
+- `lm-evaluation-harness` owns task formatting and scoring.
+- The same wrapper can load PEFT adapters with
   `pretrained=<base>,peft=<adapter>`.
-- The same runner can later add `gsm8k`, `hellaswag`, or `arc_easy` without
-  new project-owned scoring code.
+- `ifeval` catches instruction-following regressions that project-owned evals
+  can miss.
+- `gsm8k` gives a simple automatic reasoning signal without adding judge API
+  cost.
 
 ## Command
 
@@ -103,7 +111,8 @@ length, stop behavior, and thinking traces before assuming CPU fallback.
 Record speed and cost according to `tracks/leverage/docs/execution-costs.md`.
 
 Use a small `--limit` first. Full `ifeval` has 541 generation requests and can
-be too slow for a first usability check on a single A40.
+be too slow for a first usability check on a single A40. For `gsm8k`, start
+with `--limit 50` for both base and adapter before considering a larger run.
 
 For Qwen, use `--no-enable-thinking` for IFEval by default. IFEval scores the
 visible response against formatting constraints, and thinking traces can distort
@@ -126,7 +135,7 @@ Choose thinking mode per benchmark. Do not use one global setting.
 | benchmark | default mode | status | note |
 | --- | --- | --- | --- |
 | `ifeval` | `--no-enable-thinking` | Verified for Qwen. | IFEval scores the visible response against explicit formatting and instruction constraints. Thinking traces distort the metric. |
-| `gsm8k` | Undecided | Not yet verified. | Compare `--no-enable-thinking` against `--enable-thinking --think-end-token "</think>"` before choosing a default. |
+| `gsm8k` | `--no-enable-thinking` for the first base-vs-adapter comparison. | Planned. | Use the same visible-answer mode as IFEval first; compare thinking mode only if the no-thinking result is ambiguous or unexpectedly poor. |
 | `hellaswag` | Undecided | Not yet verified. | Run a small smoke before choosing a default. |
 | `arc_easy` | Undecided | Not yet verified. | Run a small smoke before choosing a default. |
 | Project-owned smoke evals | `--no-enable-thinking` | Project policy. | Smoke runs should be cheap and verify the visible answer contract. Enable thinking only when the smoke is specifically checking reasoning-mode behavior. |

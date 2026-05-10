@@ -107,6 +107,11 @@ failure, not evidence about the model, data, trainer, or GPU.
 After local preflight passes, inspect the RunPod execution plan without creating
 a pod:
 
+`scripts/runpod/run_once.py` is an LLM-project wrapper around the shared
+`~/projects/runpod-job-runner/scripts/run_job.py` lifecycle runner. Keep
+project-specific defaults here: sync sources, setup, CUDA smoke, training
+commands, and output paths.
+
 ```bash
 uv run python scripts/runpod/run_once.py \
   --dry-run \
@@ -133,8 +138,7 @@ uv run python scripts/runpod/run_once.py \
 The dry run must show these steps in order:
 
 - local SFT smoke preflight
-- RunPod Secure Cloud pod creation with `runpodctl pod create` and the
-  configured runtime ceiling
+- RunPod Secure Cloud pod payload with the configured runtime ceiling
 - repo, reviewed data, SFT export, and eval task sync
 - CUDA smoke
 - training-package import smoke

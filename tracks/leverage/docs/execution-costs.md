@@ -99,9 +99,10 @@ For `lm-evaluation-harness`, use `--timing-output` from
 `llm.leverage.evaluate_lm_harness`. It records command time and, when visible
 in harness output, the observed `generate_until` interval.
 
-For RunPod one-off jobs, use `runpod-timings.json` from
-`scripts/runpod/run_once.py`. It records pod creation, SSH readiness, setup,
-remote command, output sync, and total wall time.
+For RunPod one-off jobs, use `runpod-timings.json` from the local
+`scripts/runpod/run_once.py` wrapper. The wrapper delegates generic pod
+lifecycle work to `~/projects/runpod-job-runner/scripts/run_job.py` and keeps
+LLM project defaults for sync sources, setup, CUDA smoke, and timing output.
 
 For benchmark and evaluation records, use one row per model variant. If a run
 is part of a base-vs-adapter comparison, record the base and adapter as

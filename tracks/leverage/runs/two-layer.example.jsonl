@@ -10,6 +10,14 @@
 {"task_id":"coding_sql_count","model":"example-baseline","response":"SELECT COUNT(*) FROM users;"}
 {"task_id":"qa_author","model":"example-baseline","response":"William Shakespeare"}
 {"task_id":"instruction_lowercase","model":"example-baseline","response":"ready"}
+{"task_id":"qa_largest_ocean","model":"example-baseline","response":"Pacific Ocean"}
+{"task_id":"qa_h2o","model":"example-baseline","response":"H2O"}
+{"task_id":"summary_meeting","model":"example-baseline","response":"The release was delayed because the payment migration still had failures, so the team will add rollback checks and retry with a smaller canary."}
+{"task_id":"instruction_three_words","model":"example-baseline","response":"red blue green"}
+{"task_id":"reasoning_apples","model":"example-baseline","response":"11"}
+{"task_id":"reasoning_calendar","model":"example-baseline","response":"Thursday"}
+{"task_id":"coding_js_function","model":"example-baseline","response":"function double(x) {\n  return x * 2;\n}"}
+{"task_id":"tool_use_weather_args","model":"example-baseline","response":"{\"tool\":\"weather\",\"location\":\"Tokyo\",\"unit\":\"celsius\"}"}
 {"task_id":"pj_exp_001","model":"example-baseline","response":"No. The blocking issue is that the new run used a smaller dataset shard, so it is not comparable to the baseline."}
 {"task_id":"pj_exp_002","model":"example-baseline","response":"The problem is multiple variables changed at once; isolate one change before attributing the accuracy gain."}
 {"task_id":"pj_exp_003","model":"example-baseline","response":"REPEAT"}

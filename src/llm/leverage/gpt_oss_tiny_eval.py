@@ -11,7 +11,7 @@ from llm.leverage.evaluate import (
     write_results,
     write_summary,
 )
-from llm.leverage.harmony import extract_harmony_final_response
+from llm.leverage.harmony import HarmonyExtraction, analyze_harmony_response
 
 
 DEFAULT_MODEL = "openai/gpt-oss-20b"
@@ -48,6 +48,17 @@ def generated_message(output: Any) -> Any:
     return output
 
 
+def summarize_extractions(extractions: list[HarmonyExtraction]) -> dict[str, int]:
+    return {
+        "task_count": len(extractions),
+        "missing_final_marker_count": sum(1 for extraction in extractions if not extraction.final_marker_found),
+        "empty_final_response_count": sum(1 for extraction in extractions if extraction.final_response_empty),
+        "non_final_channel_in_final_count": sum(
+            1 for extraction in extractions if extraction.non_final_channel_in_final
+        ),
+    }
+
+
 def run_tiny_eval(
     *,
     task_paths: list[Path],
@@ -67,12 +78,15 @@ def run_tiny_eval(
     load_seconds = round(time.monotonic() - started, 3)
     raw_rows: list[dict[str, Any]] = []
     predictions: list[Prediction] = []
+    extractions: list[HarmonyExtraction] = []
     for task in tasks.values():
         messages = build_messages(task.prompt, system_prompt)
         task_started = time.monotonic()
         output = pipe(messages, max_new_tokens=max_new_tokens, do_sample=False)
         raw_output = generated_message(output)
-        final_response = extract_harmony_final_response(raw_output)
+        extraction = analyze_harmony_response(raw_output)
+        final_response = extraction.final_response
+        extractions.append(extraction)
         elapsed = round(time.monotonic() - task_started, 3)
         raw_rows.append(
             {
@@ -83,6 +97,11 @@ def run_tiny_eval(
                 "messages": messages,
                 "raw_output": raw_output,
                 "final_response": final_response,
+                "harmony": {
+                    "final_marker_found": extraction.final_marker_found,
+                    "final_response_empty": extraction.final_response_empty,
+                    "non_final_channel_in_final": extraction.non_final_channel_in_final,
+                },
                 "seconds": elapsed,
             }
         )
@@ -114,6 +133,7 @@ def run_tiny_eval(
         "torch": torch.__version__,
         "cuda_available": torch.cuda.is_available(),
         "cuda_device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+        "harmony": summarize_extractions(extractions),
     }
     if torch.cuda.is_available():
         metadata["max_memory_allocated_gb"] = round(torch.cuda.max_memory_allocated() / 1024**3, 3)

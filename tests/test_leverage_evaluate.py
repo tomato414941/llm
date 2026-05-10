@@ -483,6 +483,14 @@ def test_real_leverage_smoke_eval_contract() -> None:
         "coding_sql_count",
         "qa_author",
         "instruction_lowercase",
+        "qa_largest_ocean",
+        "qa_h2o",
+        "summary_meeting",
+        "instruction_three_words",
+        "reasoning_apples",
+        "reasoning_calendar",
+        "coding_js_function",
+        "tool_use_weather_args",
     }
     assert {task.capability for task in tasks.values()} == {
         "coding",
@@ -490,6 +498,7 @@ def test_real_leverage_smoke_eval_contract() -> None:
         "knowledge_qa",
         "reasoning",
         "summarization_transformation",
+        "tool_use",
     }
     assert len(predictions) == len(tasks)
     assert {prediction.model for prediction in predictions} == {"example-baseline"}
@@ -550,7 +559,7 @@ def test_real_two_layer_eval_contract() -> None:
     )
     results = evaluate.evaluate_predictions(tasks, predictions)
 
-    assert len(tasks) == 30
+    assert len(tasks) == 38
     assert len(predictions) == len(tasks)
     assert {result.suite for result in results} == {"leverage-smoke", "project-judgment"}
     assert all(result.passed for result in results)

@@ -40,7 +40,8 @@ from runpod_common import (
 )
 
 
-DEFAULT_IMAGE = "runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404"
+DEFAULT_TEMPLATE_ID = "runpod-torch-v280"
+DEFAULT_IMAGE = "runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404"
 DEFAULT_SYNC = ("src", "tests", "pyproject.toml", "uv.lock", "README.md", "AGENTS.md", "LICENSE")
 DEFAULT_SETUP_COMMAND = (
     "set -euo pipefail; "
@@ -262,7 +263,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gpu-type", default="NVIDIA GeForce RTX 4090")
     parser.add_argument("--gpu-count", type=int, default=1)
     parser.add_argument("--max-cost", type=float, default=1.0)
-    parser.add_argument("--template-id")
+    parser.add_argument("--template-id", default=DEFAULT_TEMPLATE_ID)
     parser.add_argument("--image", default=DEFAULT_IMAGE)
     parser.add_argument("--allowed-cuda-version", action="append", default=[])
     parser.add_argument("--container-disk-size", type=int, default=80)
@@ -287,7 +288,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--keep-pod", action="store_true")
     parser.add_argument("--keep-pod-on-failure", action="store_true")
     parser.add_argument("--timings-output", type=Path)
-    return parser.parse_args()
+    cli_args = sys.argv[1:]
+    image_was_set = any(arg == "--image" or arg.startswith("--image=") for arg in cli_args)
+    template_was_set = any(arg == "--template-id" or arg.startswith("--template-id=") for arg in cli_args)
+    args = parser.parse_args()
+    if image_was_set and not template_was_set:
+        args.template_id = None
+    return args
 
 
 def main() -> int:

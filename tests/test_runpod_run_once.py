@@ -2,6 +2,7 @@ from argparse import Namespace
 import importlib.util
 import json
 from pathlib import Path
+import sys
 
 import pytest
 
@@ -35,6 +36,46 @@ runpod_create_command = runpod_common.runpod_create_command
 split_shell_command = runpod_run_once.split_shell_command
 step_name = runpod_run_once.step_name
 wait_for_connection = runpod_common.wait_for_connection
+
+
+def test_parse_args_defaults_to_runpod_pytorch_280_template(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_once.py",
+            "--output",
+            "outputs/run",
+            "--remote",
+            "echo ok",
+        ],
+    )
+
+    parsed = runpod_run_once.parse_args()
+
+    assert parsed.template_id == "runpod-torch-v280"
+    assert parsed.image == "runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404"
+
+
+def test_parse_args_explicit_image_disables_default_template(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_once.py",
+            "--output",
+            "outputs/run",
+            "--remote",
+            "echo ok",
+            "--image",
+            "runpod/pytorch:test",
+        ],
+    )
+
+    parsed = runpod_run_once.parse_args()
+
+    assert parsed.template_id is None
+    assert parsed.image == "runpod/pytorch:test"
 
 
 def write_repo_shape(tmp_path: Path) -> None:

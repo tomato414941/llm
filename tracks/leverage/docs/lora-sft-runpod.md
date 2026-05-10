@@ -101,7 +101,7 @@ uv run python scripts/runpod/run_once.py \
   --name llm-leverage-sft-smoke \
   --secure-cloud \
   --gpu-type 'NVIDIA GeForce RTX 4090' \
-  --image runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404 \
+  --template-id runpod-torch-v280 \
   --allowed-cuda-version 12.8 \
   --allowed-cuda-version 12.9 \
   --allowed-cuda-version 13.0 \
@@ -140,7 +140,7 @@ uv run python scripts/runpod/run_once.py \
   --name llm-leverage-qwen35-9b-lora \
   --secure-cloud \
   --gpu-type 'NVIDIA GeForce RTX 4090' \
-  --image runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404 \
+  --template-id runpod-torch-v280 \
   --allowed-cuda-version 12.8 \
   --allowed-cuda-version 12.9 \
   --allowed-cuda-version 13.0 \
@@ -171,15 +171,21 @@ Batched training is the default smoke path: the old non-batched 1,083-row
 `Qwen/Qwen3.5-0.8B` smoke took 731.690 seconds for training, while the batched
 path took 201.648 seconds on the same row count.
 
-Use a RunPod PyTorch image whose CUDA requirement fits the allocated host
-driver. The CUDA 12.8 image
+Use the official RunPod PyTorch 2.8.0 template by default:
+`--template-id runpod-torch-v280`. RunPod currently maps that template to
+`runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404`, which matches the project's
+locked PyTorch 2.8 runtime more closely than the newer torch291 image.
+
+The newer CUDA 12.8 image
 `runpod/pytorch:1.0.3-cu1281-torch291-ubuntu2404` has successfully loaded
-`Qwen/Qwen3.5-9B`, but another RTX 4090 host failed to start that same image
-because `nvidia-container-cli` reported `unsatisfied condition: cuda>=12.8`.
-If a pod stays `RUNNING` with `pod not ready`, inspect the RunPod console log
-before treating it as a trainer or model failure. Prefer a readiness-only
-`nvidia-smi` probe with `--allowed-cuda-version 12.8`, or use an earlier CUDA
-image when host-driver compatibility matters more than using the newest image.
+`Qwen/Qwen3.5-9B`, but it is no longer the default because the project installs
+its own locked `.venv` with PyTorch 2.8.0. Another RTX 4090 host also failed to
+start that newer image because `nvidia-container-cli` reported
+`unsatisfied condition: cuda>=12.8`. If a pod stays `RUNNING` with `pod not
+ready`, inspect the RunPod console log before treating it as a trainer or model
+failure. Prefer a readiness-only `nvidia-smi` probe with
+`--allowed-cuda-version 12.8`, or use an earlier CUDA image when host-driver
+compatibility matters more than using the newest image.
 
 ## Success Criteria
 

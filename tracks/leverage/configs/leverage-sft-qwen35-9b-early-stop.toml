@@ -34,8 +34,8 @@ notes = "Candidate multi-epoch run. Use only after dry-run and preflight confirm
 [early_stopping]
 enabled = true
 validation_examples = 128
-eval_every_steps = 50
-patience = 2
+eval_every_steps = 100
+patience = 3
 min_delta = 0.001
 
 [runpod]

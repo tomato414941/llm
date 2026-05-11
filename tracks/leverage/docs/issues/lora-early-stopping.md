@@ -1,7 +1,8 @@
 # LoRA Early Stopping
 
-Status: proposed
+Status: implemented-minimal
 Date: 2026-05-07
+Updated: 2026-05-11
 
 ## Background
 
@@ -63,3 +64,18 @@ Adopt early stopping when at least one of these becomes true:
 
 The first implementation should be minimal: a validation split, an evaluation
 interval, a patience value, and a clear metric written to the run note.
+
+## Implementation
+
+Minimal plumbing was added on 2026-05-11:
+
+- `[early_stopping]` config table, disabled by default.
+- Tail validation split when `early_stopping.enabled=true`.
+- Validation-loss checks every `early_stopping.eval_every_steps`.
+- Stop after `early_stopping.patience` checks without an improvement greater
+  than `early_stopping.min_delta`.
+- Metrics and notes fields for validation rows, validation checks, best
+  validation loss, final validation loss, and whether early stopping triggered.
+
+The existing 1-epoch smoke and Qwen3.5-9B configs keep early stopping disabled.
+Enable it only for multi-epoch or materially expensive runs.

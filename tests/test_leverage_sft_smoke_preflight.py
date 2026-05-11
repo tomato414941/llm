@@ -14,6 +14,7 @@ def test_preflight_real_config_exports_bootstrap_training_rows() -> None:
     expected_rows = len(REVIEWED_PATH.read_text(encoding="utf-8").splitlines())
 
     assert any(f"exported training rows: {expected_rows}" in line for line in lines)
+    assert any("early_stopping.enabled=False" in line for line in lines)
     assert Path("tracks/leverage/sft/bootstrap.train.jsonl").exists()
 
 
@@ -88,3 +89,15 @@ def test_preflight_accepts_temp_copy_with_relative_output(tmp_path: Path) -> Non
 
     assert export_path.exists()
     assert any(str(export_path) in line for line in lines)
+
+
+def test_preflight_rejects_invalid_early_stopping_config(tmp_path: Path) -> None:
+    config_path = tmp_path / "leverage-sft-smoke.toml"
+    text = CONFIG_PATH.read_text(encoding="utf-8").replace(
+        "enabled = false",
+        "enabled = true",
+    )
+    config_path.write_text(text, encoding="utf-8")
+
+    with pytest.raises(ValueError, match="validation_examples"):
+        preflight(config_path, overwrite=True)

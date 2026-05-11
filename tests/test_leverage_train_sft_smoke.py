@@ -4,11 +4,15 @@ import pytest
 
 from llm.leverage import train_sft_smoke
 from llm.leverage.train_sft_smoke import (
+    EarlyStoppingConfig,
+    EarlyStoppingState,
+    early_stopping_config,
     gpu_sample_summary,
     load_training_rows,
     nvidia_smi_sample,
     require_training_packages,
     run_smoke,
+    split_training_rows,
 )
 
 
@@ -59,12 +63,14 @@ def test_run_smoke_dry_run_reports_training_plan(tmp_path: Path) -> None:
     lines = run_smoke(config, dry_run=True)
 
     assert any("would train 2 rows" in line for line in lines)
+    assert any("validation rows: 0" in line for line in lines)
     assert any("Qwen/Qwen3.5-0.8B" in line for line in lines)
     assert any("batch size: 2" in line for line in lines)
     assert any("max length: 1024" in line for line in lines)
     assert any("gradient checkpointing: False" in line for line in lines)
     assert any("gradient accumulation steps: 1" in line for line in lines)
     assert any("log every steps: 50" in line for line in lines)
+    assert any("early stopping: False" in line for line in lines)
     assert any("adapter output" in line for line in lines)
 
 
@@ -82,6 +88,73 @@ def test_qwen35_9b_config_dry_run_reports_training_plan() -> None:
     assert any("gradient checkpointing: True" in line for line in lines)
     assert any("gradient accumulation steps: 4" in line for line in lines)
     assert any("log every steps: 10" in line for line in lines)
+    assert any("early stopping: False" in line for line in lines)
+
+
+def test_early_stopping_config_defaults_to_disabled() -> None:
+    assert early_stopping_config({}) == EarlyStoppingConfig()
+
+
+def test_early_stopping_config_requires_validation_examples_when_enabled() -> None:
+    with pytest.raises(ValueError, match="validation_examples"):
+        early_stopping_config({"early_stopping": {"enabled": True}})
+
+
+def test_split_training_rows_uses_tail_for_validation() -> None:
+    rows = [
+        {"id": "row_1", "messages": [{"role": "user", "content": "1"}]},
+        {"id": "row_2", "messages": [{"role": "user", "content": "2"}]},
+        {"id": "row_3", "messages": [{"role": "user", "content": "3"}]},
+    ]
+
+    training_rows, validation_rows = split_training_rows(
+        rows,
+        EarlyStoppingConfig(
+            enabled=True,
+            validation_examples=1,
+            eval_every_steps=1,
+            patience=1,
+        ),
+    )
+
+    assert [row["id"] for row in training_rows] == ["row_1", "row_2"]
+    assert [row["id"] for row in validation_rows] == ["row_3"]
+
+
+def test_split_training_rows_requires_more_training_than_validation_rows() -> None:
+    rows = [{"id": "row_1", "messages": [{"role": "user", "content": "1"}]}]
+
+    with pytest.raises(ValueError, match="training rows must exceed"):
+        split_training_rows(
+            rows,
+            EarlyStoppingConfig(
+                enabled=True,
+                validation_examples=1,
+                eval_every_steps=1,
+                patience=1,
+            ),
+        )
+
+
+def test_early_stopping_state_stops_after_patience_without_improvement() -> None:
+    state = EarlyStoppingState()
+    config = EarlyStoppingConfig(
+        enabled=True,
+        validation_examples=1,
+        eval_every_steps=1,
+        patience=2,
+        min_delta=0.1,
+    )
+
+    state.update(validation_loss=1.0, step=1, config=config)
+    state.update(validation_loss=0.95, step=2, config=config)
+    state.update(validation_loss=0.96, step=3, config=config)
+
+    assert state.best_loss == 1.0
+    assert state.checks_without_improvement == 2
+    assert state.stopped is True
+    assert state.stop_step == 3
+    assert state.stop_reason == "validation_loss_patience_exhausted"
 
 
 def test_load_training_rows_rejects_too_many_rows(tmp_path: Path) -> None:

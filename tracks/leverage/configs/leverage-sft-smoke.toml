@@ -27,6 +27,13 @@ eval_max_new_tokens = 128
 max_runtime_minutes = 60
 notes = "This is a wiring smoke, not a quality-improvement run."
 
+[early_stopping]
+enabled = false
+validation_examples = 0
+eval_every_steps = 0
+patience = 0
+min_delta = 0.0
+
 [runpod]
 required = false
 use_when = "Only when local setup cannot run the selected student model and the exact smoke objective is still worth paid GPU time."

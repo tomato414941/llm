@@ -4,6 +4,7 @@ from typing import Any
 
 from llm.config import load_toml
 from llm.leverage.export_reviewed_instructions import export_dataset
+from llm.leverage.train_sft_smoke import early_stopping_config
 from llm.leverage.validate_reviewed_instructions import load_jsonl
 
 
@@ -40,6 +41,7 @@ def preflight(config_path: Path, *, overwrite: bool) -> list[str]:
     experiment = require_table(config, "experiment")
     data = require_table(config, "data")
     method = require_table(config, "method")
+    early_stopping = early_stopping_config(config)
     runpod = require_table(config, "runpod")
     outputs = require_table(config, "outputs")
 
@@ -109,6 +111,7 @@ def preflight(config_path: Path, *, overwrite: bool) -> list[str]:
         f"exported training rows: {row_count} -> {train_export_path}",
         f"checked eval tasks: {len(eval_task_paths)}",
         f"checked local output root: {output_root}",
+        f"early_stopping.enabled={early_stopping.enabled}",
         "runpod.required=false",
     ]
 

@@ -3,6 +3,7 @@ import csv
 import subprocess
 import threading
 import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,37 @@ from llm.leverage.validate_reviewed_instructions import load_jsonl
 
 REQUIRED_PACKAGES = ("torch", "transformers", "peft", "trl")
 DEFAULT_CONFIG = Path("tracks/leverage/configs/leverage-sft-smoke.toml")
+
+
+@dataclass(frozen=True)
+class EarlyStoppingConfig:
+    enabled: bool = False
+    validation_examples: int = 0
+    eval_every_steps: int = 0
+    patience: int = 0
+    min_delta: float = 0.0
+
+
+@dataclass
+class EarlyStoppingState:
+    best_loss: float | None = None
+    best_step: int = 0
+    checks_without_improvement: int = 0
+    stopped: bool = False
+    stop_step: int = 0
+    stop_reason: str = ""
+
+    def update(self, *, validation_loss: float, step: int, config: EarlyStoppingConfig) -> None:
+        if self.best_loss is None or validation_loss < self.best_loss - config.min_delta:
+            self.best_loss = validation_loss
+            self.best_step = step
+            self.checks_without_improvement = 0
+            return
+        self.checks_without_improvement += 1
+        if self.checks_without_improvement >= config.patience:
+            self.stopped = True
+            self.stop_step = step
+            self.stop_reason = "validation_loss_patience_exhausted"
 
 
 def require_training_packages() -> dict[str, Any]:
@@ -75,6 +107,55 @@ def bool_value(value: Any, label: str) -> bool:
     return value
 
 
+def non_negative_int_value(value: Any, label: str) -> int:
+    value = int_value(value, label)
+    if value < 0:
+        raise ValueError(f"{label} must be non-negative")
+    return value
+
+
+def non_negative_float_value(value: Any, label: str) -> float:
+    if not isinstance(value, int | float):
+        raise ValueError(f"{label} must be a number")
+    value = float(value)
+    if value < 0:
+        raise ValueError(f"{label} must be non-negative")
+    return value
+
+
+def early_stopping_config(config: dict[str, Any]) -> EarlyStoppingConfig:
+    value = config.get("early_stopping")
+    if value is None:
+        return EarlyStoppingConfig()
+    if not isinstance(value, dict):
+        raise ValueError("config section [early_stopping] must be a table")
+    enabled = bool_value(value.get("enabled", False), "early_stopping.enabled")
+    validation_examples = non_negative_int_value(
+        value.get("validation_examples", 0),
+        "early_stopping.validation_examples",
+    )
+    eval_every_steps = non_negative_int_value(
+        value.get("eval_every_steps", 0),
+        "early_stopping.eval_every_steps",
+    )
+    patience = non_negative_int_value(value.get("patience", 0), "early_stopping.patience")
+    min_delta = non_negative_float_value(value.get("min_delta", 0.0), "early_stopping.min_delta")
+    if enabled:
+        if validation_examples <= 0:
+            raise ValueError("early_stopping.validation_examples must be positive when enabled")
+        if eval_every_steps <= 0:
+            raise ValueError("early_stopping.eval_every_steps must be positive when enabled")
+        if patience <= 0:
+            raise ValueError("early_stopping.patience must be positive when enabled")
+    return EarlyStoppingConfig(
+        enabled=enabled,
+        validation_examples=validation_examples,
+        eval_every_steps=eval_every_steps,
+        patience=patience,
+        min_delta=min_delta,
+    )
+
+
 def load_training_rows(path: Path, max_examples: int) -> list[dict[str, Any]]:
     rows = [row for _line_number, row in load_jsonl(path)]
     if len(rows) > max_examples:
@@ -84,6 +165,17 @@ def load_training_rows(path: Path, max_examples: int) -> list[dict[str, Any]]:
         if not isinstance(messages, list) or not messages:
             raise ValueError(f"{path}: row {index + 1} must contain messages")
     return rows
+
+
+def split_training_rows(
+    rows: list[dict[str, Any]],
+    config: EarlyStoppingConfig,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    if not config.enabled:
+        return rows, []
+    if len(rows) <= config.validation_examples:
+        raise ValueError("training rows must exceed early_stopping.validation_examples")
+    return rows[: -config.validation_examples], rows[-config.validation_examples :]
 
 
 def write_metrics(path: Path, rows: list[dict[str, str]]) -> None:
@@ -203,6 +295,7 @@ def train_lora_smoke(
     *,
     modules: dict[str, Any],
     rows: list[dict[str, Any]],
+    validation_rows: list[dict[str, Any]],
     student_model: str,
     adapter_dir: Path,
     progress_path: Path,
@@ -213,6 +306,7 @@ def train_lora_smoke(
     gradient_checkpointing: bool,
     gradient_accumulation_steps: int,
     log_every_steps: int,
+    early_stopping: EarlyStoppingConfig,
 ) -> dict[str, float]:
     torch = modules["torch"]
     transformers = modules["transformers"]
@@ -256,9 +350,11 @@ def train_lora_smoke(
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=2e-4)
     losses: list[float] = []
+    validation_losses: list[float] = []
     token_count = 0
     render_started = time.monotonic()
     texts = [render_messages(row, tokenizer) for row in rows]
+    validation_texts = [render_messages(row, tokenizer) for row in validation_rows]
     render_seconds = time.monotonic() - render_started
 
     def collate_texts(batch: list[str]) -> dict[str, Any]:
@@ -280,6 +376,28 @@ def train_lora_smoke(
         shuffle=False,
         collate_fn=collate_texts,
     )
+    validation_dataloader = torch.utils.data.DataLoader(
+        validation_texts,
+        batch_size=batch_size,
+        shuffle=False,
+        collate_fn=collate_texts,
+    )
+
+    def validation_loss() -> float:
+        model.eval()
+        total_loss = 0.0
+        total_batches = 0
+        with torch.no_grad():
+            for encoded in validation_dataloader:
+                encoded = {key: value.to("cuda") for key, value in encoded.items()}
+                loss = model(**encoded).loss
+                if not torch.isfinite(loss):
+                    raise RuntimeError("validation loss became NaN or inf")
+                total_loss += float(loss.detach().cpu())
+                total_batches += 1
+        model.train()
+        return total_loss / total_batches if total_batches else 0.0
+
     gpu_samples_path = progress_path.with_name("gpu-samples.csv")
     torch.cuda.reset_peak_memory_stats()
     started = time.monotonic()
@@ -298,10 +416,14 @@ def train_lora_smoke(
             "gpu_utilization_percent",
             "gpu_memory_used_mb",
             "gpu_memory_total_mb",
+            "validation_loss",
+            "early_stopping_best_loss",
+            "early_stopping_checks_without_improvement",
         ],
     )
     progress_writer.writeheader()
     optimizer_steps = 0
+    early_stopping_state = EarlyStoppingState()
     gpu_stop_event, gpu_sampler_thread = start_gpu_sampler(gpu_samples_path)
     try:
         for _epoch in range(max_epochs):
@@ -318,6 +440,16 @@ def train_lora_smoke(
                     optimizer.step()
                     optimizer.zero_grad(set_to_none=True)
                     optimizer_steps += 1
+                current_validation_loss = ""
+                if early_stopping.enabled and step % early_stopping.eval_every_steps == 0:
+                    measured_validation_loss = validation_loss()
+                    validation_losses.append(measured_validation_loss)
+                    early_stopping_state.update(
+                        validation_loss=measured_validation_loss,
+                        step=step,
+                        config=early_stopping,
+                    )
+                    current_validation_loss = f"{measured_validation_loss:.6f}"
                 if step % log_every_steps == 0:
                     elapsed = time.monotonic() - started
                     gpu_sample = nvidia_smi_sample()
@@ -329,6 +461,13 @@ def train_lora_smoke(
                         "tokens_per_second": f"{token_count / elapsed if elapsed else 0.0:.3f}",
                         "peak_vram_gb": f"{torch.cuda.max_memory_allocated() / 1024**3:.3f}",
                         **gpu_sample,
+                        "validation_loss": current_validation_loss,
+                        "early_stopping_best_loss": ""
+                        if early_stopping_state.best_loss is None
+                        else f"{early_stopping_state.best_loss:.6f}",
+                        "early_stopping_checks_without_improvement": str(
+                            early_stopping_state.checks_without_improvement
+                        ),
                     }
                     progress_writer.writerow(progress_row)
                     progress_file.flush()
@@ -336,6 +475,10 @@ def train_lora_smoke(
                         " ".join(f"{key}={value}" for key, value in progress_row.items()),
                         flush=True,
                     )
+                if early_stopping_state.stopped:
+                    break
+            if early_stopping_state.stopped:
+                break
         if losses and len(losses) % gradient_accumulation_steps != 0:
             optimizer.step()
             optimizer.zero_grad(set_to_none=True)
@@ -354,6 +497,15 @@ def train_lora_smoke(
         "steps": float(len(losses)),
         "optimizer_steps": float(optimizer_steps),
         "final_loss": losses[-1] if losses else 0.0,
+        "validation_examples": float(len(validation_rows)),
+        "validation_checks": float(len(validation_losses)),
+        "final_validation_loss": validation_losses[-1] if validation_losses else 0.0,
+        "best_validation_loss": early_stopping_state.best_loss
+        if early_stopping_state.best_loss is not None
+        else 0.0,
+        "best_validation_step": float(early_stopping_state.best_step),
+        "early_stopped": 1.0 if early_stopping_state.stopped else 0.0,
+        "early_stopping_stop_step": float(early_stopping_state.stop_step),
         "total_seconds": total_seconds,
         "tokenizer_load_seconds": tokenizer_load_seconds,
         "model_load_seconds": model_load_seconds,
@@ -390,6 +542,7 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
         "method.gradient_accumulation_steps",
     )
     log_every_steps = positive_int_value(method.get("log_every_steps", 50), "method.log_every_steps")
+    early_stopping = early_stopping_config(config)
     gradient_checkpointing = bool_value(
         method.get("gradient_checkpointing", False),
         "method.gradient_checkpointing",
@@ -398,15 +551,18 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
     torch_dtype = optional_string_value(model.get("torch_dtype"), "model.torch_dtype")
 
     rows = load_training_rows(train_export, max_examples)
+    training_rows, validation_rows = split_training_rows(rows, early_stopping)
     if dry_run:
         return [
-            f"would train {len(rows)} rows from {train_export}",
+            f"would train {len(training_rows)} rows from {train_export}",
+            f"validation rows: {len(validation_rows)}",
             f"student model: {student_model}",
             f"batch size: {batch_size}",
             f"max length: {max_length}",
             f"gradient checkpointing: {gradient_checkpointing}",
             f"gradient accumulation steps: {gradient_accumulation_steps}",
             f"log every steps: {log_every_steps}",
+            f"early stopping: {early_stopping.enabled}",
             f"adapter output: {adapter_dir}",
             f"metrics output: {metrics_path}",
         ]
@@ -420,7 +576,8 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
     notes_path.parent.mkdir(parents=True, exist_ok=True)
     metrics = train_lora_smoke(
         modules=modules,
-        rows=rows,
+        rows=training_rows,
+        validation_rows=validation_rows,
         student_model=student_model,
         adapter_dir=adapter_dir,
         progress_path=logs_dir / "progress.csv",
@@ -431,11 +588,14 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
         gradient_checkpointing=gradient_checkpointing,
         gradient_accumulation_steps=gradient_accumulation_steps,
         log_every_steps=log_every_steps,
+        early_stopping=early_stopping,
     )
     write_metrics(
         metrics_path,
         [
             {"metric": "rows", "value": str(len(rows))},
+            {"metric": "training_rows", "value": str(len(training_rows))},
+            {"metric": "validation_rows", "value": str(len(validation_rows))},
             {"metric": "student_model", "value": student_model},
             {"metric": "cuda_device", "value": torch.cuda.get_device_name(0)},
             {"metric": "epochs", "value": str(max_epochs)},
@@ -444,6 +604,10 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
             {"metric": "gradient_checkpointing", "value": str(gradient_checkpointing)},
             {"metric": "gradient_accumulation_steps", "value": str(gradient_accumulation_steps)},
             {"metric": "log_every_steps", "value": str(log_every_steps)},
+            {"metric": "early_stopping_enabled", "value": str(early_stopping.enabled)},
+            {"metric": "early_stopping_eval_every_steps", "value": str(early_stopping.eval_every_steps)},
+            {"metric": "early_stopping_patience", "value": str(early_stopping.patience)},
+            {"metric": "early_stopping_min_delta", "value": f"{early_stopping.min_delta:.6f}"},
             {"metric": "steps", "value": str(int(metrics["steps"]))},
             {"metric": "optimizer_steps", "value": str(int(metrics["optimizer_steps"]))},
             {"metric": "tokens", "value": str(int(metrics["tokens"]))},
@@ -469,6 +633,15 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
             {"metric": "gpu_memory_used_max_mb", "value": f"{metrics['gpu_memory_used_max_mb']:.0f}"},
             {"metric": "gpu_memory_total_mb", "value": f"{metrics['gpu_memory_total_mb']:.0f}"},
             {"metric": "final_loss", "value": f"{metrics['final_loss']:.6f}"},
+            {"metric": "validation_checks", "value": str(int(metrics["validation_checks"]))},
+            {"metric": "final_validation_loss", "value": f"{metrics['final_validation_loss']:.6f}"},
+            {"metric": "best_validation_loss", "value": f"{metrics['best_validation_loss']:.6f}"},
+            {"metric": "best_validation_step", "value": str(int(metrics["best_validation_step"]))},
+            {"metric": "early_stopped", "value": str(bool(metrics["early_stopped"]))},
+            {
+                "metric": "early_stopping_stop_step",
+                "value": str(int(metrics["early_stopping_stop_step"])),
+            },
             {"metric": "status", "value": "completed"},
         ],
     )
@@ -478,12 +651,18 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
                 "# Leverage SFT Smoke",
                 "",
                 f"Rows: {len(rows)}",
+                f"Training rows: {len(training_rows)}",
+                f"Validation rows: {len(validation_rows)}",
                 f"Epochs: {max_epochs}",
                 f"Batch size: {batch_size}",
                 f"Max length: `{max_length}`",
                 f"Gradient checkpointing: `{gradient_checkpointing}`",
                 f"Gradient accumulation steps: `{gradient_accumulation_steps}`",
                 f"Log every steps: `{log_every_steps}`",
+                f"Early stopping enabled: `{early_stopping.enabled}`",
+                f"Early stopping eval every steps: `{early_stopping.eval_every_steps}`",
+                f"Early stopping patience: `{early_stopping.patience}`",
+                f"Early stopping min delta: `{early_stopping.min_delta:.6f}`",
                 f"Student model: `{student_model}`",
                 f"CUDA device: `{torch.cuda.get_device_name(0)}`",
                 f"Total seconds: `{metrics['total_seconds']:.3f}`",
@@ -497,13 +676,21 @@ def run_smoke(config_path: Path, *, dry_run: bool) -> list[str]:
                 f"GPU utilization avg percent: `{metrics['gpu_utilization_avg_percent']:.3f}`",
                 f"GPU utilization max percent: `{metrics['gpu_utilization_max_percent']:.3f}`",
                 f"Final loss: `{metrics['final_loss']:.6f}`",
+                f"Validation checks: `{metrics['validation_checks']:.0f}`",
+                f"Final validation loss: `{metrics['final_validation_loss']:.6f}`",
+                f"Best validation loss: `{metrics['best_validation_loss']:.6f}`",
+                f"Best validation step: `{metrics['best_validation_step']:.0f}`",
+                f"Early stopped: `{bool(metrics['early_stopped'])}`",
+                f"Early stopping stop step: `{metrics['early_stopping_stop_step']:.0f}`",
             ]
         )
         + "\n",
         encoding="utf-8",
     )
     return [
-        f"loaded {len(rows)} training rows",
+        f"loaded {len(rows)} rows",
+        f"training rows: {len(training_rows)}",
+        f"validation rows: {len(validation_rows)}",
         f"cuda device: {torch.cuda.get_device_name(0)}",
         f"batch size: {batch_size}",
         f"gradient accumulation steps: {gradient_accumulation_steps}",

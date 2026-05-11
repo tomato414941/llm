@@ -31,6 +31,13 @@ eval_max_new_tokens = 128
 max_runtime_minutes = 60
 notes = "This is the full reviewed-data Qwen3.5-9B baseline run using batch2 after full batch4 ran out of VRAM."
 
+[early_stopping]
+enabled = false
+validation_examples = 0
+eval_every_steps = 0
+patience = 0
+min_delta = 0.0
+
 [runpod]
 required = false
 use_when = "Run only after dry-run confirms the exact GPU, config, outputs, timing, and cleanup plan."

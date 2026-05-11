@@ -73,8 +73,12 @@ def preflight(config_path: Path, *, overwrite: bool) -> list[str]:
         raise ValueError("method.gradient_accumulation_steps must be positive")
     if log_every_steps <= 0:
         raise ValueError("method.log_every_steps must be positive")
-    if max_runtime_minutes > 60:
-        raise ValueError("method.max_runtime_minutes must be <= 60 for the smoke run")
+    max_allowed_runtime_minutes = 180 if early_stopping.enabled else 60
+    if max_runtime_minutes > max_allowed_runtime_minutes:
+        raise ValueError(
+            f"method.max_runtime_minutes must be <= {max_allowed_runtime_minutes} "
+            "for this preflight"
+        )
 
     if require_bool(runpod.get("required"), "runpod.required"):
         raise ValueError("runpod.required must be false for local preflight")
@@ -112,6 +116,7 @@ def preflight(config_path: Path, *, overwrite: bool) -> list[str]:
         f"checked eval tasks: {len(eval_task_paths)}",
         f"checked local output root: {output_root}",
         f"early_stopping.enabled={early_stopping.enabled}",
+        f"checked max runtime minutes: {max_runtime_minutes}",
         "runpod.required=false",
     ]
 

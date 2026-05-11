@@ -1,0 +1,71 @@
+[experiment]
+name = "leverage_sft_qwen35_9b_early_stop"
+track = "leverage"
+objective = "Run a multi-epoch Qwen3.5-9B LoRA/SFT candidate with validation-loss early stopping."
+status = "planned"
+
+[model]
+student = "Qwen/Qwen3.5-9B"
+torch_dtype = "bfloat16"
+selection_reason = "Qwen3.5-9B is the current LoRA/SFT baseline target; this config is only for a bounded multi-epoch early-stopping candidate."
+
+[data]
+reviewed-instructions = "tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl"
+train_export = "tracks/leverage/sft/bootstrap.train.jsonl"
+eval_tasks = [
+  "tracks/leverage/evals/leverage-smoke.jsonl",
+  "tracks/leverage/evals/project-judgment.jsonl",
+]
+
+[method]
+first_choice = "lora"
+fallback = "stop"
+max_train_examples = 1500
+max_epochs = 3
+batch_size = 2
+max_length = 512
+gradient_checkpointing = true
+gradient_accumulation_steps = 4
+log_every_steps = 10
+eval_max_new_tokens = 128
+max_runtime_minutes = 180
+notes = "Candidate multi-epoch run. Use only after dry-run and preflight confirm validation split, output paths, timing, and cleanup plan."
+
+[early_stopping]
+enabled = true
+validation_examples = 128
+eval_every_steps = 50
+patience = 2
+min_delta = 0.001
+
+[runpod]
+required = false
+use_when = "Run only after dry-run confirms the exact GPU, config, outputs, timing, and cleanup plan."
+gpu_target = "NVIDIA RTX 4090"
+max_cost_usd = 3.00
+cleanup_required = true
+
+[outputs]
+root = "outputs/leverage-sft-qwen35-9b-early-stop"
+adapter_dir = "outputs/leverage-sft-qwen35-9b-early-stop/lora-adapter"
+logs = "outputs/leverage-sft-qwen35-9b-early-stop/logs"
+metrics = "outputs/leverage-sft-qwen35-9b-early-stop/metrics.csv"
+notes = "outputs/leverage-sft-qwen35-9b-early-stop/notes.md"
+
+[success]
+criteria = [
+  "reviewed instructions validate successfully",
+  "training export is regenerated from reviewed instructions",
+  "training command completes or stops via validation-loss early stopping",
+  "adapter artifact is written",
+  "metrics include rows, training rows, validation rows, validation checks, best validation loss, final validation loss, early-stopped flag, and peak VRAM",
+]
+
+[stop]
+conditions = [
+  "dependency setup exceeds the planned runtime",
+  "Qwen3.5-9B cannot be loaded on the selected GPU",
+  "training or validation loss becomes NaN",
+  "cost cap would be exceeded",
+  "any paid resource cannot be cleaned up immediately",
+]

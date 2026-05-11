@@ -15,6 +15,7 @@ def test_preflight_real_config_exports_bootstrap_training_rows() -> None:
 
     assert any(f"exported training rows: {expected_rows}" in line for line in lines)
     assert any("early_stopping.enabled=False" in line for line in lines)
+    assert any("checked max runtime minutes: 60" in line for line in lines)
     assert Path("tracks/leverage/sft/bootstrap.train.jsonl").exists()
 
 
@@ -101,3 +102,20 @@ def test_preflight_rejects_invalid_early_stopping_config(tmp_path: Path) -> None
 
     with pytest.raises(ValueError, match="validation_examples"):
         preflight(config_path, overwrite=True)
+
+
+def test_preflight_allows_longer_runtime_when_early_stopping_enabled(tmp_path: Path) -> None:
+    config_path = tmp_path / "leverage-sft-smoke.toml"
+    text = CONFIG_PATH.read_text(encoding="utf-8")
+    text = text.replace("max_epochs = 1", "max_epochs = 3")
+    text = text.replace("max_runtime_minutes = 60", "max_runtime_minutes = 180")
+    text = text.replace(
+        "[early_stopping]\nenabled = false\nvalidation_examples = 0\neval_every_steps = 0\npatience = 0\nmin_delta = 0.0",
+        "[early_stopping]\nenabled = true\nvalidation_examples = 16\neval_every_steps = 10\npatience = 2\nmin_delta = 0.001",
+    )
+    config_path.write_text(text, encoding="utf-8")
+
+    lines = preflight(config_path, overwrite=True)
+
+    assert any("early_stopping.enabled=True" in line for line in lines)
+    assert any("checked max runtime minutes: 180" in line for line in lines)

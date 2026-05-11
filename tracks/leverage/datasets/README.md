@@ -58,3 +58,36 @@ uv run python -m llm.leverage.export_reviewed_instructions --overwrite
 
 The default output is `tracks/leverage/sft/bootstrap.train.jsonl`. Files under
 `tracks/leverage/sft/` are generated training inputs and are ignored by git.
+
+## External SFT Data
+
+External instruction datasets are not reviewed project data. Keep them separate
+from `reviewed-instructions/`, record their license, and write generated SFT
+exports under ignored `tracks/leverage/sft/` paths.
+
+The first external full-dataset candidate is OpenOrca:
+
+- Dataset: `Open-Orca/OpenOrca`
+- License: MIT
+- Export path: `tracks/leverage/sft/openorca.train.jsonl`
+- Config: `tracks/leverage/configs/leverage-sft-openorca-full.toml`
+
+Export command:
+
+```bash
+uv pip install datasets
+uv run python -m llm.leverage.import_openorca --overwrite
+```
+
+For a quick local shape check, use `--limit`:
+
+```bash
+uv run python -m llm.leverage.import_openorca \
+  --limit 10 \
+  --output tracks/leverage/sft/openorca.sample.train.jsonl \
+  --overwrite
+```
+
+Do not run the full OpenOrca training config until the export size is known and
+the trainer has a safe large-dataset plan. The current SFT smoke trainer loads
+all training rows into memory.

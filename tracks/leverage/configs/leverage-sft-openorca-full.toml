@@ -1,0 +1,72 @@
+[experiment]
+name = "leverage_sft_openorca_full"
+track = "leverage"
+objective = "Train with the full OpenOrca external SFT export as a license-light external-data baseline."
+status = "planned"
+
+[model]
+student = "Qwen/Qwen3.5-9B"
+torch_dtype = "bfloat16"
+selection_reason = "Qwen3.5-9B is the current LoRA/SFT baseline target; OpenOrca is the first external dataset candidate because its MIT license is easier to handle than CC-BY-SA or non-commercial datasets."
+
+[data]
+external_dataset = "Open-Orca/OpenOrca"
+external_license = "MIT"
+train_export = "tracks/leverage/sft/openorca.train.jsonl"
+eval_tasks = [
+  "tracks/leverage/evals/leverage-smoke.jsonl",
+  "tracks/leverage/evals/project-judgment.jsonl",
+]
+
+[method]
+first_choice = "lora"
+fallback = "stop"
+max_train_examples = 10000000
+max_epochs = 1
+batch_size = 2
+max_length = 512
+gradient_checkpointing = true
+gradient_accumulation_steps = 4
+log_every_steps = 100
+eval_max_new_tokens = 128
+max_runtime_minutes = 360
+notes = "Full OpenOrca is large. Do not run this config until the trainer can stream or shard large SFT files safely."
+
+[early_stopping]
+enabled = false
+validation_examples = 0
+eval_every_steps = 0
+patience = 0
+min_delta = 0.0
+
+[runpod]
+required = false
+use_when = "Run only after the OpenOrca export exists, file size is understood, and the trainer has a safe large-dataset execution plan."
+gpu_target = "NVIDIA GeForce RTX 4090 or NVIDIA GeForce RTX 5090"
+max_cost_usd = 10.00
+cleanup_required = true
+
+[outputs]
+root = "outputs/leverage-sft-openorca-full"
+adapter_dir = "outputs/leverage-sft-openorca-full/lora-adapter"
+logs = "outputs/leverage-sft-openorca-full/logs"
+metrics = "outputs/leverage-sft-openorca-full/metrics.csv"
+notes = "outputs/leverage-sft-openorca-full/notes.md"
+
+[success]
+criteria = [
+  "OpenOrca full export is created from Hugging Face without committing the generated JSONL",
+  "training command can consume the external SFT export safely",
+  "adapter artifact is written",
+  "held-out eval command can run after training",
+]
+
+[stop]
+conditions = [
+  "OpenOrca export is too large for the current trainer implementation",
+  "dependency setup exceeds the planned runtime",
+  "Qwen3.5-9B cannot be loaded on the selected GPU",
+  "loss becomes NaN",
+  "cost cap would be exceeded",
+  "any paid resource cannot be cleaned up immediately",
+]

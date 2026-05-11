@@ -1,0 +1,71 @@
+[experiment]
+name = "leverage_sft_smoke_early_stop"
+track = "leverage"
+objective = "Verify that the validation-loss early stopping path runs on the low-cost Qwen3.5-0.8B SFT smoke."
+status = "planned"
+
+[model]
+student = "Qwen/Qwen3.5-0.8B"
+target_baseline = "Qwen/Qwen3.5-9B"
+selection_reason = "Qwen3.5-0.8B is the low-cost student for validating training plumbing before using Qwen3.5-9B."
+
+[data]
+reviewed-instructions = "tracks/leverage/datasets/reviewed-instructions/bootstrap.jsonl"
+train_export = "tracks/leverage/sft/bootstrap.train.jsonl"
+eval_tasks = [
+  "tracks/leverage/evals/leverage-smoke.jsonl",
+  "tracks/leverage/evals/project-judgment.jsonl",
+]
+
+[method]
+first_choice = "lora"
+fallback = "full_sft"
+max_train_examples = 1500
+max_epochs = 2
+batch_size = 4
+max_length = 1024
+gradient_checkpointing = false
+gradient_accumulation_steps = 1
+log_every_steps = 10
+eval_max_new_tokens = 128
+max_runtime_minutes = 60
+notes = "This is an early-stopping wiring smoke, not a quality-improvement run."
+
+[early_stopping]
+enabled = true
+validation_examples = 32
+eval_every_steps = 20
+patience = 2
+min_delta = 0.001
+
+[runpod]
+required = false
+use_when = "Only when local setup cannot run the selected student model and the exact smoke objective is still worth paid GPU time."
+gpu_target = "NVIDIA RTX 4090 or NVIDIA A40"
+max_cost_usd = 1.00
+cleanup_required = true
+
+[outputs]
+root = "outputs/leverage-sft-smoke-early-stop"
+adapter_dir = "outputs/leverage-sft-smoke-early-stop/lora-adapter"
+logs = "outputs/leverage-sft-smoke-early-stop/logs"
+metrics = "outputs/leverage-sft-smoke-early-stop/metrics.csv"
+notes = "outputs/leverage-sft-smoke-early-stop/notes.md"
+
+[success]
+criteria = [
+  "reviewed instructions validate successfully",
+  "training export is regenerated from reviewed instructions",
+  "training command completes or stops via validation-loss early stopping",
+  "adapter or checkpoint artifact is written",
+  "metrics include validation rows, validation checks, best validation loss, final validation loss, and early-stopped flag",
+]
+
+[stop]
+conditions = [
+  "dependency setup exceeds the planned runtime",
+  "selected student model cannot be loaded on the available GPU",
+  "training or validation loss becomes NaN",
+  "cost cap would be exceeded",
+  "any paid resource cannot be cleaned up immediately",
+]

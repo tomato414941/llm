@@ -157,12 +157,35 @@ def test_early_stopping_state_stops_after_patience_without_improvement() -> None
     assert state.stop_reason == "validation_loss_patience_exhausted"
 
 
-def test_load_training_rows_rejects_too_many_rows(tmp_path: Path) -> None:
+def test_load_training_rows_limits_rows(tmp_path: Path) -> None:
     train_export = tmp_path / "bootstrap.train.jsonl"
     write_train_export(train_export, rows=2)
 
-    with pytest.raises(ValueError, match="exceeding max_examples"):
-        load_training_rows(train_export, 1)
+    rows = load_training_rows(train_export, 1)
+
+    assert len(rows) == 1
+
+
+def test_load_training_rows_does_not_validate_rows_past_limit(tmp_path: Path) -> None:
+    train_export = tmp_path / "bootstrap.train.jsonl"
+    write_train_export(train_export, rows=1)
+    with train_export.open("a", encoding="utf-8") as handle:
+        handle.write('{"id":"bad"}\n')
+
+    rows = load_training_rows(train_export, 1)
+
+    assert len(rows) == 1
+
+
+def test_load_training_rows_does_not_parse_rows_past_limit(tmp_path: Path) -> None:
+    train_export = tmp_path / "bootstrap.train.jsonl"
+    write_train_export(train_export, rows=1)
+    with train_export.open("a", encoding="utf-8") as handle:
+        handle.write("{not json}\n")
+
+    rows = load_training_rows(train_export, 1)
+
+    assert len(rows) == 1
 
 
 def test_load_training_rows_requires_messages(tmp_path: Path) -> None:

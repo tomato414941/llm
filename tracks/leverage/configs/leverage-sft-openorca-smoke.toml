@@ -1,0 +1,73 @@
+[experiment]
+name = "leverage_sft_openorca_smoke"
+track = "leverage"
+objective = "Run a bounded OpenOrca external SFT smoke before considering the full export."
+status = "planned"
+
+[model]
+student = "Qwen/Qwen3.5-0.8B"
+target_baseline = "Qwen/Qwen3.5-9B"
+torch_dtype = "bfloat16"
+selection_reason = "Use the low-cost 0.8B student to validate OpenOrca SFT wiring before any 9B or full-dataset run."
+
+[data]
+external_dataset = "Open-Orca/OpenOrca"
+external_license = "MIT"
+train_export = "tracks/leverage/sft/openorca.train.jsonl"
+eval_tasks = [
+  "tracks/leverage/evals/leverage-smoke.jsonl",
+  "tracks/leverage/evals/project-judgment.jsonl",
+]
+
+[method]
+first_choice = "lora"
+fallback = "stop"
+max_train_examples = 1000
+max_epochs = 1
+batch_size = 4
+max_length = 512
+gradient_checkpointing = true
+gradient_accumulation_steps = 4
+log_every_steps = 25
+eval_max_new_tokens = 128
+max_runtime_minutes = 60
+notes = "This config intentionally samples the first 1000 OpenOrca rows from the ignored full export."
+
+[early_stopping]
+enabled = false
+validation_examples = 0
+eval_every_steps = 0
+patience = 0
+min_delta = 0.0
+
+[runpod]
+required = false
+use_when = "Only after local dry-run confirms the OpenOrca export exists and row limiting works."
+gpu_target = "NVIDIA RTX 4090 or NVIDIA A40"
+max_cost_usd = 1.00
+cleanup_required = true
+
+[outputs]
+root = "outputs/leverage-sft-openorca-smoke"
+adapter_dir = "outputs/leverage-sft-openorca-smoke/lora-adapter"
+logs = "outputs/leverage-sft-openorca-smoke/logs"
+metrics = "outputs/leverage-sft-openorca-smoke/metrics.csv"
+notes = "outputs/leverage-sft-openorca-smoke/notes.md"
+
+[success]
+criteria = [
+  "OpenOrca full export exists under ignored tracks/leverage/sft/",
+  "training dry-run reports exactly 1000 selected rows",
+  "training command can consume the selected rows without loading the full JSONL",
+  "adapter artifact is written if a real smoke run is approved",
+]
+
+[stop]
+conditions = [
+  "OpenOrca export is missing",
+  "dependency setup exceeds the planned runtime",
+  "selected student model cannot be loaded on the available GPU",
+  "loss becomes NaN",
+  "cost cap would be exceeded",
+  "any paid resource cannot be cleaned up immediately",
+]

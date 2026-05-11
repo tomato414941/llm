@@ -1,5 +1,6 @@
 import argparse
 import csv
+import json
 import subprocess
 import threading
 import time
@@ -8,7 +9,6 @@ from pathlib import Path
 from typing import Any
 
 from llm.config import load_toml
-from llm.leverage.validate_reviewed_instructions import load_jsonl
 
 
 REQUIRED_PACKAGES = ("torch", "transformers", "peft", "trl")
@@ -157,9 +157,17 @@ def early_stopping_config(config: dict[str, Any]) -> EarlyStoppingConfig:
 
 
 def load_training_rows(path: Path, max_examples: int) -> list[dict[str, Any]]:
-    rows = [row for _line_number, row in load_jsonl(path)]
-    if len(rows) > max_examples:
-        raise ValueError(f"{path} has {len(rows)} rows, exceeding max_examples={max_examples}")
+    rows: list[dict[str, Any]] = []
+    with path.open("r", encoding="utf-8") as handle:
+        for line_number, line in enumerate(handle, start=1):
+            if len(rows) >= max_examples:
+                break
+            if not line.strip():
+                raise ValueError(f"{path}:{line_number}: blank lines are not allowed")
+            row = json.loads(line)
+            if not isinstance(row, dict):
+                raise ValueError(f"{path}:{line_number}: row must be a JSON object")
+            rows.append(row)
     for index, row in enumerate(rows):
         messages = row.get("messages")
         if not isinstance(messages, list) or not messages:

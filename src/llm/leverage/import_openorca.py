@@ -67,18 +67,25 @@ def write_openorca_sft(
         raise FileExistsError(f"output already exists: {output_path}")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     written = 0
+    skipped = 0
     with output_path.open("w", encoding="utf-8") as output_file:
         for index, row in enumerate(rows):
             if limit is not None and written >= limit:
                 break
-            record = convert_openorca_row(
-                row,
-                index=index,
-                default_system_prompt=default_system_prompt,
-                include_metadata=include_metadata,
-            )
+            try:
+                record = convert_openorca_row(
+                    row,
+                    index=index,
+                    default_system_prompt=default_system_prompt,
+                    include_metadata=include_metadata,
+                )
+            except ValueError:
+                skipped += 1
+                continue
             output_file.write(json.dumps(record, ensure_ascii=False) + "\n")
             written += 1
+    if skipped:
+        print(f"skipped {skipped} invalid OpenOrca rows")
     return written
 
 

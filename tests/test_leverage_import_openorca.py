@@ -97,6 +97,27 @@ def test_write_openorca_sft_writes_jsonl_with_limit(tmp_path: Path) -> None:
     ]
 
 
+def test_write_openorca_sft_skips_invalid_rows(tmp_path: Path) -> None:
+    output = tmp_path / "openorca.train.jsonl"
+    rows = [
+        {"id": "bad", "question": "q"},
+        {"id": "good", "question": "q", "response": "a"},
+    ]
+
+    count = write_openorca_sft(
+        rows,
+        output,
+        default_system_prompt="sys",
+        include_metadata=False,
+        limit=None,
+        overwrite=False,
+    )
+
+    exported = [json.loads(line) for line in output.read_text(encoding="utf-8").splitlines()]
+    assert count == 1
+    assert exported[0]["id"] == "openorca_00000001"
+
+
 def test_write_openorca_sft_refuses_existing_output_without_overwrite(tmp_path: Path) -> None:
     output = tmp_path / "openorca.train.jsonl"
     output.write_text("existing\n", encoding="utf-8")

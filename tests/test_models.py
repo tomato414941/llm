@@ -63,7 +63,16 @@ def test_multi_head_attention_returns_projected_features() -> None:
 def test_feed_forward_uses_gelu_activation() -> None:
     feed_forward = FeedForward(embedding_dim=4)
 
-    assert isinstance(feed_forward.network[1], torch.nn.GELU)
+    assert isinstance(feed_forward.activation, torch.nn.GELU)
+
+
+def test_feed_forward_returns_sequence_features() -> None:
+    feed_forward = FeedForward(embedding_dim=4)
+    x = torch.randn(2, 3, 4)
+
+    out = feed_forward(x)
+
+    assert out.shape == (2, 3, 4)
 
 
 def test_transformer_language_model_returns_sequence_logits_and_loss() -> None:
@@ -96,6 +105,25 @@ def test_transformer_language_model_ties_token_embedding_and_lm_head_weights() -
     model = TransformerLanguageModel(config)
 
     assert model.lm_head.weight is model.token_embedding_table.weight
+
+
+def test_transformer_language_model_scales_residual_projection_init() -> None:
+    config = TransformerConfig(
+        vocab_size=64,
+        block_size=8,
+        embedding_dim=64,
+        num_heads=4,
+        num_layers=4,
+        dropout=0.0,
+    )
+    torch.manual_seed(1337)
+    model = TransformerLanguageModel(config)
+    block = model.blocks[0]
+    expected_std = model._residual_projection_std()
+
+    assert abs(block.attention.projection.weight.std().item() - expected_std) < 0.002
+    assert abs(block.feed_forward.output_projection.weight.std().item() - expected_std) < 0.002
+    assert abs(block.feed_forward.input_projection.weight.std().item() - 0.02) < 0.002
 
 
 def test_transformer_language_model_rejects_too_long_context() -> None:

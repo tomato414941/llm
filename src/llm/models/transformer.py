@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass
+import math
 
 import torch
 from torch import nn
@@ -27,15 +28,16 @@ class TransformerConfig:
 class FeedForward(nn.Module):
     def __init__(self, embedding_dim: int, dropout: float = 0.0) -> None:
         super().__init__()
-        self.network = nn.Sequential(
-            nn.Linear(embedding_dim, 4 * embedding_dim),
-            nn.GELU(),
-            nn.Linear(4 * embedding_dim, embedding_dim),
-            nn.Dropout(dropout),
-        )
+        self.input_projection = nn.Linear(embedding_dim, 4 * embedding_dim)
+        self.activation = nn.GELU()
+        self.output_projection = nn.Linear(4 * embedding_dim, embedding_dim)
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.network(x)
+        x = self.input_projection(x)
+        x = self.activation(x)
+        x = self.output_projection(x)
+        return self.dropout(x)
 
 
 class TransformerBlock(nn.Module):
@@ -88,6 +90,7 @@ class TransformerLanguageModel(nn.Module):
         self.final_layer_norm = nn.LayerNorm(config.embedding_dim)
         self.lm_head = nn.Linear(config.embedding_dim, config.vocab_size)
         self.apply(self._init_weights)
+        self._init_residual_projections()
         self.lm_head.weight = self.token_embedding_table.weight
 
     def _init_weights(self, module: nn.Module) -> None:
@@ -97,6 +100,15 @@ class TransformerLanguageModel(nn.Module):
                 torch.nn.init.zeros_(module.bias)
         elif isinstance(module, nn.Embedding):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+
+    def _residual_projection_std(self) -> float:
+        return 0.02 / math.sqrt(2 * self.config.num_layers)
+
+    def _init_residual_projections(self) -> None:
+        std = self._residual_projection_std()
+        for block in self.blocks:
+            torch.nn.init.normal_(block.attention.projection.weight, mean=0.0, std=std)
+            torch.nn.init.normal_(block.feed_forward.output_projection.weight, mean=0.0, std=std)
 
     def forward(
         self, idx: torch.Tensor, targets: torch.Tensor | None = None

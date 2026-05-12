@@ -1,0 +1,3 @@
+output_path,checkpoint_path,tokens_path,checkpoint_step,validation_loss,validation_perplexity,run_id,prompt_id,prompt,seed,samples,max_new_tokens,temperature,top_k,sampling
+tracks/from-scratch/runs/flow-check/observation.md,tracks/from-scratch/runs/flow-check/checkpoint.pt,tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt,19,5.8404107093811035,343.9205630639041,flow_check,king_open,KING:,1337,1,80,1.0,20,True
+tracks/from-scratch/runs/flow-check/observation.md,tracks/from-scratch/runs/flow-check/checkpoint.pt,tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt,19,5.8404107093811035,343.9205630639041,flow_check,scene_open,SCENE,1337,1,80,1.0,20,True

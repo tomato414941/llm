@@ -8,7 +8,7 @@ from llm.tokenizer import BPETokenizer
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, required=True)
-    parser.add_argument("--output", type=Path, default=Path("tracks/from-scratch/data/processed/bpe_tokenizer.json"))
+    parser.add_argument("--output", type=Path, default=Path("data/from-scratch/processed/bpe_tokenizer.json"))
     parser.add_argument("--vocab-size", type=int, default=1000)
     args = parser.parse_args()
 

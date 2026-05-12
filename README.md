@@ -2,12 +2,12 @@
 
 Small LLM learning lab.
 
-This repository has two tracks:
+This repository has two work areas:
 
 - `tracks/leverage/`: evaluate, adapt, and operate existing open models under
   practical constraints.
-- `tracks/from-scratch/`: implement and train small decoder-only language models
-  to understand the mechanics.
+- `data/from-scratch/` and `docs/from-scratch/`: small decoder-only language
+  model mechanics. Reusable code lives in `src/llm/`.
 
 See `ROADMAP.md` for goals, non-goals, and RunPod policy. See `tracks/README.md`
 for directory roles.
@@ -77,10 +77,16 @@ claims about practical model quality.
 
 ```bash
 uv run python -m llm.train \
-  --config tracks/from-scratch/configs/tinyshakespeare-bpe-500-small.toml
+  --tokens data/from-scratch/processed/tinyshakespeare_bpe_500.pt \
+  --checkpoint runs/from-scratch/tinyshakespeare-bpe-500/checkpoint.pt \
+  --metrics-output runs/from-scratch/tinyshakespeare-bpe-500/metrics.csv
 
 uv run python -m llm.observe \
-  --config tracks/from-scratch/configs/tinyshakespeare-bpe-500-small.toml
+  --checkpoint runs/from-scratch/tinyshakespeare-bpe-500/checkpoint.pt \
+  --tokens data/from-scratch/processed/tinyshakespeare_bpe_500.pt \
+  --prompt-file data/from-scratch/eval-prompts/tinyshakespeare.jsonl \
+  --output runs/from-scratch/tinyshakespeare-bpe-500/observation.md \
+  --summary-output runs/from-scratch/tinyshakespeare-bpe-500/summary.csv
 ```
 
 ## RunPod
@@ -107,7 +113,9 @@ RunPod job, verify no active pods remain:
 - `src/llm/`: reusable tokenizer, model, training, generation, evaluation, and
   leverage tooling.
 - `scripts/`: one-shot local or RunPod orchestration.
-- `tracks/`: project-specific configs, evals, datasets, prompts, and concise run
+- `tracks/`: leverage-specific configs, evals, datasets, prompts, and concise
+  run notes.
+- `data/from-scratch/` and `docs/from-scratch/`: from-scratch learning data and
   notes.
 - `tests/`: focused regression tests.
 
@@ -118,8 +126,7 @@ The intended committed surface is source code, tests, project config, and
 concise documentation.
 
 Generated outputs belong under ignored paths such as `outputs/`,
-`tracks/from-scratch/checkpoints/`, `tracks/from-scratch/data/processed/`, and
-`tracks/leverage/sft/`.
+`runs/`, `data/from-scratch/processed/`, and `tracks/leverage/sft/`.
 
 Use `uv` for Python dependency and environment management.
 

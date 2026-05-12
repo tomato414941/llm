@@ -113,7 +113,7 @@ def test_config_defaults_reads_train_config(tmp_path) -> None:
 run_id = "smoke"
 
 [data]
-tokens = "tracks/from-scratch/data/processed/tokens.pt"
+tokens = "data/from-scratch/processed/tokens.pt"
 
 [train]
 max_iters = 2
@@ -127,7 +127,7 @@ seed = 7
 block_size = 8
 
 [outputs]
-checkpoint = "tracks/from-scratch/runs/smoke/checkpoint.pt"
+checkpoint = "runs/from-scratch/smoke/checkpoint.pt"
 
 [generation]
 sampling = false
@@ -138,7 +138,7 @@ sampling = false
     defaults = compact_defaults(config_defaults(load_toml(path)))
 
     assert defaults["run_id"] == "smoke"
-    assert defaults["tokens"] == "tracks/from-scratch/data/processed/tokens.pt"
+    assert defaults["tokens"] == "data/from-scratch/processed/tokens.pt"
     assert defaults["max_iters"] == 2
     assert defaults["warmup_iters"] == 1
     assert defaults["lr_decay_iters"] == 2
@@ -146,7 +146,7 @@ sampling = false
     assert defaults["weight_decay"] == 0.2
     assert defaults["seed"] == 7
     assert defaults["block_size"] == 8
-    assert defaults["checkpoint"] == "tracks/from-scratch/runs/smoke/checkpoint.pt"
+    assert defaults["checkpoint"] == "runs/from-scratch/smoke/checkpoint.pt"
     assert defaults["sampling"] is False
 
 

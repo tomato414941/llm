@@ -10,13 +10,15 @@ turning this repository into an experiment platform.
 - Use GELU in the feed-forward block.
 - Tie token embedding and language-model head weights.
 - Add optional warmup plus cosine learning-rate decay.
-- Keep the tinyshakespeare BPE setup and small run config.
+- Keep the tinyshakespeare BPE setup.
 
 ## Run
 
 ```bash
 uv run python -m llm.train \
-  --config tracks/from-scratch/runs/pico-gpt2-tinyshakespeare/config.toml
+  --tokens data/from-scratch/processed/tinyshakespeare_bpe_500.pt \
+  --checkpoint runs/from-scratch/pico-gpt2-tinyshakespeare/checkpoint.pt \
+  --metrics-output runs/from-scratch/pico-gpt2-tinyshakespeare/metrics.csv
 ```
 
 ## Observation

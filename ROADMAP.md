@@ -147,8 +147,8 @@ After every RunPod job:
 
 The current from-scratch baseline is `pico_gpt2_tinyshakespeare`:
 
-- checkpoint: `tracks/from-scratch/checkpoints/pico-gpt2-tinyshakespeare.pt`
-- data: `tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt`
+- checkpoint: `runs/from-scratch/pico-gpt2-tinyshakespeare/checkpoint.pt`
+- data: `data/from-scratch/processed/tinyshakespeare_bpe_500.pt`
 - parameters: 235,892
 - checkpoint step: 2,999
 - validation loss: about 3.34

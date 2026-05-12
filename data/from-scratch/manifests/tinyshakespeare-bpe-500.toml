@@ -1,0 +1,14 @@
+[corpus]
+name = "tinyshakespeare"
+source = "local"
+license = "unknown"
+raw_path = "data/from-scratch/raw/tinyshakespeare.txt"
+
+[tokenizer]
+kind = "bpe"
+path = "data/from-scratch/processed/tinyshakespeare_bpe_500.json"
+vocab_size = 500
+
+[tokens]
+path = "data/from-scratch/processed/tinyshakespeare_bpe_500.pt"
+split = "90_10_contiguous"

@@ -3,54 +3,16 @@ import pytest
 
 from llm.models import (
     MultiHeadAttention,
-    SelfAttentionHead,
     TransformerConfig,
     TransformerLanguageModel,
 )
 from llm.models.transformer import FeedForward
 
 
-def test_self_attention_head_returns_sequence_features() -> None:
-    head = SelfAttentionHead(embedding_dim=4, head_size=2, block_size=3)
-    x = torch.randn(2, 3, 4)
-
-    out = head(x)
-
-    assert out.shape == (2, 3, 2)
-
-
-def test_self_attention_head_scales_by_head_dimension() -> None:
-    head = SelfAttentionHead(embedding_dim=4, head_size=2, block_size=3)
-    x = torch.ones(1, 3, 4)
-
-    with torch.no_grad():
-        k = head.key(x)
-        q = head.query(x)
-        expected = q @ k.transpose(-2, -1) * q.shape[-1] ** -0.5
-        expected = expected.masked_fill(head.tril[:3, :3] == 0, float("-inf"))
-        expected = torch.softmax(expected, dim=-1)
-        expected = expected @ head.value(x)
-
-    assert torch.allclose(head(x), expected)
-
-
-def test_self_attention_head_does_not_attend_to_future_tokens() -> None:
-    head = SelfAttentionHead(embedding_dim=4, head_size=2, block_size=4, dropout=0.0)
-    x = torch.randn(1, 4, 4)
-    changed_future = x.clone()
-    changed_future[:, 2:, :] = torch.randn(1, 2, 4)
-
-    original = head(x)
-    changed = head(changed_future)
-
-    assert torch.allclose(original[:, :2, :], changed[:, :2, :])
-
-
 def test_multi_head_attention_returns_projected_features() -> None:
     attention = MultiHeadAttention(
         embedding_dim=4,
         num_heads=2,
-        head_size=2,
         block_size=3,
     )
     x = torch.randn(2, 3, 4)
@@ -58,6 +20,37 @@ def test_multi_head_attention_returns_projected_features() -> None:
     out = attention(x)
 
     assert out.shape == (2, 3, 4)
+
+
+def test_multi_head_attention_scales_by_head_dimension() -> None:
+    attention = MultiHeadAttention(embedding_dim=4, num_heads=2, block_size=3)
+    x = torch.ones(1, 3, 4)
+
+    with torch.no_grad():
+        q, k, v = attention.qkv(x).split(attention.embedding_dim, dim=-1)
+        q = q.view(1, 3, attention.num_heads, attention.head_size).transpose(1, 2)
+        k = k.view(1, 3, attention.num_heads, attention.head_size).transpose(1, 2)
+        v = v.view(1, 3, attention.num_heads, attention.head_size).transpose(1, 2)
+        weights = q @ k.transpose(-2, -1) * attention.head_size**-0.5
+        weights = weights.masked_fill(attention.causal_mask[:, :, :3, :3] == 0, float("-inf"))
+        weights = torch.softmax(weights, dim=-1)
+        expected = weights @ v
+        expected = expected.transpose(1, 2).contiguous().view(1, 3, attention.embedding_dim)
+        expected = attention.projection(expected)
+
+    assert torch.allclose(attention(x), expected)
+
+
+def test_multi_head_attention_does_not_attend_to_future_tokens() -> None:
+    attention = MultiHeadAttention(embedding_dim=4, num_heads=2, block_size=4, dropout=0.0)
+    x = torch.randn(1, 4, 4)
+    changed_future = x.clone()
+    changed_future[:, 2:, :] = torch.randn(1, 2, 4)
+
+    original = attention(x)
+    changed = attention(changed_future)
+
+    assert torch.allclose(original[:, :2, :], changed[:, :2, :])
 
 
 def test_feed_forward_uses_gelu_activation() -> None:

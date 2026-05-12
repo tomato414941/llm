@@ -55,7 +55,6 @@ class TransformerBlock(nn.Module):
         self.attention = MultiHeadAttention(
             embedding_dim=embedding_dim,
             num_heads=num_heads,
-            head_size=embedding_dim // num_heads,
             block_size=block_size,
             dropout=dropout,
         )

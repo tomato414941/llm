@@ -1,4 +1,4 @@
-from llm.models.attention import MultiHeadAttention, SelfAttentionHead
+from llm.models.attention import MultiHeadAttention
 from llm.models.transformer import (
     FeedForward,
     TransformerBlock,
@@ -9,7 +9,6 @@ from llm.models.transformer import (
 __all__ = [
     "FeedForward",
     "MultiHeadAttention",
-    "SelfAttentionHead",
     "TransformerBlock",
     "TransformerConfig",
     "TransformerLanguageModel",

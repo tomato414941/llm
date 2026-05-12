@@ -63,12 +63,10 @@ def read_summary_rows(path: Path | None) -> list[dict[str, str]]:
 
 def latest_summary_row(rows: list[dict[str, str]], checkpoint_path: Path) -> dict[str, str] | None:
     checkpoint_text = str(checkpoint_path)
-    checkpoint_name = checkpoint_path.name
     matches = [
         row
         for row in rows
         if row.get("checkpoint_path") == checkpoint_text
-        or Path(row.get("checkpoint_path", "")).name == checkpoint_name
     ]
     if not matches:
         return None

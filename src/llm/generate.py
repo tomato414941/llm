@@ -80,7 +80,7 @@ def generate_samples(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--checkpoint", type=Path, default=Path("tracks/from-scratch/checkpoints/mini-gpt.pt"))
+    parser.add_argument("--checkpoint", type=Path, default=Path("tracks/from-scratch/runs/mini-gpt/checkpoint.pt"))
     parser.add_argument("--prompt", type=str, default="")
     parser.add_argument("--max-new-tokens", type=int, default=300)
     parser.add_argument("--temperature", type=float, default=1.0)

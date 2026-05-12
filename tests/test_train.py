@@ -127,7 +127,7 @@ seed = 7
 block_size = 8
 
 [outputs]
-checkpoint = "tracks/from-scratch/checkpoints/smoke.pt"
+checkpoint = "tracks/from-scratch/runs/smoke/checkpoint.pt"
 
 [generation]
 sampling = false
@@ -146,7 +146,7 @@ sampling = false
     assert defaults["weight_decay"] == 0.2
     assert defaults["seed"] == 7
     assert defaults["block_size"] == 8
-    assert defaults["checkpoint"] == "tracks/from-scratch/checkpoints/smoke.pt"
+    assert defaults["checkpoint"] == "tracks/from-scratch/runs/smoke/checkpoint.pt"
     assert defaults["sampling"] is False
 
 

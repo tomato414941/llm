@@ -8,7 +8,7 @@ from llm.observation import Observation, append_summary_row, render_markdown
 def observation() -> Observation:
     return Observation(
         output_path=Path("tracks/from-scratch/runs/observations/example.md"),
-        checkpoint_path=Path("tracks/from-scratch/checkpoints/example.pt"),
+        checkpoint_path=Path("tracks/from-scratch/runs/example/checkpoint.pt"),
         tokens_path=Path("tracks/from-scratch/data/processed/example.pt"),
         checkpoint_step=10,
         checkpoint_metadata={"parameter_count": 100},

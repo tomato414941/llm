@@ -68,7 +68,7 @@ def test_observe_config_defaults_reads_config(tmp_path) -> None:
 tokens = "tracks/from-scratch/data/processed/tokens.pt"
 
 [outputs]
-checkpoint = "tracks/from-scratch/checkpoints/model.pt"
+checkpoint = "tracks/from-scratch/runs/model/checkpoint.pt"
 observation = "tracks/from-scratch/runs/observations/run.md"
 summary = "tracks/from-scratch/runs/summaries/observations.csv"
 
@@ -91,7 +91,7 @@ sampling = false
     defaults = compact_defaults(observe_config_defaults(load_toml(path)))
 
     assert defaults["tokens"] == "tracks/from-scratch/data/processed/tokens.pt"
-    assert defaults["checkpoint"] == "tracks/from-scratch/checkpoints/model.pt"
+    assert defaults["checkpoint"] == "tracks/from-scratch/runs/model/checkpoint.pt"
     assert defaults["output"] == "tracks/from-scratch/runs/observations/run.md"
     assert defaults["summary_output"] == "tracks/from-scratch/runs/summaries/observations.csv"
     assert defaults["prompt_file"] == "tracks/from-scratch/evals/example.jsonl"

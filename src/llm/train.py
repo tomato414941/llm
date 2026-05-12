@@ -241,7 +241,7 @@ def build_parser(defaults: dict[str, object]) -> argparse.ArgumentParser:
 
 def parse_args() -> argparse.Namespace:
     base_defaults = {
-        "checkpoint": Path("tracks/from-scratch/checkpoints/mini-gpt.pt"),
+        "checkpoint": Path("tracks/from-scratch/runs/mini-gpt/checkpoint.pt"),
         "tokenizer": "char",
         "max_iters": 3000,
         "eval_interval": 300,

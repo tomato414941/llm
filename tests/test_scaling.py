@@ -58,7 +58,7 @@ def test_scaling_row_combines_checkpoint_and_summary() -> None:
     }
 
     row = scaling_row(
-        checkpoint_path=Path("tracks/from-scratch/checkpoints/smoke.pt"),
+        checkpoint_path=Path("tracks/from-scratch/runs/smoke/checkpoint.pt"),
         checkpoint=checkpoint,
         summary_row=summary,
         note="baseline",
@@ -84,14 +84,14 @@ def test_scaling_row_falls_back_to_checkpoint_stem_without_run_id(tmp_path) -> N
 
 def test_latest_summary_row_matches_checkpoint_name() -> None:
     rows = [
-        {"checkpoint_path": "tracks/from-scratch/checkpoints/model.pt", "validation_loss": "2.0"},
+        {"checkpoint_path": "tracks/from-scratch/runs/model/checkpoint.pt", "validation_loss": "2.0"},
         {"checkpoint_path": "/tmp/model.pt", "validation_loss": "1.5"},
     ]
 
-    row = latest_summary_row(rows, Path("tracks/from-scratch/checkpoints/model.pt"))
+    row = latest_summary_row(rows, Path("tracks/from-scratch/runs/model/checkpoint.pt"))
 
     assert row is not None
-    assert row["validation_loss"] == "1.5"
+    assert row["validation_loss"] == "2.0"
 
 
 def test_upsert_scaling_row_replaces_existing_run_id(tmp_path) -> None:

@@ -33,7 +33,6 @@ batch_size = 32
 checkpoint = "tracks/from-scratch/runs/pico-gpt2-tinyshakespeare/checkpoint.pt"
 metrics = "tracks/from-scratch/runs/pico-gpt2-tinyshakespeare/metrics.csv"
 observation = "tracks/from-scratch/runs/pico-gpt2-tinyshakespeare/observation.md"
-summary = "tracks/from-scratch/runs/summaries/observations.csv"
 
 [generation]
 generate_tokens = 300

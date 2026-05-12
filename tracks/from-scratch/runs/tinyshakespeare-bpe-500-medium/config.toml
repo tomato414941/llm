@@ -30,7 +30,6 @@ batch_size = 32
 checkpoint = "tracks/from-scratch/runs/tinyshakespeare-bpe-500-medium/checkpoint.pt"
 metrics = "tracks/from-scratch/runs/tinyshakespeare-bpe-500-medium/metrics.csv"
 observation = "tracks/from-scratch/runs/tinyshakespeare-bpe-500-medium/observation.md"
-summary = "tracks/from-scratch/runs/summaries/observations.csv"
 
 [generation]
 generate_tokens = 200

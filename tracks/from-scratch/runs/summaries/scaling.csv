@@ -1,2 +1,0 @@
-run_id,checkpoint_path,tokens_path,checkpoint_step,tokens_seen,parameter_count,block_size,embedding_dim,num_heads,num_layers,dropout,max_iters,batch_size,learning_rate,validation_loss,validation_perplexity,prompt_id,prompt,seed,samples,max_new_tokens,temperature,top_k,note
-pico_gpt2_tinyshakespeare,tracks/from-scratch/runs/pico-gpt2-tinyshakespeare/checkpoint.pt,tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt,2999,6113280,235892,64,64,4,4,0.1,3000,32,0.001,3.342092275619507,28.278230705586186,scene_open,SCENE,1337,3,300,1.0,20,

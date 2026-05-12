@@ -3,7 +3,7 @@ run_id = "tinyshakespeare_bpe_500_medium"
 
 [data]
 tokens = "tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt"
-manifest = "tracks/from-scratch/data/manifest.example.toml"
+manifest = "tracks/from-scratch/data/manifests/tinyshakespeare-bpe-500.toml"
 
 [model]
 block_size = 64

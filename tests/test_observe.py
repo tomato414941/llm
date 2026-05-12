@@ -72,7 +72,7 @@ checkpoint = "tracks/from-scratch/runs/model/checkpoint.pt"
 observation = "tracks/from-scratch/runs/model/observation.md"
 
 [evaluation]
-prompt_file = "tracks/from-scratch/evals/example.jsonl"
+prompt_file = "tracks/from-scratch/data/eval-prompts/example.jsonl"
 eval_iters = 2
 batch_size = 4
 
@@ -93,7 +93,7 @@ sampling = false
     assert defaults["checkpoint"] == "tracks/from-scratch/runs/model/checkpoint.pt"
     assert defaults["output"] == "tracks/from-scratch/runs/model/observation.md"
     assert "summary_output" not in defaults
-    assert defaults["prompt_file"] == "tracks/from-scratch/evals/example.jsonl"
+    assert defaults["prompt_file"] == "tracks/from-scratch/data/eval-prompts/example.jsonl"
     assert defaults["eval_iters"] == 2
     assert defaults["max_new_tokens"] == 5
     assert defaults["samples"] == 3

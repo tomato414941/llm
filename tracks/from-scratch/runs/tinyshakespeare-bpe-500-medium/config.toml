@@ -22,7 +22,7 @@ weight_decay = 0.1
 seed = 1337
 
 [evaluation]
-prompt_file = "tracks/from-scratch/evals/tinyshakespeare.jsonl"
+prompt_file = "tracks/from-scratch/data/eval-prompts/tinyshakespeare.jsonl"
 eval_iters = 20
 batch_size = 32
 

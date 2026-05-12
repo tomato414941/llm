@@ -30,8 +30,8 @@ eval_iters = 20
 batch_size = 32
 
 [outputs]
-checkpoint = "tracks/from-scratch/checkpoints/pico-gpt2-tinyshakespeare.pt"
-metrics = "tracks/from-scratch/runs/metricspico-gpt2-tinyshakespeare.csv"
+checkpoint = "tracks/from-scratch/runs/checkpoints/pico-gpt2-tinyshakespeare.pt"
+metrics = "tracks/from-scratch/runs/metrics/pico-gpt2-tinyshakespeare.csv"
 observation = "tracks/from-scratch/runs/observations/pico-gpt2-tinyshakespeare.md"
 summary = "tracks/from-scratch/runs/summaries/observations.csv"
 

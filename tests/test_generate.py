@@ -62,6 +62,7 @@ def test_generate_sample_is_reproducible_with_seed() -> None:
         max_new_tokens=3,
         temperature=1.0,
         top_k=None,
+        sampling=True,
     )
     torch.manual_seed(123)
     second = generate_sample(
@@ -71,6 +72,7 @@ def test_generate_sample_is_reproducible_with_seed() -> None:
         max_new_tokens=3,
         temperature=1.0,
         top_k=None,
+        sampling=True,
     )
 
     assert first == second
@@ -96,6 +98,7 @@ def test_generate_samples_returns_requested_count() -> None:
         max_new_tokens=1,
         temperature=1.0,
         top_k=None,
+        sampling=True,
         samples=2,
     )
 

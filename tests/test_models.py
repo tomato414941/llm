@@ -143,6 +143,26 @@ def test_transformer_language_model_rejects_non_positive_top_k() -> None:
         model.generate(torch.tensor([[0]]), max_new_tokens=1, top_k=0)
 
 
+def test_transformer_language_model_can_generate_greedily() -> None:
+    config = TransformerConfig(
+        vocab_size=5,
+        block_size=3,
+        embedding_dim=4,
+        num_heads=2,
+        num_layers=2,
+        dropout=0.0,
+    )
+    model = TransformerLanguageModel(config)
+
+    torch.manual_seed(1)
+    generated = model.generate(torch.tensor([[0]]), max_new_tokens=2, do_sample=False)
+    torch.manual_seed(2)
+    regenerated = model.generate(torch.tensor([[0]]), max_new_tokens=2, do_sample=False)
+
+    assert generated.shape == (1, 3)
+    assert torch.equal(generated, regenerated)
+
+
 def test_transformer_config_round_trips_dict() -> None:
     config = TransformerConfig(
         vocab_size=5,

@@ -63,6 +63,7 @@ def valid_args(**overrides) -> Namespace:
         "min_learning_rate": None,
         "temperature": 1.0,
         "top_k": None,
+        "sampling": True,
         "seed": 1337,
     }
     values.update(overrides)
@@ -122,6 +123,9 @@ block_size = 8
 
 [outputs]
 checkpoint = "tracks/from-scratch/checkpoints/smoke.pt"
+
+[generation]
+sampling = false
 """,
         encoding="utf-8",
     )
@@ -137,6 +141,7 @@ checkpoint = "tracks/from-scratch/checkpoints/smoke.pt"
     assert defaults["seed"] == 7
     assert defaults["block_size"] == 8
     assert defaults["checkpoint"] == "tracks/from-scratch/checkpoints/smoke.pt"
+    assert defaults["sampling"] is False
 
 
 def test_parse_args_reads_lr_schedule_from_config(tmp_path, monkeypatch) -> None:

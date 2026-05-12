@@ -122,6 +122,7 @@ def build_observation(
         max_new_tokens=args.max_new_tokens,
         temperature=args.temperature,
         top_k=args.top_k,
+        sampling=args.sampling,
         samples=args.samples,
     )
 
@@ -142,6 +143,7 @@ def build_observation(
         max_new_tokens=args.max_new_tokens,
         temperature=args.temperature,
         top_k=args.top_k,
+        sampling=args.sampling,
         generated_samples=generated_samples,
     )
 
@@ -171,6 +173,7 @@ def build_parser(defaults: dict[str, object]) -> argparse.ArgumentParser:
     parser.add_argument("--max-new-tokens", type=int)
     parser.add_argument("--temperature", type=float)
     parser.add_argument("--top-k", type=int)
+    parser.add_argument("--sampling", action=argparse.BooleanOptionalAction)
     parser.add_argument("--seed", type=int)
     parser.add_argument("--samples", type=int)
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"))
@@ -183,6 +186,7 @@ def parse_args() -> argparse.Namespace:
         "batch_size": 32,
         "max_new_tokens": 300,
         "temperature": 1.0,
+        "sampling": True,
         "seed": 1337,
         "samples": 1,
         "device": "auto",

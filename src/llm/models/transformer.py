@@ -127,6 +127,7 @@ class TransformerLanguageModel(nn.Module):
         max_new_tokens: int,
         temperature: float = 1.0,
         top_k: int | None = None,
+        do_sample: bool = True,
     ) -> torch.Tensor:
         if temperature <= 0:
             raise ValueError("temperature must be positive")
@@ -140,7 +141,10 @@ class TransformerLanguageModel(nn.Module):
             if top_k is not None:
                 values, _ = torch.topk(logits, min(top_k, logits.shape[-1]))
                 logits[logits < values[:, [-1]]] = float("-inf")
-            probs = F.softmax(logits, dim=-1)
-            idx_next = torch.multinomial(probs, num_samples=1)
+            if do_sample:
+                probs = F.softmax(logits, dim=-1)
+                idx_next = torch.multinomial(probs, num_samples=1)
+            else:
+                idx_next = torch.argmax(logits, dim=-1, keepdim=True)
             idx = torch.cat((idx, idx_next), dim=1)
         return idx

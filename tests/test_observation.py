@@ -23,6 +23,7 @@ def observation() -> Observation:
         max_new_tokens=20,
         temperature=1.0,
         top_k=10,
+        sampling=True,
         generated_samples=["KING: first", "KING: second"],
     )
 

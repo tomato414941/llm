@@ -13,6 +13,7 @@ def valid_args(**overrides) -> Namespace:
         "max_new_tokens": 1,
         "temperature": 1.0,
         "top_k": None,
+        "sampling": True,
         "samples": 1,
         "prompt": "",
         "prompt_file": None,
@@ -82,6 +83,7 @@ temperature = 0.8
 top_k = 10
 seed = 7
 samples = 3
+sampling = false
 """,
         encoding="utf-8",
     )
@@ -96,6 +98,7 @@ samples = 3
     assert defaults["eval_iters"] == 2
     assert defaults["max_new_tokens"] == 5
     assert defaults["samples"] == 3
+    assert defaults["sampling"] is False
 
 
 def test_observe_cli_overrides_config_defaults() -> None:

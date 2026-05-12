@@ -21,6 +21,7 @@ class Observation:
     max_new_tokens: int
     temperature: float
     top_k: int | None
+    sampling: bool
     generated_samples: list[str]
 
 
@@ -39,6 +40,7 @@ SUMMARY_FIELDS = (
     "max_new_tokens",
     "temperature",
     "top_k",
+    "sampling",
 )
 
 
@@ -81,6 +83,7 @@ def render_markdown(observation: Observation | list[Observation]) -> str:
 - max_new_tokens: {observation.max_new_tokens}
 - temperature: {observation.temperature}
 - top_k: {observation.top_k}
+- sampling: {observation.sampling}
 
 ## Generated Samples
 
@@ -104,6 +107,7 @@ def summary_row(observation: Observation) -> dict[str, object]:
         "max_new_tokens": observation.max_new_tokens,
         "temperature": observation.temperature,
         "top_k": "" if observation.top_k is None else observation.top_k,
+        "sampling": observation.sampling,
     }
 
 

@@ -40,6 +40,7 @@ def generate_sample(
     max_new_tokens: int,
     temperature: float,
     top_k: int | None,
+    sampling: bool,
 ) -> str:
     device = next(model.parameters()).device
     context = torch.tensor([prompt_context_ids(tokenizer, prompt)], dtype=torch.long, device=device)
@@ -48,6 +49,7 @@ def generate_sample(
         max_new_tokens=max_new_tokens,
         temperature=temperature,
         top_k=top_k,
+        do_sample=sampling,
     )[0].tolist()
     return tokenizer.decode(generated)
 
@@ -59,6 +61,7 @@ def generate_samples(
     max_new_tokens: int,
     temperature: float,
     top_k: int | None,
+    sampling: bool,
     samples: int,
 ) -> list[str]:
     return [
@@ -69,6 +72,7 @@ def generate_samples(
             max_new_tokens=max_new_tokens,
             temperature=temperature,
             top_k=top_k,
+            sampling=sampling,
         )
         for _ in range(samples)
     ]
@@ -81,6 +85,7 @@ def main() -> None:
     parser.add_argument("--max-new-tokens", type=int, default=300)
     parser.add_argument("--temperature", type=float, default=1.0)
     parser.add_argument("--top-k", type=int)
+    parser.add_argument("--sampling", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--seed", type=int, default=1337)
     parser.add_argument("--samples", type=int, default=1)
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
@@ -104,6 +109,7 @@ def main() -> None:
         max_new_tokens=args.max_new_tokens,
         temperature=args.temperature,
         top_k=args.top_k,
+        sampling=args.sampling,
         samples=args.samples,
     )
     for sample_index, sample in enumerate(samples):

@@ -230,6 +230,7 @@ def build_parser(defaults: dict[str, object]) -> argparse.ArgumentParser:
     parser.add_argument("--generate-tokens", type=int)
     parser.add_argument("--temperature", type=float)
     parser.add_argument("--top-k", type=int)
+    parser.add_argument("--sampling", action=argparse.BooleanOptionalAction)
     parser.add_argument("--metrics-output", type=Path)
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"))
     return parser
@@ -254,6 +255,7 @@ def parse_args() -> argparse.Namespace:
         "min_learning_rate": None,
         "generate_tokens": 300,
         "temperature": 1.0,
+        "sampling": True,
         "seed": 1337,
         "device": "auto",
     }
@@ -418,6 +420,7 @@ def main() -> None:
         max_new_tokens=args.generate_tokens,
         temperature=args.temperature,
         top_k=args.top_k,
+        do_sample=args.sampling,
     )[0].tolist()
     print("\n--- sample ---")
     print(tokenizer.decode(generated))

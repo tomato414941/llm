@@ -35,5 +35,6 @@ summary = "tracks/from-scratch/runs/summaries/observations.csv"
 generate_tokens = 200
 temperature = 1.0
 top_k = 20
+sampling = true
 seed = 1337
 samples = 3

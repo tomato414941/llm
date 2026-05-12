@@ -45,6 +45,7 @@ def config_defaults(config: dict[str, Any]) -> dict[str, Any]:
         "generate_tokens": nested_get(config, "generation", "generate_tokens"),
         "temperature": nested_get(config, "generation", "temperature"),
         "top_k": nested_get(config, "generation", "top_k"),
+        "sampling": nested_get(config, "generation", "sampling"),
     }
 
 
@@ -60,6 +61,7 @@ def observe_config_defaults(config: dict[str, Any]) -> dict[str, Any]:
         "max_new_tokens": nested_get(config, "generation", "generate_tokens"),
         "temperature": nested_get(config, "generation", "temperature"),
         "top_k": nested_get(config, "generation", "top_k"),
+        "sampling": nested_get(config, "generation", "sampling"),
         "seed": nested_get(config, "generation", "seed"),
         "samples": nested_get(config, "generation", "samples"),
     }

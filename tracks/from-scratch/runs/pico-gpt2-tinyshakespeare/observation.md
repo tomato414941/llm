@@ -9,7 +9,7 @@
 ## Checkpoint
 
 - step: 2999
-- metadata: `{'run_id': 'pico_gpt2_tinyshakespeare', 'config_path': 'tracks/from-scratch/configs/pico-gpt2-tinyshakespeare.toml', 'manifest_path': 'tracks/from-scratch/data/manifest.example.toml', 'max_iters': 3000, 'batch_size': 32, 'learning_rate': 0.001, 'warmup_iters': 100, 'lr_decay_iters': 3000, 'min_learning_rate': 0.0001, 'seed': 1337, 'device': 'cuda', 'parameter_count': 235892, 'tokenizer': 'bpe', 'tokenizer_path': 'tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.json', 'input': 'tracks/from-scratch/data/raw/tinyshakespeare.txt', 'byte_count': 1115394, 'token_count': 574057, 'vocab_size': 500, 'tokens': 'tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt'}`
+- metadata: `{'run_id': 'pico_gpt2_tinyshakespeare', 'config_path': 'tracks/from-scratch/runs/pico-gpt2-tinyshakespeare/config.toml', 'manifest_path': 'tracks/from-scratch/data/manifests/tinyshakespeare-bpe-500.toml', 'max_iters': 3000, 'batch_size': 32, 'learning_rate': 0.001, 'warmup_iters': 100, 'lr_decay_iters': 3000, 'min_learning_rate': 0.0001, 'seed': 1337, 'device': 'cuda', 'parameter_count': 235892, 'tokenizer': 'bpe', 'tokenizer_path': 'tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.json', 'input': 'tracks/from-scratch/data/raw/tinyshakespeare.txt', 'byte_count': 1115394, 'token_count': 574057, 'vocab_size': 500, 'tokens': 'tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt'}`
 - run_id: `pico_gpt2_tinyshakespeare`
 
 ## Token Data
@@ -120,7 +120,7 @@ Then cake your spar
 ## Checkpoint
 
 - step: 2999
-- metadata: `{'run_id': 'pico_gpt2_tinyshakespeare', 'config_path': 'tracks/from-scratch/configs/pico-gpt2-tinyshakespeare.toml', 'manifest_path': 'tracks/from-scratch/data/manifest.example.toml', 'max_iters': 3000, 'batch_size': 32, 'learning_rate': 0.001, 'warmup_iters': 100, 'lr_decay_iters': 3000, 'min_learning_rate': 0.0001, 'seed': 1337, 'device': 'cuda', 'parameter_count': 235892, 'tokenizer': 'bpe', 'tokenizer_path': 'tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.json', 'input': 'tracks/from-scratch/data/raw/tinyshakespeare.txt', 'byte_count': 1115394, 'token_count': 574057, 'vocab_size': 500, 'tokens': 'tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt'}`
+- metadata: `{'run_id': 'pico_gpt2_tinyshakespeare', 'config_path': 'tracks/from-scratch/runs/pico-gpt2-tinyshakespeare/config.toml', 'manifest_path': 'tracks/from-scratch/data/manifests/tinyshakespeare-bpe-500.toml', 'max_iters': 3000, 'batch_size': 32, 'learning_rate': 0.001, 'warmup_iters': 100, 'lr_decay_iters': 3000, 'min_learning_rate': 0.0001, 'seed': 1337, 'device': 'cuda', 'parameter_count': 235892, 'tokenizer': 'bpe', 'tokenizer_path': 'tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.json', 'input': 'tracks/from-scratch/data/raw/tinyshakespeare.txt', 'byte_count': 1115394, 'token_count': 574057, 'vocab_size': 500, 'tokens': 'tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt'}`
 - run_id: `pico_gpt2_tinyshakespeare`
 
 ## Token Data

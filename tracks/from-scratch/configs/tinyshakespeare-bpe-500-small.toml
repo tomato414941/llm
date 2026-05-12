@@ -27,9 +27,9 @@ eval_iters = 20
 batch_size = 32
 
 [outputs]
-checkpoint = "tracks/from-scratch/runs/checkpoints/tinyshakespeare-bpe-500-small.pt"
-metrics = "tracks/from-scratch/runs/metrics/tinyshakespeare-bpe-500-small.csv"
-observation = "tracks/from-scratch/runs/observations/tinyshakespeare-bpe-500-small.md"
+checkpoint = "tracks/from-scratch/runs/tinyshakespeare-bpe-500-small/checkpoint.pt"
+metrics = "tracks/from-scratch/runs/tinyshakespeare-bpe-500-small/metrics.csv"
+observation = "tracks/from-scratch/runs/tinyshakespeare-bpe-500-small/observation.md"
 summary = "tracks/from-scratch/runs/summaries/observations.csv"
 
 [generation]

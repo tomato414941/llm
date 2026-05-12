@@ -2,9 +2,9 @@
 
 ## Inputs
 
-- checkpoint: `tracks/from-scratch/checkpoints/pico-gpt2-tinyshakespeare.pt`
+- checkpoint: `tracks/from-scratch/runs/pico-gpt2-tinyshakespeare/checkpoint.pt`
 - tokens: `tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt`
-- output: `tracks/from-scratch/runs/observations/pico-gpt2-tinyshakespeare.md`
+- output: `tracks/from-scratch/runs/pico-gpt2-tinyshakespeare/observation.md`
 
 ## Checkpoint
 
@@ -113,9 +113,9 @@ Then cake your spar
 
 ## Inputs
 
-- checkpoint: `tracks/from-scratch/checkpoints/pico-gpt2-tinyshakespeare.pt`
+- checkpoint: `tracks/from-scratch/runs/pico-gpt2-tinyshakespeare/checkpoint.pt`
 - tokens: `tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt`
-- output: `tracks/from-scratch/runs/observations/pico-gpt2-tinyshakespeare.md`
+- output: `tracks/from-scratch/runs/pico-gpt2-tinyshakespeare/observation.md`
 
 ## Checkpoint
 

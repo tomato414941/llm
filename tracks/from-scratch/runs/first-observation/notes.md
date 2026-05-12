@@ -12,8 +12,8 @@ This note is about observation, not optimization.
 ```bash
 uv run python -m llm.train \
   --tokens tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt \
-  --checkpoint tracks/from-scratch/checkpoints/mini-gpt.pt \
-  --metrics-output tracks/from-scratch/runs/metricstinyshakespeare-bpe-500.csv
+  --checkpoint tracks/from-scratch/runs/mini-gpt/checkpoint.pt \
+  --metrics-output tracks/from-scratch/runs/tinyshakespeare-bpe-500/metrics.csv
 ```
 
 Use smaller values such as `--max-iters 100` or `--eval-interval 20` when the
@@ -62,8 +62,8 @@ Command:
 ```bash
 uv run python -m llm.train \
   --tokens tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt \
-  --checkpoint tracks/from-scratch/checkpoints/first-observation.pt \
-  --metrics-output tracks/from-scratch/runs/metricsfirst-observation.csv \
+  --checkpoint tracks/from-scratch/runs/first-observation/checkpoint.pt \
+  --metrics-output tracks/from-scratch/runs/first-observation/metrics.csv \
   --max-iters 100 \
   --eval-interval 20 \
   --eval-iters 5 \

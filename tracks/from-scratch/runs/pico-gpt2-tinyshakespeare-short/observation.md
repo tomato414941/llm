@@ -2,9 +2,9 @@
 
 ## Inputs
 
-- checkpoint: `tracks/from-scratch/checkpoints/pico-gpt2-tinyshakespeare-short.pt`
+- checkpoint: `tracks/from-scratch/runs/pico-gpt2-tinyshakespeare-short/checkpoint.pt`
 - tokens: `tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt`
-- output: `tracks/from-scratch/runs/observations/pico-gpt2-tinyshakespeare-short.md`
+- output: `tracks/from-scratch/runs/pico-gpt2-tinyshakespeare-short/observation.md`
 
 ## Checkpoint
 
@@ -47,9 +47,9 @@ i, e
 
 ## Inputs
 
-- checkpoint: `tracks/from-scratch/checkpoints/pico-gpt2-tinyshakespeare-short.pt`
+- checkpoint: `tracks/from-scratch/runs/pico-gpt2-tinyshakespeare-short/checkpoint.pt`
 - tokens: `tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt`
-- output: `tracks/from-scratch/runs/observations/pico-gpt2-tinyshakespeare-short.md`
+- output: `tracks/from-scratch/runs/pico-gpt2-tinyshakespeare-short/observation.md`
 
 ## Checkpoint
 

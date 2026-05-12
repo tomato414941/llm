@@ -2,9 +2,9 @@
 
 ## Inputs
 
-- checkpoint: `tracks/from-scratch/checkpoints/first-observation.pt`
+- checkpoint: `tracks/from-scratch/runs/first-observation/checkpoint.pt`
 - tokens: `tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt`
-- output: `tracks/from-scratch/runs/observations/first-observation.md`
+- output: `tracks/from-scratch/runs/first-observation/observation.md`
 
 ## Checkpoint
 

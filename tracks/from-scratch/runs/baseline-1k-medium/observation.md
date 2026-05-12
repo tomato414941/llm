@@ -2,9 +2,9 @@
 
 ## Inputs
 
-- checkpoint: `tracks/from-scratch/checkpoints/baseline-1k-medium.pt`
+- checkpoint: `tracks/from-scratch/runs/baseline-1k-medium/checkpoint.pt`
 - tokens: `tracks/from-scratch/data/processed/tinyshakespeare_bpe_500.pt`
-- output: `tracks/from-scratch/runs/observations/baseline-1k-medium.md`
+- output: `tracks/from-scratch/runs/baseline-1k-medium/observation.md`
 
 ## Checkpoint
 

@@ -58,6 +58,7 @@ def valid_args(**overrides) -> Namespace:
         "generate_tokens": 1,
         "dropout": 0.0,
         "learning_rate": 1e-3,
+        "weight_decay": 0.1,
         "warmup_iters": 0,
         "lr_decay_iters": 1,
         "min_learning_rate": None,
@@ -81,6 +82,9 @@ def test_validate_args_rejects_invalid_ranges() -> None:
 
     with pytest.raises(ValueError, match="--learning-rate"):
         validate_args(valid_args(learning_rate=0))
+
+    with pytest.raises(ValueError, match="--weight-decay"):
+        validate_args(valid_args(weight_decay=-1e-3))
 
     with pytest.raises(ValueError, match="--warmup-iters"):
         validate_args(valid_args(warmup_iters=-1))
@@ -116,6 +120,7 @@ max_iters = 2
 warmup_iters = 1
 lr_decay_iters = 2
 min_learning_rate = 0.0001
+weight_decay = 0.2
 seed = 7
 
 [model]
@@ -138,6 +143,7 @@ sampling = false
     assert defaults["warmup_iters"] == 1
     assert defaults["lr_decay_iters"] == 2
     assert defaults["min_learning_rate"] == 0.0001
+    assert defaults["weight_decay"] == 0.2
     assert defaults["seed"] == 7
     assert defaults["block_size"] == 8
     assert defaults["checkpoint"] == "tracks/from-scratch/checkpoints/smoke.pt"
@@ -152,6 +158,7 @@ def test_parse_args_reads_lr_schedule_from_config(tmp_path, monkeypatch) -> None
 warmup_iters = 2
 lr_decay_iters = 4
 min_learning_rate = 0.0001
+weight_decay = 0.2
 """,
         encoding="utf-8",
     )
@@ -162,6 +169,7 @@ min_learning_rate = 0.0001
     assert args.warmup_iters == 2
     assert args.lr_decay_iters == 4
     assert args.min_learning_rate == 0.0001
+    assert args.weight_decay == 0.2
 
 
 def test_save_checkpoint_includes_resume_state(tmp_path) -> None:
@@ -175,7 +183,7 @@ def test_save_checkpoint_includes_resume_state(tmp_path) -> None:
     )
     model = TransformerLanguageModel(config)
     tokenizer = CharTokenizer.from_text("abc")
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
+    optimizer = model.configure_optimizers(learning_rate=1e-3, weight_decay=0.1)
     path = tmp_path / "checkpoint.pt"
 
     save_checkpoint(

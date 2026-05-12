@@ -110,6 +110,42 @@ class TransformerLanguageModel(nn.Module):
             torch.nn.init.normal_(block.attention.projection.weight, mean=0.0, std=std)
             torch.nn.init.normal_(block.feed_forward.output_projection.weight, mean=0.0, std=std)
 
+    def configure_optimizers(
+        self,
+        learning_rate: float,
+        weight_decay: float,
+        betas: tuple[float, float] = (0.9, 0.95),
+    ) -> torch.optim.Optimizer:
+        decay: dict[int, nn.Parameter] = {}
+        no_decay: dict[int, nn.Parameter] = {}
+        decay_modules = (nn.Linear,)
+        no_decay_modules = (nn.LayerNorm, nn.Embedding)
+
+        for module in self.modules():
+            for parameter_name, parameter in module.named_parameters(recurse=False):
+                if not parameter.requires_grad:
+                    continue
+                parameter_id = id(parameter)
+                if parameter_name.endswith("bias") or isinstance(module, no_decay_modules):
+                    no_decay[parameter_id] = parameter
+                    decay.pop(parameter_id, None)
+                elif isinstance(module, decay_modules) and parameter_id not in no_decay:
+                    decay[parameter_id] = parameter
+
+        parameters = {id(parameter): parameter for parameter in self.parameters() if parameter.requires_grad}
+        missing = parameters.keys() - decay.keys() - no_decay.keys()
+        if missing:
+            raise RuntimeError(f"optimizer parameter groups missed {len(missing)} parameters")
+
+        return torch.optim.AdamW(
+            [
+                {"params": list(decay.values()), "weight_decay": weight_decay},
+                {"params": list(no_decay.values()), "weight_decay": 0.0},
+            ],
+            lr=learning_rate,
+            betas=betas,
+        )
+
     def forward(
         self, idx: torch.Tensor, targets: torch.Tensor | None = None
     ) -> tuple[torch.Tensor, torch.Tensor | None]:

@@ -126,6 +126,35 @@ def test_transformer_language_model_scales_residual_projection_init() -> None:
     assert abs(block.feed_forward.input_projection.weight.std().item() - 0.02) < 0.002
 
 
+def test_transformer_language_model_configures_adamw_parameter_groups() -> None:
+    config = TransformerConfig(
+        vocab_size=64,
+        block_size=8,
+        embedding_dim=64,
+        num_heads=4,
+        num_layers=2,
+        dropout=0.0,
+    )
+    model = TransformerLanguageModel(config)
+    optimizer = model.configure_optimizers(learning_rate=1e-3, weight_decay=0.1)
+    decay_group, no_decay_group = optimizer.param_groups
+    decay_ids = {id(parameter) for parameter in decay_group["params"]}
+    no_decay_ids = {id(parameter) for parameter in no_decay_group["params"]}
+    parameter_ids = {id(parameter) for parameter in model.parameters()}
+    block = model.blocks[0]
+
+    assert isinstance(optimizer, torch.optim.AdamW)
+    assert decay_group["weight_decay"] == 0.1
+    assert no_decay_group["weight_decay"] == 0.0
+    assert decay_ids.isdisjoint(no_decay_ids)
+    assert decay_ids | no_decay_ids == parameter_ids
+    assert id(block.attention.projection.weight) in decay_ids
+    assert id(block.feed_forward.input_projection.weight) in decay_ids
+    assert id(block.layer_norm_1.weight) in no_decay_ids
+    assert id(block.attention.projection.bias) in no_decay_ids
+    assert id(model.token_embedding_table.weight) in no_decay_ids
+
+
 def test_transformer_language_model_rejects_too_long_context() -> None:
     config = TransformerConfig(
         vocab_size=5,

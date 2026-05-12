@@ -18,6 +18,7 @@ eval_interval = 300
 eval_iters = 20
 batch_size = 32
 learning_rate = 0.001
+weight_decay = 0.1
 min_learning_rate = 0.0001
 warmup_iters = 100
 lr_decay_iters = 3000

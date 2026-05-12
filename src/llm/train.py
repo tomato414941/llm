@@ -186,6 +186,8 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--dropout must be in [0, 1)")
     if args.learning_rate <= 0:
         raise ValueError("--learning-rate must be positive")
+    if args.weight_decay < 0:
+        raise ValueError("--weight-decay must be non-negative")
     if args.warmup_iters < 0:
         raise ValueError("--warmup-iters must be non-negative")
     if args.lr_decay_iters <= 0:
@@ -223,6 +225,7 @@ def build_parser(defaults: dict[str, object]) -> argparse.ArgumentParser:
     parser.add_argument("--num-layers", type=int)
     parser.add_argument("--dropout", type=float)
     parser.add_argument("--learning-rate", type=float)
+    parser.add_argument("--weight-decay", type=float)
     parser.add_argument("--warmup-iters", type=int)
     parser.add_argument("--lr-decay-iters", type=int)
     parser.add_argument("--min-learning-rate", type=float)
@@ -250,6 +253,7 @@ def parse_args() -> argparse.Namespace:
         "num_layers": 2,
         "dropout": 0.0,
         "learning_rate": 1e-3,
+        "weight_decay": 0.1,
         "warmup_iters": 0,
         "lr_decay_iters": 3000,
         "min_learning_rate": None,
@@ -327,7 +331,10 @@ def main() -> None:
     parameter_count = count_parameters(model)
     print(f"parameters: {parameter_count:,}")
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
+    optimizer = model.configure_optimizers(
+        learning_rate=args.learning_rate,
+        weight_decay=args.weight_decay,
+    )
     latest_losses = {"train": float("nan"), "val": float("nan")}
     start_step = 0
     tokens_seen = 0
@@ -397,6 +404,7 @@ def main() -> None:
             "max_iters": args.max_iters,
             "batch_size": args.batch_size,
             "learning_rate": args.learning_rate,
+            "weight_decay": args.weight_decay,
             "warmup_iters": args.warmup_iters,
             "lr_decay_iters": args.lr_decay_iters,
             "min_learning_rate": args.min_learning_rate

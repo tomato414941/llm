@@ -33,6 +33,7 @@ def config_defaults(config: dict[str, Any]) -> dict[str, Any]:
         "eval_iters": nested_get(config, "train", "eval_iters"),
         "batch_size": nested_get(config, "train", "batch_size"),
         "learning_rate": nested_get(config, "train", "learning_rate"),
+        "weight_decay": nested_get(config, "train", "weight_decay"),
         "min_learning_rate": nested_get(config, "train", "min_learning_rate"),
         "warmup_iters": nested_get(config, "train", "warmup_iters"),
         "lr_decay_iters": nested_get(config, "train", "lr_decay_iters"),

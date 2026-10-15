@@ -13,7 +13,7 @@ import time
 
 
 DEFAULT_RUNPODCTL = "/home/dev/bin/runpodctl"
-DEFAULT_SECRET_PATH = Path.home() / ".secrets" / "runpod"
+DEFAULT_SECRET_PATH = Path.home() / ".config" / "runpod" / "api-key"
 DEFAULT_SSH_KEY = Path.home() / ".runpod" / "ssh" / "RunPod-Key-Go"
 DEFAULT_SSH_PUBLIC_KEY = Path.home() / ".runpod" / "ssh" / "RunPod-Key-Go.pub"
 DEFAULT_REMOTE_DIR = "/workspace/llm"

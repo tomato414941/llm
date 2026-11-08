@@ -10,7 +10,11 @@ SPEC = importlib.util.spec_from_file_location("runpod_run_once", MODULE_PATH)
 assert SPEC is not None
 runpod_run_once = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
-SPEC.loader.exec_module(runpod_run_once)
+sys.path.insert(0, str(MODULE_PATH.parent))
+try:
+    SPEC.loader.exec_module(runpod_run_once)
+finally:
+    sys.path.pop(0)
 
 
 def write_repo_shape(tmp_path: Path) -> None:
@@ -151,3 +155,87 @@ def test_build_shared_runner_command_uses_image_when_template_is_disabled(
 
     assert "--template-id" not in command
     assert command[command.index("--image") + 1] == "runpod/pytorch:test"
+
+
+def test_load_api_key_reads_quoted_dotenv_value(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("RUNPOD_API_KEY", raising=False)
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        'export RUNPOD_API_KEY="example-runpod-key" # local credential\n',
+        encoding="utf-8",
+    )
+
+    assert runpod_run_once.load_api_key(env_file) == "example-runpod-key"
+
+
+def test_load_api_key_prefers_injected_environment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("RUNPOD_API_KEY", "injected-runpod-key")
+    env_file = tmp_path / ".env"
+    env_file.write_text("RUNPOD_API_KEY=local-runpod-key\n", encoding="utf-8")
+
+    assert runpod_run_once.load_api_key(env_file) == "injected-runpod-key"
+
+
+@pytest.mark.parametrize(
+    "content",
+    [None, "", "OTHER=value\n", "RUNPOD_API_KEY=\n", "RUNPOD_API_KEY\n", "RUNPOD_API_KEY='   '\n"],
+)
+def test_load_api_key_reports_missing_key(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, content: str | None
+) -> None:
+    monkeypatch.delenv("RUNPOD_API_KEY", raising=False)
+    env_file = tmp_path / ".env"
+    if content is not None:
+        env_file.write_text(content, encoding="utf-8")
+
+    with pytest.raises(ValueError, match="RUNPOD_API_KEY"):
+        runpod_run_once.load_api_key(env_file)
+
+
+def test_main_delivers_dotenv_key_to_runner_from_repo_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("RUNPOD_API_KEY", raising=False)
+    write_repo_shape(tmp_path)
+    (tmp_path / ".env").write_text("RUNPOD_API_KEY=example-runpod-key\n", encoding="utf-8")
+    (tmp_path / "run_job.py").write_text(
+        "import os\n"
+        "raise SystemExit(7 if os.environ.get('RUNPOD_API_KEY') == 'example-runpod-key' else 9)\n",
+        encoding="utf-8",
+    )
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    (elsewhere / ".env").write_text("RUNPOD_API_KEY=other-project-key\n", encoding="utf-8")
+    monkeypatch.chdir(elsewhere)
+    parse_with(monkeypatch, tmp_path, [])
+
+    assert runpod_run_once.main() == 7
+
+
+def test_main_reports_missing_runpod_key(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.delenv("RUNPOD_API_KEY", raising=False)
+    write_repo_shape(tmp_path)
+    parse_with(monkeypatch, tmp_path, [])
+
+    assert runpod_run_once.main() == 2
+    assert "RUNPOD_API_KEY" in capsys.readouterr().err
+
+
+def test_main_dry_run_runs_without_credentials(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("RUNPOD_API_KEY", raising=False)
+    write_repo_shape(tmp_path)
+    (tmp_path / "run_job.py").write_text(
+        "import sys\nraise SystemExit(0 if '--dry-run' in sys.argv else 9)\n",
+        encoding="utf-8",
+    )
+    parse_with(monkeypatch, tmp_path, ["--dry-run"])
+
+    assert runpod_run_once.main() == 0

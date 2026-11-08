@@ -11,9 +11,10 @@ import subprocess
 import sys
 import time
 
+from dotenv import dotenv_values
+
 
 DEFAULT_RUNPODCTL = "/home/dev/bin/runpodctl"
-DEFAULT_SECRET_PATH = Path.home() / ".config" / "runpod" / "api-key"
 DEFAULT_SSH_KEY = Path.home() / ".runpod" / "ssh" / "RunPod-Key-Go"
 DEFAULT_SSH_PUBLIC_KEY = Path.home() / ".runpod" / "ssh" / "RunPod-Key-Go.pub"
 DEFAULT_REMOTE_DIR = "/workspace/llm"
@@ -31,10 +32,10 @@ class CommandError(RuntimeError):
 
 
 def load_api_key(path: Path) -> str:
-    key = path.read_text(encoding="utf-8").strip()
-    if not key:
-        raise ValueError(f"RunPod API key file is empty: {path}")
-    return key
+    key = os.environ.get("RUNPOD_API_KEY") or dotenv_values(path).get("RUNPOD_API_KEY")
+    if not key or not key.strip():
+        raise ValueError("Set RUNPOD_API_KEY in the environment or the project's .env file")
+    return key.strip()
 
 
 def shell_join(command: list[str]) -> str:

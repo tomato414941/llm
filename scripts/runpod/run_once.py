@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 import argparse
+import os
 from pathlib import Path
 import shlex
 import subprocess
 import sys
+
+from runpod_common import load_api_key
 
 
 DEFAULT_TEMPLATE_ID = "runpod-torch-v280"
@@ -11,7 +14,6 @@ DEFAULT_IMAGE = "runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404"
 DEFAULT_SYNC = ("src", "tests", "pyproject.toml", "uv.lock", "README.md", "AGENTS.md", "LICENSE")
 DEFAULT_REMOTE_DIR = "/workspace/llm"
 DEFAULT_RUNPODCTL = "/home/dev/bin/runpodctl"
-DEFAULT_SECRET_PATH = Path.home() / ".config" / "runpod" / "api-key"
 DEFAULT_SSH_KEY = Path.home() / ".runpod" / "ssh" / "RunPod-Key-Go"
 DEFAULT_SSH_PUBLIC_KEY = Path.home() / ".runpod" / "ssh" / "RunPod-Key-Go.pub"
 DEFAULT_SHARED_RUNNER = Path.home() / "projects" / "runpod-job-runner" / "scripts" / "run_job.py"
@@ -92,8 +94,6 @@ def build_shared_runner_command(args: argparse.Namespace) -> list[str]:
         args.name,
         "--runpodctl",
         args.runpodctl,
-        "--secret-path",
-        str(args.secret_path),
         "--ssh-key",
         str(args.ssh_key),
         "--ssh-public-key",
@@ -177,7 +177,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--secure-cloud", action="store_true")
     parser.add_argument("--data-center-ids", default="")
     parser.add_argument("--runpodctl", default=DEFAULT_RUNPODCTL)
-    parser.add_argument("--secret-path", type=Path, default=DEFAULT_SECRET_PATH)
     parser.add_argument("--ssh-key", type=Path, default=DEFAULT_SSH_KEY)
     parser.add_argument("--ssh-public-key", type=Path, default=DEFAULT_SSH_PUBLIC_KEY)
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
@@ -203,7 +202,16 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     preflight(args)
-    return subprocess.run(build_shared_runner_command(args), cwd=args.repo_root, check=False).returncode
+    env = os.environ.copy()
+    if not args.dry_run:
+        try:
+            env["RUNPOD_API_KEY"] = load_api_key(args.repo_root / ".env")
+        except ValueError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
+    return subprocess.run(
+        build_shared_runner_command(args), cwd=args.repo_root, env=env, check=False
+    ).returncode
 
 
 if __name__ == "__main__":
